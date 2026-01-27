@@ -1,0 +1,243 @@
+/**
+ * @runwayml/avatars-react Default Styles
+ *
+ * Optional styles for a quick, polished look.
+ * Import this file to get started, then customize via CSS custom properties.
+ *
+ * @example
+ * import '@runwayml/avatars-react/styles.css';
+ *
+ * Customize via CSS variables:
+ * :root {
+ *   --avatar-bg: #8b5cf6;
+ *   --avatar-radius: 24px;
+ * }
+ */
+
+/* CSS Custom Properties */
+:root {
+  --avatar-bg-connecting: #1a1a1a;
+  --avatar-radius: 16px;
+  --avatar-control-bg: rgba(255, 255, 255, 0.1);
+  --avatar-control-bg-hover: rgba(255, 255, 255, 0.2);
+  --avatar-control-size: 48px;
+  --avatar-end-call-bg: #ef4444;
+  --avatar-end-call-bg-hover: #dc2626;
+  --avatar-text-color: #ffffff;
+  --avatar-text-secondary: rgba(255, 255, 255, 0.7);
+  --avatar-pip-size: 120px;
+  --avatar-pip-radius: 12px;
+}
+
+/* AvatarCall Container */
+[data-avatar-call] {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--avatar-bg-connecting);
+  border-radius: var(--avatar-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Blurred avatar image background */
+[data-avatar-call]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--avatar-image);
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.5);
+  transform: scale(1.1);
+  z-index: 0;
+}
+
+/* AvatarVideo */
+[data-has-video] {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+[data-has-video] video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[data-has-video="true"] {
+  background: transparent;
+}
+
+/* Speaking indicator glow */
+[data-speaking="true"] {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5);
+}
+
+/* ControlBar */
+[data-active] {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+  z-index: 2;
+}
+
+@media (max-width: 480px) {
+  [data-active] {
+    padding: 16px;
+    gap: 8px;
+  }
+}
+
+/* Control buttons */
+[data-control] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--avatar-control-size);
+  height: var(--avatar-control-size);
+  border-radius: 50%;
+  border: none;
+  background: var(--avatar-control-bg);
+  color: var(--avatar-text-color);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+@media (max-width: 480px) {
+  [data-control] {
+    width: 40px;
+    height: 40px;
+  }
+  
+  [data-control] svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+[data-control]:hover {
+  background: var(--avatar-control-bg-hover);
+}
+
+[data-control]:focus-visible {
+  outline: 2px solid var(--avatar-text-color);
+  outline-offset: 2px;
+}
+
+/* Disabled state (muted) */
+[data-control][data-enabled="false"] {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+/* End call button */
+[data-control="end-call"] {
+  background: var(--avatar-end-call-bg);
+}
+
+[data-control="end-call"]:hover {
+  background: var(--avatar-end-call-bg-hover);
+}
+
+/* UserVideo (self-view PIP) */
+[data-camera-enabled] {
+  position: absolute;
+  bottom: 88px;
+  right: 24px;
+  width: var(--avatar-pip-size);
+  aspect-ratio: 4 / 3;
+  border-radius: var(--avatar-pip-radius);
+  overflow: hidden;
+  background: var(--avatar-bg-connecting);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+@media (max-width: 480px) {
+  [data-camera-enabled] {
+    width: 80px;
+    bottom: 72px;
+    right: 12px;
+    border-radius: 8px;
+  }
+}
+
+[data-camera-enabled] video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[data-mirror="true"] video {
+  transform: scaleX(-1);
+}
+
+/* ScreenShareVideo */
+[data-sharing] {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+[data-sharing] video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Loading skeleton animation */
+@keyframes avatar-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+[data-avatar-call][data-state="connecting"]::after {
+  content: "Connecting…";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--avatar-text-color);
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 1;
+  animation: avatar-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-avatar-call][data-state="connecting"]::after {
+    animation: none;
+  }
+}
+
+/* Error state */
+[data-avatar-call][data-state="error"]::after {
+  content: "Connection failed";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fca5a5;
+  font-size: 16px;
+  font-weight: 500;
+  z-index: 1;
+}

@@ -1,0 +1,30 @@
+{
+  "name": "avatar-express-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "cd node_modules/@runwayml && rm -f avatars-react && ln -s ../../../.. avatars-react",
+    "dev": "concurrently \"vite\" \"tsx watch --env-file=.env server.ts\"",
+    "build": "vite build",
+    "start": "tsx server.ts"
+  },
+  "dependencies": {
+    "@runwayml/avatars-react": "link:../..",
+    "@runwayml/sdk": "^1.0.0",
+    "express": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^9.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^6.0.0"
+  }
+}

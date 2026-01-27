@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@runwayml/avatars-react": ["../../dist/index.d.ts"],
+      "@runwayml/avatars-react/api": ["../../dist/api.d.ts"],
+      "@runwayml/avatars-react/styles.css": ["../../dist/styles.css"]
+    }
+  },
+  "include": ["src/**/*", "server.ts"]
+}
