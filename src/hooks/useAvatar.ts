@@ -66,7 +66,7 @@ export function useAvatar(): UseAvatarReturn {
     return () => {
       avatarParticipant.off(ParticipantEvent.IsSpeakingChanged, handleIsSpeakingChanged);
     };
-  }, [avatarIdentity]);
+  }, [avatarParticipant]);
 
   const tracks = useTracks(
     [

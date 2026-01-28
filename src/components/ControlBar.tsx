@@ -93,7 +93,7 @@ export function ControlBar({
 
 function MicrophoneIcon() {
   return (
-    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -106,7 +106,7 @@ function MicrophoneIcon() {
 
 function CameraIcon() {
   return (
-    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -119,7 +119,7 @@ function CameraIcon() {
 
 function ScreenShareIcon() {
   return (
-    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
