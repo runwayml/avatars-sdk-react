@@ -1,7 +1,7 @@
 {
-  "name": "@runwayml/avatar-react",
-  "version": "0.1.0",
-  "description": "React SDK for real-time AI avatar interactions with GWM-1",
+  "name": "@robinandeer/rtc-session-components",
+  "version": "0.2.0",
+  "description": "Headless React components for WebRTC video sessions",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -41,27 +41,14 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
-    "runwayml",
-    "avatar",
-    "ai",
     "react",
-    "hooks",
-    "realtime",
-    "gwm-1",
-    "video",
     "webrtc",
-    "streaming"
+    "livekit",
+    "video",
+    "streaming",
+    "hooks"
   ],
-  "author": "RunwayML",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/runwayml/avatar-sdk-react.git"
-  },
-  "bugs": {
-    "url": "https://github.com/runwayml/avatar-sdk-react/issues"
-  },
-  "homepage": "https://github.com/runwayml/avatar-sdk-react#readme",
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
