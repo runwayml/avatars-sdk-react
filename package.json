@@ -34,8 +34,7 @@
     "lint:fix": "biome lint --write src/",
     "format": "biome format --write src/",
     "check": "biome check src/",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "runwayml",
