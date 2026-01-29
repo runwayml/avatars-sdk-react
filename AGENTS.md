@@ -37,11 +37,20 @@ npm run test       # Run tests
 ## Component Hierarchy
 
 ```
-<AvatarSession credentials={...}>     # Required wrapper, provides LiveKit room
-  <AvatarVideo />                      # Remote avatar video
-  <UserVideo />                        # Local user camera
-  <ControlBar />                       # Media controls
-  <ScreenShareVideo />                 # Screen share display
+# Primary API (recommended)
+<AvatarCall avatarId={...} connectUrl={...}>  # Handles session creation
+  <AvatarVideo />                              # Remote avatar video
+  <UserVideo />                                # Local user camera
+  <ControlBar />                               # Media controls
+  <ScreenShareVideo />                         # Screen share display
+</AvatarCall>
+
+# Advanced API (full control)
+<AvatarSession credentials={...}>     # Requires pre-fetched credentials
+  <AvatarVideo />
+  <UserVideo />
+  <ControlBar />
+  <ScreenShareVideo />
 </AvatarSession>
 ```
 
@@ -61,7 +70,7 @@ All components support render props for custom rendering:
 
 ### Hook Usage
 
-Hooks must be used within `<AvatarSession>`:
+Hooks must be used within `<AvatarCall>` or `<AvatarSession>`:
 
 - `useAvatarSession()` - Session state and controls
 - `useAvatar()` - Remote avatar tracks

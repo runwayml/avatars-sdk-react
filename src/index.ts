@@ -1,45 +1,17 @@
-// Components
-export {
-  AvatarSession,
-  useAvatarSessionContext,
-  useMaybeAvatarSessionContext,
-} from './components/AvatarSession';
-
-export {
-  AvatarVideo,
-  type AvatarVideoProps,
-  type AvatarVideoState,
-} from './components/AvatarVideo';
-
-export { UserVideo, type UserVideoProps, type UserVideoState } from './components/UserVideo';
-
-export { ControlBar, type ControlBarProps, type ControlBarState } from './components/ControlBar';
-
-export {
-  ScreenShareVideo,
-  type ScreenShareVideoProps,
-  type ScreenShareVideoState,
-} from './components/ScreenShareVideo';
-
 export { AudioRenderer } from './components/AudioRenderer';
-
-// Hooks
-export { useAvatarSession, type UseAvatarSessionReturn } from './hooks/useAvatarSession';
+export { AvatarCall } from './components/AvatarCall';
+export { AvatarSession } from './components/AvatarSession';
+export { AvatarVideo } from './components/AvatarVideo';
+export { ControlBar } from './components/ControlBar';
+export { ScreenShareVideo } from './components/ScreenShareVideo';
+export { UserVideo } from './components/UserVideo';
 
 export { useAvatar } from './hooks/useAvatar';
-
+export { useAvatarSession } from './hooks/useAvatarSession';
 export { useLocalMedia } from './hooks/useLocalMedia';
 
-// API Client
-export { consumeSession } from './api/consume';
-
-// Types
 export type {
-  SessionState,
+  AvatarCallProps,
   SessionCredentials,
-  ConsumeSessionOptions,
-  AvatarSessionContextValue,
-  AvatarSessionProps,
-  UseAvatarReturn,
-  UseLocalMediaReturn,
+  SessionState,
 } from './types';

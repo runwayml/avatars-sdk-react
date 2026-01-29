@@ -1,200 +1,271 @@
 # @runwayml/avatar-react
 
-React SDK for real-time AI avatar interactions with GWM-1.
+React SDK for real-time AI avatar video calls.
 
 ## Installation
 
 ```bash
 npm install @runwayml/avatar-react
-# or
-bun add @runwayml/avatar-react
 ```
 
 ## Quick Start
 
+Add an avatar call to your app with just a few lines:
+
 ```tsx
-import { AvatarProvider, useAvatar, AvatarCanvas } from '@runwayml/avatar-react';
+import { AvatarCall } from '@runwayml/avatar-react';
 
 function App() {
   return (
-    <AvatarProvider config={{ apiKey: process.env.RUNWAYML_API_KEY! }}>
-      <AvatarDemo />
-    </AvatarProvider>
+    <AvatarCall
+      avatarId="avatar_abc123"
+      connectUrl="/api/avatar/connect"
+    />
   );
 }
+```
 
-function AvatarDemo() {
-  const { connect, disconnect, speak, isConnected, isConnecting } = useAvatar();
+That's it! The component handles session creation, WebRTC connection, and renders a default UI with the avatar video and controls.
 
-  const handleConnect = async () => {
-    await connect({ modelId: 'gwm-1' });
-  };
+### Optional: Add Default Styles
+
+Import the optional stylesheet for a polished look out of the box:
+
+```tsx
+import '@runwayml/avatar-react/styles.css';
+```
+
+The styles use CSS custom properties for easy customization:
+
+```css
+:root {
+  --avatar-bg: #a78bfa;           /* Video background color */
+  --avatar-radius: 16px;          /* Container border radius */
+  --avatar-control-size: 48px;    /* Control button size */
+  --avatar-end-call-bg: #ef4444;  /* End call button color */
+}
+```
+
+See [`examples/nextjs`](./examples/nextjs) for a complete working example.
+
+## Server Setup
+
+Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create the session:
+
+```ts
+// /api/avatar/connect (Next.js App Router example)
+import Runway from '@runwayml/sdk';
+
+const runway = new Runway(); // Uses RUNWAY_API_KEY env var
+
+export async function POST(req: Request) {
+  const { avatarId } = await req.json();
+
+  const session = await runway.realtime.sessions.create({
+    model: 'gen4_turbo',
+    options: { avatar: avatarId },
+  });
+
+  return Response.json({
+    sessionId: session.id,
+    livekitUrl: session.livekit_url,
+    token: session.token,
+    roomName: session.room_name,
+  });
+}
+```
+
+## Customization
+
+### Custom Connect Function
+
+For more control over the connection flow:
+
+```tsx
+<AvatarCall
+  avatarId="avatar_abc123"
+  connect={async (avatarId) => {
+    const res = await fetch('/api/avatar/connect', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ avatarId }),
+    });
+    return res.json();
+  }}
+/>
+```
+
+### Custom UI with Child Components
+
+Use the built-in components for custom layouts:
+
+```tsx
+import { AvatarCall, AvatarVideo, ControlBar, UserVideo } from '@runwayml/avatar-react';
+
+<AvatarCall avatarId="avatar_abc123" connectUrl="/api/avatar/connect">
+  <div className="call-layout">
+    <AvatarVideo className="avatar" />
+    <UserVideo className="self-view" />
+    <ControlBar className="controls" />
+  </div>
+</AvatarCall>
+```
+
+### Render Props
+
+All components support render props for complete control:
+
+```tsx
+<AvatarVideo>
+  {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
+    <div className={isSpeaking ? 'speaking' : ''}>
+      {isConnecting && <Spinner />}
+      {hasVideo && <VideoTrack trackRef={trackRef} />}
+    </div>
+  )}
+</AvatarVideo>
+```
+
+### CSS Styling with Data Attributes
+
+Style connection states with CSS:
+
+```tsx
+<AvatarCall avatarId="..." connectUrl="..." className="my-avatar" />
+```
+
+```css
+.my-avatar[data-state="connecting"] {
+  opacity: 0.5;
+}
+
+.my-avatar[data-state="error"] {
+  border: 2px solid red;
+}
+
+.my-avatar[data-state="connected"] {
+  border: 2px solid green;
+}
+```
+
+## Callbacks
+
+```tsx
+<AvatarCall
+  avatarId="avatar_abc123"
+  connectUrl="/api/avatar/connect"
+  onEnd={() => console.log('Call ended')}
+  onError={(error) => console.error('Error:', error)}
+/>
+```
+
+## Hooks
+
+Use hooks for custom components within an `AvatarCall` or `AvatarSession`:
+
+### useAvatarSession
+
+Access session state and controls:
+
+```tsx
+function MyComponent() {
+  const { state, sessionId, error, end } = useAvatarSession();
+
+  if (state === 'connecting') return <Loading />;
+  if (state === 'error') return <Error message={error.message} />;
+
+  return <button onClick={end}>End Call</button>;
+}
+```
+
+### useAvatar
+
+Access the remote avatar's video/audio:
+
+```tsx
+function CustomAvatar() {
+  const { videoTrackRef, isSpeaking, hasVideo, hasAudio } = useAvatar();
 
   return (
-    <div>
-      <AvatarCanvas fallback={<div>Not connected</div>} showFps />
-
-      {!isConnected ? (
-        <button onClick={handleConnect} disabled={isConnecting}>
-          {isConnecting ? 'Connecting...' : 'Connect'}
-        </button>
-      ) : (
-        <>
-          <button onClick={() => speak('Hello, world!')}>Say Hello</button>
-          <button onClick={disconnect}>Disconnect</button>
-        </>
-      )}
+    <div data-speaking={isSpeaking}>
+      {hasVideo && <VideoTrack trackRef={videoTrackRef} />}
     </div>
   );
 }
 ```
 
-## API Reference
+### useLocalMedia
 
-### Components
-
-#### `<AvatarProvider>`
-
-Provides the avatar client context to child components.
+Control local camera and microphone:
 
 ```tsx
-<AvatarProvider config={{ apiKey: 'your-api-key', debug: true }}>{children}</AvatarProvider>
-```
+function MediaControls() {
+  const {
+    isMicEnabled,
+    isCameraEnabled,
+    toggleMic,
+    toggleCamera,
+    toggleScreenShare,
+  } = useLocalMedia();
 
-**Props:**
-
-- `config.apiKey` (required) - Your RunwayML API key
-- `config.baseUrl` - Custom API base URL
-- `config.wsUrl` - Custom WebSocket URL
-- `config.timeout` - Request timeout in ms (default: 30000)
-- `config.maxRetries` - Max retry attempts (default: 2)
-- `config.debug` - Enable debug logging (default: false)
-
-#### `<AvatarCanvas>`
-
-Canvas component that automatically renders avatar video frames.
-
-```tsx
-<AvatarCanvas showFps targetFps={30} fallback={<Placeholder />} style={{ width: '100%' }} />
-```
-
-### Hooks
-
-#### `useAvatar(options?)`
-
-Main hook for managing avatar sessions.
-
-```tsx
-const {
-  session,
-  connectionState,
-  avatarState,
-  isConnected,
-  isConnecting,
-  error,
-  connect,
-  disconnect,
-  speak,
-  sendAudio,
-  setEmotion,
-  setGaze,
-  interrupt,
-} = useAvatar({
-  autoConnect: false,
-  sessionConfig: { modelId: 'gwm-1' },
-  onConnected: () => console.log('Connected!'),
-  onError: (error) => console.error(error),
-});
-```
-
-#### `useAvatarVideo(options?)`
-
-Hook for handling avatar video frames.
-
-```tsx
-const { canvasRef, dimensions, fps, isPlaying, frameCount } = useAvatarVideo({
-  targetFps: 30,
-  autoPlay: true,
-  onFrame: (frame) => console.log('Frame received'),
-});
-```
-
-#### `useAvatarAudio(options?)`
-
-Hook for handling avatar audio output.
-
-```tsx
-const { isPlaying, isMuted, volume, setVolume, toggleMute } = useAvatarAudio({
-  autoPlay: true,
-  volume: 1,
-});
-```
-
-#### `useAvatarMicrophone(options?)`
-
-Hook for capturing and sending microphone audio.
-
-```tsx
-const { isActive, hasPermission, audioLevel, start, stop, toggleMute } = useAvatarMicrophone({
-  sampleRate: 48000,
-  echoCancellation: true,
-  noiseSuppression: true,
-});
-```
-
-### Types
-
-```typescript
-interface AvatarSessionConfig {
-  modelId: string;
-  resolution?: { width: number; height: number };
-  audio?: AudioConfig;
-  initialState?: Partial<AvatarState>;
+  return (
+    <div>
+      <button onClick={toggleMic}>{isMicEnabled ? 'Mute' : 'Unmute'}</button>
+      <button onClick={toggleCamera}>{isCameraEnabled ? 'Hide' : 'Show'}</button>
+    </div>
+  );
 }
+```
 
-interface AvatarState {
-  emotion: 'neutral' | 'happy' | 'sad' | 'surprised' | 'angry' | 'confused' | 'thinking';
-  isSpeaking: boolean;
-  isListening: boolean;
-  gazeDirection: { x: number; y: number };
+## Advanced: AvatarSession
+
+For full control over session management, use `AvatarSession` directly with pre-fetched credentials:
+
+```tsx
+import { AvatarSession, AvatarVideo, ControlBar } from '@runwayml/avatar-react';
+
+function AdvancedUsage({ credentials }) {
+  return (
+    <AvatarSession
+      credentials={credentials}
+      audio={true}
+      video={true}
+      onEnd={() => console.log('Ended')}
+      onError={(err) => console.error(err)}
+    >
+      <AvatarVideo />
+      <ControlBar />
+    </AvatarSession>
+  );
 }
-
-type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error';
 ```
 
-## Direct Client Usage
+## Components Reference
 
-For advanced use cases, you can use the client directly:
+| Component | Description |
+|-----------|-------------|
+| `AvatarCall` | High-level component that handles session creation |
+| `AvatarSession` | Low-level wrapper that requires credentials |
+| `AvatarVideo` | Renders the remote avatar video |
+| `UserVideo` | Renders the local user's camera |
+| `ControlBar` | Media control buttons (mic, camera, end call) |
+| `ScreenShareVideo` | Renders screen share content |
+| `AudioRenderer` | Handles avatar audio playback |
 
-```typescript
-import { createAvatarClient } from '@runwayml/avatar-react';
+## TypeScript
 
-const client = createAvatarClient({ apiKey: 'your-api-key' });
+All components and hooks are fully typed:
 
-await client.createSession({ modelId: 'gwm-1' });
-
-client.on('videoFrame', (event) => {
-  // Handle video frame
-});
-
-client.speak('Hello!');
-client.disconnect();
-```
-
-## Development
-
-```bash
-# Install dependencies
-bun install
-
-# Build
-bun run build
-
-# Type check
-bun run typecheck
-
-# Run tests
-bun test
+```tsx
+import type {
+  AvatarCallProps,
+  SessionCredentials,
+  AvatarVideoState,
+  ControlBarState,
+} from '@runwayml/avatar-react';
 ```
 
 ## License

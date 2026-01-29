@@ -73,6 +73,24 @@ export interface AvatarSessionProps {
 }
 
 /**
+ * Props for the AvatarCall component
+ */
+export interface AvatarCallProps extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {
+  /** The avatar ID to connect to */
+  avatarId: string;
+  /** URL to POST { avatarId } to get SessionCredentials */
+  connectUrl?: string;
+  /** Custom function to fetch SessionCredentials */
+  connect?: (avatarId: string) => Promise<SessionCredentials>;
+  /** Callback when session ends */
+  onEnd?: () => void;
+  /** Callback when an error occurs */
+  onError?: (error: Error) => void;
+  /** Custom children - defaults to AvatarVideo + ControlBar if not provided */
+  children?: React.ReactNode;
+}
+
+/**
  * Return type for useAvatar hook
  */
 export interface UseAvatarReturn {
