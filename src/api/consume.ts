@@ -19,7 +19,7 @@
 
 import type { SessionCredentials, ConsumeSessionOptions } from '../types';
 
-const DEFAULT_BASE_URL = 'https://api.runwayml.com/v1';
+const DEFAULT_BASE_URL = 'https://api.dev-stage.runwayml.com/v1';
 
 /**
  * Consume a session to get LiveKit credentials
