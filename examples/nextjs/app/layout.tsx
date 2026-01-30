@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Avatar Demo',
-  description: 'Runway Avatar SDK Demo',
+  title: 'Runway Avatar SDK',
+  description: 'Build real-time avatar experiences with React',
 };
 
 export default function RootLayout({

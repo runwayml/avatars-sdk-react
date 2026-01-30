@@ -14,11 +14,13 @@ npm install
 
 ## Configuration
 
-Set your Runway API key as an environment variable:
+Copy the example environment file and add your API secret:
 
 ```bash
-export RUNWAY_API_KEY=your_api_key
+cp .env.example .env
 ```
+
+Then edit `.env` with your credentials.
 
 ## Running locally
 

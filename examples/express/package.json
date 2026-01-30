@@ -4,18 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "cd node_modules/@runwayml && rm -f avatar-react && ln -s ../../../.. avatar-react",
     "dev": "concurrently \"vite\" \"tsx watch server.ts\"",
     "build": "vite build",
     "start": "tsx server.ts"
   },
   "dependencies": {
     "@runwayml/avatar-react": "link:../..",
+    "@runwayml/sdk": "^1.0.0",
     "express": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@runwayml/sdk": "^1.0.0",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",

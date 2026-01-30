@@ -14,7 +14,7 @@ export async function action({ request }: { request: Request }) {
 
   return Response.json({
     sessionId: session.id,
-    livekitUrl: session.livekit_url,
+    serverUrl: session.url,
     token: session.token,
     roomName: session.room_name,
   });

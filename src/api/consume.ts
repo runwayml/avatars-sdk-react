@@ -2,56 +2,43 @@
  * Runway API - Consume Session
  *
  * Client for the Runway /consume endpoint.
- * Retrieves LiveKit credentials for an existing session.
- *
- * @example
- * ```tsx
- * const credentials = await consumeSession({
- *   sessionId: 'sess_abc123',
- * });
- *
- * // Use credentials with AvatarSession
- * <AvatarSession credentials={credentials}>
- *   ...
- * </AvatarSession>
- * ```
+ * Retrieves connection credentials for an existing session.
  */
 
-import type { SessionCredentials, ConsumeSessionOptions } from '../types';
+import type { ConsumeSessionOptions, SessionCredentials } from '../types';
 
 const DEFAULT_BASE_URL = 'https://api.runwayml.com/v1';
 
 /**
- * Consume a session to get LiveKit credentials
- *
- * This calls the Runway API's /consume endpoint to retrieve
- * the LiveKit connection details for an existing session.
- *
- * @param options - Session ID and optional base URL
- * @returns SessionCredentials for connecting to the avatar
+ * Consume a session to get connection credentials
  */
 export async function consumeSession(
-  options: ConsumeSessionOptions
+  options: ConsumeSessionOptions,
 ): Promise<SessionCredentials> {
   const { sessionId, baseUrl = DEFAULT_BASE_URL } = options;
 
-  const response = await fetch(`${baseUrl}/realtime/sessions/${sessionId}/consume`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    `${baseUrl}/realtime/sessions/${sessionId}/consume`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to consume session: ${response.status} ${errorText}`);
+    throw new Error(
+      `Failed to consume session: ${response.status} ${errorText}`,
+    );
   }
 
   const data = await response.json();
 
   return {
     sessionId,
-    livekitUrl: data.url,
+    serverUrl: data.url,
     token: data.token,
     roomName: data.roomName,
   };

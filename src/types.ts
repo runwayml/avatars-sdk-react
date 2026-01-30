@@ -17,16 +17,15 @@ export type SessionState =
 
 /**
  * Connection credentials returned from the Runway API
- * Used to connect to the LiveKit room for the avatar session
  */
 export interface SessionCredentials {
   /** Unique session identifier */
   sessionId: string;
-  /** LiveKit server URL */
-  livekitUrl: string;
-  /** Authentication token for the LiveKit room */
+  /** WebRTC server URL */
+  serverUrl: string;
+  /** Authentication token */
   token: string;
-  /** Name of the LiveKit room */
+  /** Room name for the session */
   roomName: string;
 }
 
@@ -82,6 +81,8 @@ export interface AvatarCallProps extends Omit<React.ComponentPropsWithoutRef<'di
   connectUrl?: string;
   /** Custom function to fetch SessionCredentials */
   connect?: (avatarId: string) => Promise<SessionCredentials>;
+  /** Avatar image URL for placeholder/loading states */
+  avatarImageUrl?: string;
   /** Callback when session ends */
   onEnd?: () => void;
   /** Callback when an error occurs */

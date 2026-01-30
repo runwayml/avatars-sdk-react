@@ -20,17 +20,13 @@ pnpm create next-app --example https://github.com/runwayml/avatar-sdk-react/tree
 
 ## Configuration
 
-Set your Runway API key as an environment variable:
+Copy the example environment file and add your Runway API key:
 
 ```bash
-export RUNWAY_API_KEY=your_api_key
+cp .env.example .env.local
 ```
 
-Or create a `.env.local` file:
-
-```
-RUNWAY_API_KEY=your_api_key
-```
+Then edit `.env.local` with your key from [runway.com/dashboard](https://runway.com/dashboard).
 
 ## Running locally
 

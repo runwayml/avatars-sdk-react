@@ -3,18 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "cd node_modules/@runwayml && rm -f avatar-react && ln -s ../../../.. avatar-react",
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
     "@runwayml/avatar-react": "link:../..",
+    "@runwayml/sdk": "^1.0.0",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@runwayml/sdk": "^1.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "typescript": "^5.0.0"

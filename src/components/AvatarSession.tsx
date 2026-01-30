@@ -16,23 +16,23 @@
  */
 
 import {
-  createContext,
-  useContext,
-  useCallback,
-  useRef,
-  type ReactNode,
-} from 'react';
-import {
   LiveKitRoom,
+  RoomAudioRenderer,
   useConnectionState,
   useRoomContext,
-  RoomAudioRenderer,
 } from '@livekit/components-react';
 import { ConnectionState } from 'livekit-client';
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useRef,
+} from 'react';
 import type {
-  SessionState,
   AvatarSessionContextValue,
   AvatarSessionProps,
+  SessionState,
 } from '../types';
 
 /**
@@ -53,7 +53,9 @@ function mapConnectionState(connectionState: ConnectionState): SessionState {
   }
 }
 
-const AvatarSessionContext = createContext<AvatarSessionContextValue | null>(null);
+const AvatarSessionContext = createContext<AvatarSessionContextValue | null>(
+  null,
+);
 
 /**
  * AvatarSession component - the main entry point for avatar sessions
@@ -78,7 +80,7 @@ export function AvatarSession({
 
   return (
     <LiveKitRoom
-      serverUrl={credentials.livekitUrl}
+      serverUrl={credentials.serverUrl}
       token={credentials.token}
       connect={true}
       audio={audio}
@@ -156,7 +158,9 @@ function AvatarSessionContextInner({
 export function useAvatarSessionContext(): AvatarSessionContextValue {
   const context = useContext(AvatarSessionContext);
   if (!context) {
-    throw new Error('useAvatarSessionContext must be used within an AvatarSession');
+    throw new Error(
+      'useAvatarSessionContext must be used within an AvatarSession',
+    );
   }
   return context;
 }

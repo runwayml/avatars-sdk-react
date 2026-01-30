@@ -6,6 +6,7 @@ import type { AvatarCallProps, SessionCredentials } from '../types';
 import { AvatarSession } from './AvatarSession';
 import { AvatarVideo } from './AvatarVideo';
 import { ControlBar } from './ControlBar';
+import { UserVideo } from './UserVideo';
 
 type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error';
 
@@ -13,6 +14,7 @@ export function AvatarCall({
   avatarId,
   connectUrl,
   connect,
+  avatarImageUrl,
   onEnd,
   onError,
   children,
@@ -82,6 +84,10 @@ export function AvatarCall({
     onErrorRef.current?.(err);
   };
 
+  const backgroundStyle = avatarImageUrl
+    ? { '--avatar-image': `url(${avatarImageUrl})` } as React.CSSProperties
+    : undefined;
+
   if (connectionState === 'idle' || connectionState === 'connecting') {
     return (
       <div
@@ -89,6 +95,7 @@ export function AvatarCall({
         data-avatar-call=""
         data-state="connecting"
         data-avatar-id={avatarId}
+        style={{ ...props.style, ...backgroundStyle }}
       />
     );
   }
@@ -101,6 +108,7 @@ export function AvatarCall({
         data-state="error"
         data-avatar-id={avatarId}
         data-error={error?.message}
+        style={{ ...props.style, ...backgroundStyle }}
       />
     );
   }
@@ -111,6 +119,7 @@ export function AvatarCall({
       data-avatar-call=""
       data-state="connected"
       data-avatar-id={avatarId}
+      style={{ ...props.style, ...backgroundStyle }}
     >
       <AvatarSession
         credentials={credentials}
@@ -120,6 +129,7 @@ export function AvatarCall({
         {children ?? (
           <>
             <AvatarVideo />
+            <UserVideo />
             <ControlBar />
           </>
         )}

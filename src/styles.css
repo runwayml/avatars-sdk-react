@@ -16,8 +16,7 @@
 
 /* CSS Custom Properties */
 :root {
-  --avatar-bg: #a78bfa;
-  --avatar-bg-connecting: #374151;
+  --avatar-bg-connecting: #1a1a1a;
   --avatar-radius: 16px;
   --avatar-control-bg: rgba(255, 255, 255, 0.1);
   --avatar-control-bg-hover: rgba(255, 255, 255, 0.2);
@@ -35,29 +34,24 @@
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: var(--avatar-bg);
+  background: var(--avatar-bg-connecting);
   border-radius: var(--avatar-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-[data-avatar-call][data-state="connecting"] {
-  background: var(--avatar-bg-connecting);
-}
-
-[data-avatar-call][data-state="connecting"]::after {
+/* Blurred avatar image background */
+[data-avatar-call]::before {
   content: "";
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: inherit;
-}
-
-[data-avatar-call][data-state="error"] {
-  background: var(--avatar-bg-connecting);
+  background-image: var(--avatar-image);
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.5);
+  transform: scale(1.1);
+  z-index: 0;
 }
 
 /* AvatarVideo */
@@ -67,12 +61,17 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  z-index: 1;
 }
 
 [data-has-video] video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+[data-has-video="true"] {
+  background: transparent;
 }
 
 /* Speaking indicator glow */
@@ -92,6 +91,14 @@
   justify-content: center;
   gap: 12px;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+  z-index: 2;
+}
+
+@media (max-width: 480px) {
+  [data-active] {
+    padding: 16px;
+    gap: 8px;
+  }
 }
 
 /* Control buttons */
@@ -107,6 +114,18 @@
   color: var(--avatar-text-color);
   cursor: pointer;
   transition: background-color 0.15s ease;
+}
+
+@media (max-width: 480px) {
+  [data-control] {
+    width: 40px;
+    height: 40px;
+  }
+  
+  [data-control] svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 [data-control]:hover {
@@ -127,11 +146,6 @@
 /* End call button */
 [data-control="end-call"] {
   background: var(--avatar-end-call-bg);
-  padding: 0 24px;
-  width: auto;
-  min-width: var(--avatar-control-size);
-  font-weight: 500;
-  font-size: 14px;
 }
 
 [data-control="end-call"]:hover {
@@ -149,6 +163,16 @@
   overflow: hidden;
   background: var(--avatar-bg-connecting);
   border: 2px solid rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+@media (max-width: 480px) {
+  [data-camera-enabled] {
+    width: 80px;
+    bottom: 72px;
+    right: 12px;
+    border-radius: 8px;
+  }
 }
 
 [data-camera-enabled] video {
@@ -184,20 +208,22 @@
   }
 }
 
-[data-avatar-call][data-state="connecting"]::before {
+[data-avatar-call][data-state="connecting"]::after {
   content: "Connecting…";
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--avatar-text-secondary);
+  color: var(--avatar-text-color);
   font-size: 16px;
+  font-weight: 500;
+  z-index: 1;
   animation: avatar-pulse 2s ease-in-out infinite;
 }
 
 /* Error state */
-[data-avatar-call][data-state="error"]::before {
+[data-avatar-call][data-state="error"]::after {
   content: "Connection failed";
   position: absolute;
   inset: 0;
@@ -206,4 +232,6 @@
   justify-content: center;
   color: #fca5a5;
   font-size: 16px;
+  font-weight: 500;
+  z-index: 1;
 }

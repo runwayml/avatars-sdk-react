@@ -22,7 +22,7 @@ app.post('/api/avatar/connect', async (req, res) => {
 
   res.json({
     sessionId: session.id,
-    livekitUrl: session.livekit_url,
+    serverUrl: session.url,
     token: session.token,
     roomName: session.room_name,
   });

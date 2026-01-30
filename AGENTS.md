@@ -4,7 +4,7 @@ This document provides context for AI agents working with this codebase.
 
 ## Project Overview
 
-`@runwayml/avatar-react` is a headless React component library for Runway real-time avatars. It wraps LiveKit's WebRTC functionality with a clean, React-friendly API.
+`@runwayml/avatar-react` is a headless React component library for Runway real-time avatars. It provides WebRTC video functionality with a clean, React-friendly API.
 
 ## Architecture
 
@@ -20,7 +20,7 @@ src/
 ### Key Design Decisions
 
 - **Headless Components**: Components expose state via render props, allowing full UI customization
-- **LiveKit Integration**: Built on `@livekit/components-react` and `livekit-client`
+- **WebRTC Integration**: Uses WebRTC for real-time video communication
 - **Context-Based State**: `AvatarSession` provides context consumed by child components/hooks
 - **Type-Safe Session States**: Uses discriminated unions for session state handling
 
@@ -78,9 +78,9 @@ Hooks must be used within `<AvatarCall>` or `<AvatarSession>`:
 
 ## Testing Considerations
 
-- Components require LiveKit room context
-- Mock `@livekit/components-react` hooks for unit tests
-- Integration tests need LiveKit credentials
+- Components require room context from AvatarSession
+- Mock internal hooks for unit tests
+- Integration tests need Runway API credentials
 
 ## Publishing
 

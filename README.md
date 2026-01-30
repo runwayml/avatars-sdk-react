@@ -18,7 +18,7 @@ import { AvatarCall } from '@runwayml/avatar-react';
 function App() {
   return (
     <AvatarCall
-      avatarId="avatar_abc123"
+      avatarId="game-host"
       connectUrl="/api/avatar/connect"
     />
   );
@@ -26,6 +26,20 @@ function App() {
 ```
 
 That's it! The component handles session creation, WebRTC connection, and renders a default UI with the avatar video and controls.
+
+### Preset Avatars
+
+Get started quickly with these preset avatars:
+
+- `coding-teacher` - Programming and coding help
+- `customer-service` - Customer support assistant
+- `dungeon-master` - D&D game master
+- `game-host` - Game show host
+- `language-tutor` - Language learning tutor
+- `movie-critic` - Movie reviews and recommendations
+- `trivia-host` - Trivia game host
+
+See the [Runway docs](https://docs.runwayml.com) for creating custom avatars.
 
 ### Optional: Add Default Styles
 
@@ -71,7 +85,7 @@ export async function POST(req: Request) {
 
   return Response.json({
     sessionId: session.id,
-    livekitUrl: session.livekit_url,
+    serverUrl: session.url,
     token: session.token,
     roomName: session.room_name,
   });
