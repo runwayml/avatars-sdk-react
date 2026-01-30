@@ -28,6 +28,7 @@ coverage/
 
 # Bun
 bun.lockb
+examples/*/bun.lock
 
 # TypeScript
 *.tsbuildinfo

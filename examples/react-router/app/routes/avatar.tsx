@@ -1,5 +1,3 @@
-'use client';
-
 import { AvatarCall } from '@runwayml/avatar-react';
 import '@runwayml/avatar-react/styles.css';
 

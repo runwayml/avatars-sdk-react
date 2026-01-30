@@ -1,33 +1,47 @@
 # Next.js Avatar Example
 
-Minimal example of using `@runwayml/avatar-react` with Next.js App Router.
+This example shows how to use `@runwayml/avatar-react` with [Next.js](https://nextjs.org/) App Router.
 
-## Setup
+## How to use
 
-1. Install dependencies:
+Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
 
 ```bash
-npm install @runwayml/avatar-react @runwayml/sdk
+npx create-next-app --example https://github.com/runwayml/avatar-sdk-react/tree/main/examples/nextjs avatar-app
 ```
 
-2. Set your API key:
+```bash
+yarn create next-app --example https://github.com/runwayml/avatar-sdk-react/tree/main/examples/nextjs avatar-app
+```
+
+```bash
+pnpm create next-app --example https://github.com/runwayml/avatar-sdk-react/tree/main/examples/nextjs avatar-app
+```
+
+## Configuration
+
+Set your Runway API key as an environment variable:
 
 ```bash
 export RUNWAY_API_KEY=your_api_key
 ```
 
-3. Copy the files from this example into your Next.js project:
-   - `app/api/avatar/connect/route.ts` - Server endpoint
-   - `app/avatar/page.tsx` - Client page
-
-4. Visit `/avatar` in your browser.
-
-## Files
+Or create a `.env.local` file:
 
 ```
-app/
-├── api/avatar/connect/
-│   └── route.ts      # Creates avatar session (server-side)
-└── avatar/
-    └── page.tsx      # Avatar call UI (client-side)
+RUNWAY_API_KEY=your_api_key
 ```
+
+## Running locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and navigate to the avatar page.
+
+## Learn More
+
+- [Runway Avatar SDK Documentation](https://github.com/runwayml/avatar-sdk-react)
+- [Next.js Documentation](https://nextjs.org/docs)

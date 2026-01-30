@@ -46,7 +46,10 @@ The styles use CSS custom properties for easy customization:
 }
 ```
 
-See [`examples/nextjs`](./examples/nextjs) for a complete working example.
+See [`examples/`](./examples) for complete working examples:
+- [`nextjs`](./examples/nextjs) - Next.js App Router
+- [`react-router`](./examples/react-router) - React Router v7 framework mode
+- [`express`](./examples/express) - Express + Vite
 
 ## Server Setup
 

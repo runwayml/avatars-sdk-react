@@ -1,9 +1,7 @@
-'use client';
-
 import { AvatarCall } from '@runwayml/avatar-react';
 import '@runwayml/avatar-react/styles.css';
 
-export default function AvatarPage() {
+export function App() {
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
       <h1>Avatar Demo</h1>

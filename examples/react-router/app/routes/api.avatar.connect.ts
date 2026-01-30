@@ -2,8 +2,8 @@ import Runway from '@runwayml/sdk';
 
 const runway = new Runway();
 
-export async function POST(req: Request) {
-  const { avatarId } = await req.json();
+export async function action({ request }: { request: Request }) {
+  const { avatarId } = await request.json();
 
   // TODO: Update to actual Runway SDK API once available
   // @ts-expect-error - SDK API may vary
