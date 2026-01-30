@@ -1,5 +1,5 @@
 /**
- * @runwayml/avatars-react Types
+ * @runwayml/avatar-react Types
  *
  * Shared types for the avatar session library.
  */
@@ -74,7 +74,8 @@ export interface AvatarSessionProps {
 /**
  * Props for the AvatarCall component
  */
-export interface AvatarCallProps extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {
+export interface AvatarCallProps
+  extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {
   /** The avatar ID to connect to */
   avatarId: string;
   /** URL to POST { avatarId } to get SessionCredentials */
@@ -98,9 +99,13 @@ export interface UseAvatarReturn {
   /** The remote avatar participant */
   participant: import('livekit-client').RemoteParticipant | null;
   /** The avatar's video track reference (for use with VideoTrack component) */
-  videoTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  videoTrackRef:
+    | import('@livekit/components-react').TrackReferenceOrPlaceholder
+    | null;
   /** The avatar's audio track reference */
-  audioTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  audioTrackRef:
+    | import('@livekit/components-react').TrackReferenceOrPlaceholder
+    | null;
   /** Whether the avatar is currently speaking */
   isSpeaking: boolean;
   /** Whether the avatar has video */
@@ -130,5 +135,7 @@ export interface UseLocalMediaReturn {
   /** Toggle screen sharing on/off */
   toggleScreenShare: () => void;
   /** The local video track reference */
-  localVideoTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  localVideoTrackRef:
+    | import('@livekit/components-react').TrackReferenceOrPlaceholder
+    | null;
 }

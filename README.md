@@ -1,6 +1,12 @@
 # @runwayml/avatar-react
 
-React SDK for real-time AI avatar video calls.
+React SDK for real-time AI avatar interactions with GWM-1.
+
+## Requirements
+
+- React 18+
+- A Runway API secret ([get one here](https://dev.runwayml.com/))
+- A server-side endpoint to create sessions (API secrets must not be exposed to the client)
 
 ## Installation
 
@@ -27,19 +33,7 @@ function App() {
 
 That's it! The component handles session creation, WebRTC connection, and renders a default UI with the avatar video and controls.
 
-### Preset Avatars
-
-Get started quickly with these preset avatars:
-
-- `coding-teacher` - Programming and coding help
-- `customer-service` - Customer support assistant
-- `dungeon-master` - D&D game master
-- `game-host` - Game show host
-- `language-tutor` - Language learning tutor
-- `movie-critic` - Movie reviews and recommendations
-- `trivia-host` - Trivia game host
-
-See the [Runway docs](https://docs.runwayml.com) for creating custom avatars.
+You can use preset avatars like `game-host`, `coding-teacher`, `language-tutor`, and more. See the [Runway Developer Portal](https://dev.runwayml.com/) for the full list and creating custom avatars.
 
 ### Optional: Add Default Styles
 
@@ -65,6 +59,15 @@ See [`examples/`](./examples) for complete working examples:
 - [`react-router`](./examples/react-router) - React Router v7 framework mode
 - [`express`](./examples/express) - Express + Vite
 
+## How It Works
+
+1. **Client** calls your server endpoint with the `avatarId`
+2. **Server** uses your Runway API secret to create a session via `@runwayml/sdk`
+3. **Server** returns connection credentials (token, URL) to the client
+4. **Client** establishes a WebRTC connection for real-time video/audio
+
+This flow keeps your API secret secure on the server while enabling low-latency communication.
+
 ## Server Setup
 
 Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create the session:
@@ -73,13 +76,13 @@ Your server endpoint receives the `avatarId` and returns session credentials. Us
 // /api/avatar/connect (Next.js App Router example)
 import Runway from '@runwayml/sdk';
 
-const runway = new Runway(); // Uses RUNWAY_API_KEY env var
+const runway = new Runway(); // Uses RUNWAYML_API_SECRET env var
 
 export async function POST(req: Request) {
   const { avatarId } = await req.json();
 
   const session = await runway.realtime.sessions.create({
-    model: 'gen4_turbo',
+    model: 'calliope',
     options: { avatar: avatarId },
   });
 
@@ -100,7 +103,7 @@ For more control over the connection flow:
 
 ```tsx
 <AvatarCall
-  avatarId="avatar_abc123"
+  avatarId="game-host"
   connect={async (avatarId) => {
     const res = await fetch('/api/avatar/connect', {
       method: 'POST',
@@ -122,7 +125,7 @@ Use the built-in components for custom layouts:
 ```tsx
 import { AvatarCall, AvatarVideo, ControlBar, UserVideo } from '@runwayml/avatar-react';
 
-<AvatarCall avatarId="avatar_abc123" connectUrl="/api/avatar/connect">
+<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
   <div className="call-layout">
     <AvatarVideo className="avatar" />
     <UserVideo className="self-view" />
@@ -151,7 +154,7 @@ All components support render props for complete control:
 Style connection states with CSS:
 
 ```tsx
-<AvatarCall avatarId="..." connectUrl="..." className="my-avatar" />
+<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect" className="my-avatar" />
 ```
 
 ```css
@@ -172,7 +175,7 @@ Style connection states with CSS:
 
 ```tsx
 <AvatarCall
-  avatarId="avatar_abc123"
+  avatarId="game-host"
   connectUrl="/api/avatar/connect"
   onEnd={() => console.log('Call ended')}
   onError={(error) => console.error('Error:', error)}
@@ -280,10 +283,35 @@ All components and hooks are fully typed:
 import type {
   AvatarCallProps,
   SessionCredentials,
-  AvatarVideoState,
-  ControlBarState,
+  SessionState,
 } from '@runwayml/avatar-react';
 ```
+
+## Browser Support
+
+This SDK uses WebRTC for real-time communication. Supported browsers:
+
+- Chrome 74+
+- Firefox 78+
+- Safari 14.1+
+- Edge 79+
+
+Users must grant camera and microphone permissions when prompted.
+
+## Troubleshooting
+
+**"Failed to connect" or timeout errors**
+- Verify your server endpoint is returning the correct credential format
+- Check that `RUNWAYML_API_SECRET` is set correctly on your server
+
+**No video/audio**
+- Ensure the user has granted camera/microphone permissions
+- Check browser console for WebRTC errors
+- Verify the device has a working camera/microphone
+
+**CORS errors**
+- Your server endpoint must accept requests from your client's origin
+- For local development, ensure both client and server are on compatible origins
 
 ## License
 

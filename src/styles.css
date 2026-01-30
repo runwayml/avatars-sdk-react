@@ -222,6 +222,12 @@
   animation: avatar-pulse 2s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  [data-avatar-call][data-state="connecting"]::after {
+    animation: none;
+  }
+}
+
 /* Error state */
 [data-avatar-call][data-state="error"]::after {
   content: "Connection failed";

@@ -26,7 +26,7 @@ Copy the example environment file and add your Runway API key:
 cp .env.example .env.local
 ```
 
-Then edit `.env.local` with your key from [runway.com/dashboard](https://runway.com/dashboard).
+Then edit `.env.local` with your key from [dev.runwayml.com](https://dev.runwayml.com/).
 
 ## Running locally
 

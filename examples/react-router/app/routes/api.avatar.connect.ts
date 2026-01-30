@@ -5,11 +5,10 @@ const runway = new Runway();
 export async function action({ request }: { request: Request }) {
   const { avatarId } = await request.json();
 
-  // TODO: Update to actual Runway SDK API once available
   // @ts-expect-error - SDK API may vary
   const session = await runway.realtime.sessions.create({
-    model: 'gen4_turbo',
-    options: { avatar: avatarId },
+    model: 'calliope',
+    options: { avatar: { type: 'runway-preset', presetId: avatarId } },
   });
 
   return Response.json({

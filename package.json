@@ -46,9 +46,10 @@
     "ai",
     "react",
     "hooks",
-    "real-time",
+    "realtime",
     "gwm-1",
     "video",
+    "webrtc",
     "streaming"
   ],
   "author": "RunwayML",

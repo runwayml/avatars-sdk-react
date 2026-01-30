@@ -129,15 +129,11 @@ body {
   border-radius: var(--radius);
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.15s ease;
-}
-
-.preset:hover {
-  transform: translateY(-2px);
+  transition: border-color 0.15s ease;
 }
 
 .preset:hover .preset-avatar {
-  transform: scale(1.02);
+  transform: scale(1.05);
 }
 
 .preset:focus-visible {
@@ -277,10 +273,19 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .modal-close:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal,
+  .preset-avatar {
+    animation: none;
+    transition: none;
+  }
 }

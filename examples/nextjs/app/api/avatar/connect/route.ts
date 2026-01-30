@@ -5,14 +5,12 @@ const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 export async function POST(req: Request) {
   const { avatarId } = await req.json();
 
-  // Create a new realtime session
   const created = (await client.post('/v1/realtime_sessions', {
     body: {
       model: { model: 'calliope', avatar: { type: 'runway-preset', presetId: avatarId } },
     },
   })) as { id: string };
 
-  // Poll until session is ready
   let status = 'PENDING';
   while (status === 'PENDING') {
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -26,7 +24,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // Consume the session to get connection credentials
   const { url, token, roomName } = (await client.post(
     `/v1/realtime_sessions/${created.id}/consume`,
   )) as { url: string; token: string; roomName: string };

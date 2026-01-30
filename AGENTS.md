@@ -4,7 +4,7 @@ This document provides context for AI agents working with this codebase.
 
 ## Project Overview
 
-`@runwayml/avatar-react` is a headless React component library for Runway real-time avatars. It provides WebRTC video functionality with a clean, React-friendly API.
+`@runwayml/avatar-react` is a React SDK for real-time AI avatar interactions with GWM-1. It provides WebRTC video functionality with a clean, React-friendly API. Components are headless by default but include optional default styles.
 
 ## Architecture
 
@@ -26,12 +26,14 @@ src/
 
 ## Development Commands
 
+This project uses Bun for development. Commands also work with npm.
+
 ```bash
-npm run dev        # Watch mode for development
-npm run build      # Build the package
-npm run typecheck  # TypeScript type checking
-npm run lint       # Run ESLint
-npm run test       # Run tests
+bun run dev        # Watch mode for development
+bun run build      # Build the package
+bun run typecheck  # TypeScript type checking
+bun run lint       # Run linter (Biome)
+bun test           # Run tests
 ```
 
 ## Component Hierarchy

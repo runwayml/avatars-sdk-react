@@ -6,10 +6,10 @@ export function App() {
     <main style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
       <h1>Avatar Demo</h1>
       <AvatarCall
-        avatarId="your_avatar_id"
+        avatarId="game-host"
         connectUrl="/api/avatar/connect"
         onEnd={() => console.log('Call ended')}
-        onError={(err: Error) => console.error('Error:', err)}
+        onError={console.error}
       />
     </main>
   );

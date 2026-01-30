@@ -24,17 +24,14 @@
  * ```
  */
 
-import { useState, useEffect } from 'react';
 import {
-  useRemoteParticipants,
-  useTracks,
   isTrackReference,
   type TrackReferenceOrPlaceholder,
+  useRemoteParticipants,
+  useTracks,
 } from '@livekit/components-react';
-import {
-  Track,
-  ParticipantEvent,
-} from 'livekit-client';
+import { ParticipantEvent, Track } from 'livekit-client';
+import { useEffect, useState } from 'react';
 import type { UseAvatarReturn } from '../types';
 
 /**
@@ -61,10 +58,16 @@ export function useAvatar(): UseAvatarReturn {
       setIsSpeaking(speaking);
     };
 
-    avatarParticipant.on(ParticipantEvent.IsSpeakingChanged, handleIsSpeakingChanged);
+    avatarParticipant.on(
+      ParticipantEvent.IsSpeakingChanged,
+      handleIsSpeakingChanged,
+    );
 
     return () => {
-      avatarParticipant.off(ParticipantEvent.IsSpeakingChanged, handleIsSpeakingChanged);
+      avatarParticipant.off(
+        ParticipantEvent.IsSpeakingChanged,
+        handleIsSpeakingChanged,
+      );
     };
   }, [avatarParticipant]);
 
@@ -73,7 +76,7 @@ export function useAvatar(): UseAvatarReturn {
       { source: Track.Source.Camera, withPlaceholder: true },
       { source: Track.Source.Microphone, withPlaceholder: true },
     ],
-    { onlySubscribed: true }
+    { onlySubscribed: true },
   );
 
   let videoTrackRef: TrackReferenceOrPlaceholder | null = null;
