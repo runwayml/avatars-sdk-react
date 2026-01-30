@@ -5,26 +5,48 @@ import Runway from '@runwayml/sdk';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const runway = new Runway();
+const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 
 app.use(express.json());
 app.use(express.static(join(__dirname, 'dist')));
 
 app.post('/api/avatar/connect', async (req, res) => {
-  const { avatarId } = req.body;
+  try {
+    const { avatarId } = req.body;
 
-  // @ts-expect-error - SDK API may vary
-  const session = await runway.realtime.sessions.create({
-    model: 'calliope',
-    options: { avatar: { type: 'runway-preset', presetId: avatarId } },
-  });
+    const created = (await client.post('/v1/realtime_sessions', {
+      body: {
+        model: { model: 'calliope', avatar: { type: 'runway-preset', presetId: avatarId } },
+      },
+    })) as { id: string };
 
-  res.json({
-    sessionId: session.id,
-    serverUrl: session.url,
-    token: session.token,
-    roomName: session.room_name,
-  });
+    let status = 'PENDING';
+    while (status === 'PENDING') {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const session = (await client.get(
+        `/v1/realtime_sessions/${created.id}`,
+      )) as { status: string };
+      status = session.status;
+
+      if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(status)) {
+        throw new Error(`Session ${status.toLowerCase()} before becoming ready`);
+      }
+    }
+
+    const { url, token, roomName } = (await client.post(
+      `/v1/realtime_sessions/${created.id}/consume`,
+    )) as { url: string; token: string; roomName: string };
+
+    res.json({
+      sessionId: created.id,
+      serverUrl: url,
+      token,
+      roomName,
+    });
+  } catch (error) {
+    console.error('Failed to create avatar session:', error);
+    res.status(500).json({ error: 'Failed to create avatar session' });
+  }
 });
 
 app.get('*', (req, res) => {

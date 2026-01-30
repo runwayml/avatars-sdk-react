@@ -1,7 +1,9 @@
+'use client';
+
 import { useCallback, useEffect, useState } from 'react';
-import { AvatarCall } from '@runwayml/avatar-react';
+import { AvatarSession, AvatarVideo, ControlBar } from '@runwayml/avatar-react';
 import '@runwayml/avatar-react/styles.css';
-import './globals.css';
+import { createAvatarSession } from './actions';
 
 const PRESETS = [
   {
@@ -34,11 +36,38 @@ const PRESETS = [
   },
 ];
 
-export function App() {
+type SessionCredentials = {
+  sessionId: string;
+  serverUrl: string;
+  token: string;
+  roomName: string;
+};
+
+export default function Home() {
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [credentials, setCredentials] = useState<SessionCredentials | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   const selectedPreset = PRESETS.find((p) => p.id === activePreset);
 
-  const closeModal = useCallback(() => setActivePreset(null), []);
+  const closeModal = useCallback(() => {
+    setActivePreset(null);
+    setCredentials(null);
+    setIsConnecting(false);
+  }, []);
+
+  const handleConnect = useCallback(async (presetId: string) => {
+    setActivePreset(presetId);
+    setIsConnecting(true);
+    try {
+      const result = await createAvatarSession(presetId);
+      setCredentials(result);
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      closeModal();
+    } finally {
+      setIsConnecting(false);
+    }
+  }, [closeModal]);
 
   useEffect(() => {
     if (!activePreset) return;
@@ -52,6 +81,7 @@ export function App() {
   return (
     <main className="page">
       <header className="header">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://d3phaj0sisr2ct.cloudfront.net/logos/runway_api.svg"
           alt="Runway API"
@@ -61,7 +91,7 @@ export function App() {
         />
         <h1 className="title">Real-time Avatars</h1>
         <p className="description">
-          Build conversational avatar experiences with a simple React component.
+          Build conversational avatar experiences using React Server Actions.
           Choose a preset below to try it out.
         </p>
       </header>
@@ -71,8 +101,9 @@ export function App() {
           <button
             key={preset.id}
             className="preset"
-            onClick={() => setActivePreset(preset.id)}
+            onClick={() => handleConnect(preset.id)}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preset.imageUrl}
               alt={preset.name}
@@ -122,13 +153,30 @@ export function App() {
                 <CloseIcon aria-hidden="true" />
               </button>
             </div>
-            <AvatarCall
-              avatarId={activePreset}
-              avatarImageUrl={selectedPreset.imageUrl}
-              connectUrl="/api/avatar/connect"
-              onEnd={closeModal}
-              onError={console.error}
-            />
+            {isConnecting && (
+              <div style={{ 
+                aspectRatio: '16/9', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: '#000',
+                borderRadius: '8px',
+                color: '#fff'
+              }}>
+                Connecting...
+              </div>
+            )}
+            {credentials && (
+              <AvatarSession
+                credentials={credentials}
+                avatarImageUrl={selectedPreset.imageUrl}
+                onEnd={closeModal}
+                onError={console.error}
+              >
+                <AvatarVideo />
+                <ControlBar />
+              </AvatarSession>
+            )}
           </div>
         </div>
       )}

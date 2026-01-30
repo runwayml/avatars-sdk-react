@@ -1,10 +1,10 @@
+'use server';
+
 import Runway from '@runwayml/sdk';
 
 const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 
-export async function action({ request }: { request: Request }) {
-  const { avatarId } = await request.json();
-
+export async function createAvatarSession(avatarId: string) {
   const created = (await client.post('/v1/realtime_sessions', {
     body: {
       model: { model: 'calliope', avatar: { type: 'runway-preset', presetId: avatarId } },
@@ -28,10 +28,10 @@ export async function action({ request }: { request: Request }) {
     `/v1/realtime_sessions/${created.id}/consume`,
   )) as { url: string; token: string; roomName: string };
 
-  return Response.json({
+  return {
     sessionId: created.id,
     serverUrl: url,
     token,
     roomName,
-  });
+  };
 }
