@@ -19,6 +19,7 @@ export function AvatarCall({
   onEnd,
   onError,
   children,
+  __unstable_roomOptions,
   ...props
 }: AvatarCallProps) {
   const onErrorRef = useLatest(onError);
@@ -78,6 +79,7 @@ export function AvatarCall({
         credentials={credentials}
         onEnd={onEnd}
         onError={handleSessionError}
+        __unstable_roomOptions={__unstable_roomOptions}
       >
         {children ?? (
           <>

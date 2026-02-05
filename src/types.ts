@@ -83,6 +83,11 @@ export interface AvatarSessionProps {
   onEnd?: () => void;
   /** Callback when an error occurs */
   onError?: (error: Error) => void;
+  /**
+   * Advanced LiveKit room options. Not part of the public API.
+   * @internal
+   */
+  __unstable_roomOptions?: import('livekit-client').RoomOptions;
 }
 
 /**
@@ -110,6 +115,11 @@ export interface AvatarCallProps
   onError?: (error: Error) => void;
   /** Custom children - defaults to AvatarVideo + ControlBar if not provided */
   children?: React.ReactNode;
+  /**
+   * Advanced LiveKit room options. Not part of the public API.
+   * @internal
+   */
+  __unstable_roomOptions?: import('livekit-client').RoomOptions;
 }
 
 /**

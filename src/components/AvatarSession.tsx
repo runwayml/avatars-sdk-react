@@ -21,6 +21,7 @@ import {
   useConnectionState,
   useRoomContext,
 } from '@livekit/components-react';
+import type { RoomOptions } from 'livekit-client';
 import { ConnectionState } from 'livekit-client';
 import {
   createContext,
@@ -34,6 +35,11 @@ import type {
   AvatarSessionProps,
   SessionState,
 } from '../types';
+
+const DEFAULT_ROOM_OPTIONS: RoomOptions = {
+  adaptiveStream: false,
+  dynacast: false,
+};
 
 /**
  * Maps WebRTC connection state to session state
@@ -70,12 +76,18 @@ export function AvatarSession({
   video = true,
   onEnd,
   onError,
+  __unstable_roomOptions,
 }: AvatarSessionProps) {
   const errorRef = useRef<Error | null>(null);
 
   const handleError = (error: Error) => {
     errorRef.current = error;
     onError?.(error);
+  };
+
+  const roomOptions = {
+    ...DEFAULT_ROOM_OPTIONS,
+    ...__unstable_roomOptions,
   };
 
   return (
@@ -87,10 +99,7 @@ export function AvatarSession({
       video={video}
       onDisconnected={() => onEnd?.()}
       onError={handleError}
-      options={{
-        adaptiveStream: true,
-        dynacast: true,
-      }}
+      options={roomOptions}
       connectOptions={{
         autoSubscribe: true,
       }}
