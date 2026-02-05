@@ -50,6 +50,33 @@ bun test           # Run tests
 6. Commit your changes with a descriptive message
 7. Push to your fork and open a pull request
 
+## Releasing
+
+This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
+
+1. Add your changes under `## [Unreleased]` in `CHANGELOG.md` as you go
+2. When ready to release, choose the appropriate version bump:
+   - **patch** (0.0.x) — bug fixes, non-breaking additions like type improvements
+   - **minor** (0.x.0) — new features, non-breaking changes
+   - **major** (x.0.0) — breaking changes
+3. Move the Unreleased entries into a new version section with today's date
+4. Update the `version` field in `package.json`
+5. Commit and push:
+
+```bash
+git add CHANGELOG.md package.json
+git commit -m "chore: release vX.Y.Z"
+git push origin main
+```
+
+6. Create a GitHub release (this triggers the NPM publish workflow):
+
+```bash
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "<release notes>"
+```
+
+The `Publish` workflow will automatically build and publish the package to NPM.
+
 ## Reporting Issues
 
 Please use [GitHub Issues](https://github.com/runwayml/avatars-sdk-react/issues) to report bugs or request features.
