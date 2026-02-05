@@ -3,8 +3,7 @@
 /**
  * AudioRenderer Component
  *
- * Re-exports LiveKit's RoomAudioRenderer for convenience.
- * This component handles audio playback for all participants in the room.
+ * Handles audio playback for all participants in the session.
  *
  * Note: AudioRenderer is already included in AvatarSession,
  * so you typically don't need to use this directly.

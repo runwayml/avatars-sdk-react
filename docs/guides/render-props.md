@@ -19,7 +19,7 @@ Instead of rendering fixed UI, components accept a function as children that rec
 
 - **Full control** over markup and styling
 - **No CSS overrides** needed for custom designs
-- **Access to internal state** (speaking, connecting, etc.)
+- **Access to internal state** (connecting, video availability, etc.)
 - **Integrate with any design system**
 
 ---
@@ -32,18 +32,17 @@ Instead of rendering fixed UI, components accept a function as children that rec
 {
   hasVideo: boolean;      // Whether video track exists
   isConnecting: boolean;  // Whether connection is in progress
-  isSpeaking: boolean;    // Whether avatar is currently speaking
   trackRef: TrackReferenceOrPlaceholder | null;  // Video track reference
 }
 ```
 
-### Example: Custom Video with Speaking Indicator
+### Example: Custom Video with Loading State
 
 ```tsx
 import { VideoTrack } from '@livekit/components-react';
 
 <AvatarVideo>
-  {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
+  {({ hasVideo, isConnecting, trackRef }) => (
     <div className="relative">
       {/* Loading state */}
       {isConnecting && (
@@ -58,14 +57,6 @@ import { VideoTrack } from '@livekit/components-react';
           trackRef={trackRef}
           className="w-full h-full object-cover"
         />
-      )}
-
-      {/* Speaking indicator */}
-      {isSpeaking && (
-        <div className="absolute bottom-4 left-4 flex items-center gap-2">
-          <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-white text-sm">Speaking</span>
-        </div>
       )}
     </div>
   )}
@@ -212,13 +203,12 @@ Build a complete custom UI by combining render props:
   <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden">
     {/* Main avatar video */}
     <AvatarVideo>
-      {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
+      {({ hasVideo, isConnecting, trackRef }) => (
         <>
           {isConnecting && <LoadingOverlay />}
           {hasVideo && trackRef && (
             <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
           )}
-          {isSpeaking && <SpeakingIndicator />}
         </>
       )}
     </AvatarVideo>

@@ -84,11 +84,10 @@ import { VideoTrack } from '@livekit/components-react';
 <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
   {/* Custom avatar display */}
   <AvatarVideo>
-    {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
-      <div className={`avatar ${isSpeaking ? 'speaking' : ''}`}>
+    {({ hasVideo, isConnecting, trackRef }) => (
+      <div className="avatar">
         {isConnecting && <Spinner />}
         {hasVideo && trackRef && <VideoTrack trackRef={trackRef} />}
-        {isSpeaking && <Badge>Speaking</Badge>}
       </div>
     )}
   </AvatarVideo>
@@ -159,7 +158,6 @@ function MyCustomUI() {
         {avatar.hasVideo && avatar.videoTrackRef && (
           <VideoTrack trackRef={avatar.videoTrackRef} />
         )}
-        {avatar.isSpeaking && <SpeakingIndicator />}
       </div>
 
       {/* User PIP */}
@@ -247,25 +245,6 @@ import { Card } from '@/components/ui/card';
 ---
 
 ## Common Patterns
-
-### Speaking Indicator
-
-```tsx
-<AvatarVideo>
-  {({ isSpeaking, hasVideo, trackRef }) => (
-    <div className="relative">
-      {hasVideo && trackRef && <VideoTrack trackRef={trackRef} />}
-      {isSpeaking && (
-        <div className="absolute bottom-2 left-2 flex items-center gap-1
-                        bg-black/50 px-2 py-1 rounded-full">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-xs text-white">Speaking</span>
-        </div>
-      )}
-    </div>
-  )}
-</AvatarVideo>
-```
 
 ### Fullscreen Mode
 

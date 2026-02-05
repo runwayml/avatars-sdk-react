@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-05
+
+### Changed
+
+- Updated `livekit-client` to ^2.17.0 and `@livekit/components-react` to ^2.9.19
+- Simplified `useAvatar` hook - audio is now handled automatically by the session
+- Improved audio/video synchronization with optimized track subscription options
+
+### Removed
+
+- **Breaking:** Removed `audioTrackRef`, `hasAudio`, and `isSpeaking` from `useAvatar` return type (audio is handled automatically by `AvatarSession`)
+- **Breaking:** Removed `isSpeaking` from `AvatarVideoState` render prop
+
 ## [0.1.0] - 2026-02-03
 
 ### Added

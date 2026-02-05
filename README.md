@@ -140,8 +140,8 @@ All components support render props for complete control:
 
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
-    <div className={isSpeaking ? 'speaking' : ''}>
+  {({ hasVideo, isConnecting, trackRef }) => (
+    <div>
       {isConnecting && <Spinner />}
       {hasVideo && <VideoTrack trackRef={trackRef} />}
     </div>
@@ -203,14 +203,14 @@ function MyComponent() {
 
 ### useAvatar
 
-Access the remote avatar's video/audio:
+Access the remote avatar's video:
 
 ```tsx
 function CustomAvatar() {
-  const { videoTrackRef, isSpeaking, hasVideo, hasAudio } = useAvatar();
+  const { videoTrackRef, hasVideo } = useAvatar();
 
   return (
-    <div data-speaking={isSpeaking}>
+    <div>
       {hasVideo && <VideoTrack trackRef={videoTrackRef} />}
     </div>
   );

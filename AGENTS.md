@@ -47,7 +47,7 @@ AvatarCall (handles session creation)
 **Render props:** All display components accept `children` as render function:
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isSpeaking, trackRef }) => <CustomUI />}
+  {({ hasVideo, isConnecting, trackRef }) => <CustomUI />}
 </AvatarVideo>
 ```
 

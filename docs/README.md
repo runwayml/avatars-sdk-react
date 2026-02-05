@@ -99,7 +99,7 @@ Client (React)              Your Server              Runway API
 ### Hooks
 
 - **useAvatarSession** - Access session state and controls
-- **useAvatar** - Access remote avatar tracks and speaking state
+- **useAvatar** - Access remote avatar video track
 - **useLocalMedia** - Control local camera and microphone
 
 ### Session States

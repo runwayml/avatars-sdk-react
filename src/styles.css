@@ -74,11 +74,6 @@
   background: transparent;
 }
 
-/* Speaking indicator glow */
-[data-speaking="true"] {
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5);
-}
-
 /* ControlBar */
 [data-active] {
   position: absolute;

@@ -43,6 +43,7 @@ export function useLocalMedia(): UseLocalMediaReturn {
     [{ source: Track.Source.Camera, withPlaceholder: true }],
     {
       onlySubscribed: false,
+      updateOnlyOn: [],
     },
   );
 

@@ -152,8 +152,8 @@ Renders the remote avatar's video stream.
 
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
-    <div className={isSpeaking ? 'speaking' : ''}>
+  {({ hasVideo, isConnecting, trackRef }) => (
+    <div>
       {isConnecting && <Spinner />}
       {hasVideo && <VideoTrack trackRef={trackRef} />}
     </div>
@@ -167,7 +167,6 @@ Renders the remote avatar's video stream.
 |----------|------|-------------|
 | `hasVideo` | `boolean` | Whether avatar video is available |
 | `isConnecting` | `boolean` | Whether connection is in progress |
-| `isSpeaking` | `boolean` | Whether avatar is currently speaking |
 | `trackRef` | `TrackReferenceOrPlaceholder` | Video track reference for custom rendering |
 
 ### Data Attributes
@@ -177,7 +176,6 @@ Renders the remote avatar's video stream.
 | `data-avatar-video` | `""` |
 | `data-has-video` | `"true"` or `"false"` |
 | `data-connecting` | `"true"` or `"false"` |
-| `data-speaking` | `"true"` or `"false"` |
 
 ---
 

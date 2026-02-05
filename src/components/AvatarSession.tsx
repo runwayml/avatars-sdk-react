@@ -4,7 +4,7 @@
  * AvatarSession Component
  *
  * Provides the session context for avatar interactions.
- * Wraps LiveKit's LiveKitRoom internally while exposing a clean API.
+ * Manages the WebRTC connection and exposes a clean API for child components.
  *
  * @example
  * ```tsx
@@ -36,7 +36,7 @@ import type {
 } from '../types';
 
 /**
- * Maps LiveKit connection state to our session state
+ * Maps WebRTC connection state to session state
  */
 function mapConnectionState(connectionState: ConnectionState): SessionState {
   switch (connectionState) {
@@ -60,7 +60,7 @@ const AvatarSessionContext = createContext<AvatarSessionContextValue | null>(
 /**
  * AvatarSession component - the main entry point for avatar sessions
  *
- * Renders children within a LiveKit room context and provides session state.
+ * Establishes a WebRTC connection and provides session state to children.
  * This is a headless component that renders minimal DOM.
  */
 export function AvatarSession({
@@ -91,6 +91,9 @@ export function AvatarSession({
         adaptiveStream: true,
         dynacast: true,
       }}
+      connectOptions={{
+        autoSubscribe: true,
+      }}
     >
       <AvatarSessionContextInner
         sessionId={credentials.sessionId}
@@ -105,7 +108,7 @@ export function AvatarSession({
 }
 
 /**
- * Inner context provider that has access to LiveKit room context
+ * Inner context provider that has access to the room context
  */
 function AvatarSessionContextInner({
   sessionId,

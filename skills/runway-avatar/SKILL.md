@@ -4,7 +4,7 @@ description: React SDK for building real-time AI avatar experiences via WebRTC. 
 license: MIT
 metadata:
   author: runwayml
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Runway Avatar SDK
@@ -43,7 +43,7 @@ AvatarCall (handles session creation)
 **Render props:** All display components accept `children` as render function:
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isSpeaking, trackRef }) => <CustomUI />}
+  {({ hasVideo, isConnecting, trackRef }) => <CustomUI />}
 </AvatarVideo>
 ```
 

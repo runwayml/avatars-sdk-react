@@ -74,7 +74,7 @@ Renders the remote avatar video stream.
 
 // With render prop
 <AvatarVideo>
-  {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
+  {({ hasVideo, isConnecting, trackRef }) => (
     // Custom rendering
   )}
 </AvatarVideo>
@@ -86,7 +86,6 @@ Renders the remote avatar video stream.
 |----------|------|-------------|
 | `hasVideo` | `boolean` | Video track available |
 | `isConnecting` | `boolean` | Connection in progress |
-| `isSpeaking` | `boolean` | Avatar currently speaking |
 | `trackRef` | `TrackReferenceOrPlaceholder \| null` | Video track |
 
 ---
@@ -180,22 +179,19 @@ const { state, sessionId, error, end } = useAvatarSession();
 
 ### useAvatar
 
-Access remote avatar tracks. Must be used within `AvatarCall` or `AvatarSession`.
+Access remote avatar video track. Must be used within `AvatarCall` or `AvatarSession`. Audio is handled automatically by the session.
 
 ```tsx
-const { participant, videoTrackRef, isSpeaking, hasVideo, hasAudio } = useAvatar();
+const { participant, videoTrackRef, hasVideo } = useAvatar();
 ```
 
 **Returns:**
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `participant` | `RemoteParticipant \| null` | LiveKit participant |
+| `participant` | `RemoteParticipant \| null` | Remote avatar participant |
 | `videoTrackRef` | `TrackReferenceOrPlaceholder \| null` | Video track |
-| `audioTrackRef` | `TrackReferenceOrPlaceholder \| null` | Audio track |
-| `isSpeaking` | `boolean` | Avatar speaking |
 | `hasVideo` | `boolean` | Has video track |
-| `hasAudio` | `boolean` | Has audio track |
 
 ---
 

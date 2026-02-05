@@ -3,106 +3,52 @@
 /**
  * useAvatar Hook
  *
- * Provides access to the remote avatar participant's video and audio tracks.
- * Uses LiveKit React hooks internally but exposes a clean API.
+ * Provides access to the remote avatar participant's video track.
+ * Audio is handled automatically by the session.
  *
  * @example
  * ```tsx
  * function AvatarDisplay() {
- *   const { videoTrackRef, isSpeaking, hasVideo } = useAvatar();
+ *   const { videoTrackRef, hasVideo } = useAvatar();
  *
  *   if (!hasVideo) {
  *     return <Placeholder />;
  *   }
  *
- *   return (
- *     <div data-speaking={isSpeaking}>
- *       <VideoTrack trackRef={videoTrackRef} />
- *     </div>
- *   );
+ *   return <VideoTrack trackRef={videoTrackRef} />;
  * }
  * ```
  */
 
 import {
   isTrackReference,
-  type TrackReferenceOrPlaceholder,
   useRemoteParticipants,
   useTracks,
 } from '@livekit/components-react';
-import { ParticipantEvent, Track } from 'livekit-client';
-import { useEffect, useState } from 'react';
+import { Track } from 'livekit-client';
 import type { UseAvatarReturn } from '../types';
 
 /**
- * Hook to access the remote avatar participant's tracks and state
+ * Hook to access the remote avatar participant's video track
  *
- * @returns Avatar participant info, track references, and speaking state
+ * @returns Avatar participant info and video track reference
  */
 export function useAvatar(): UseAvatarReturn {
   const remoteParticipants = useRemoteParticipants();
   const avatarParticipant = remoteParticipants[0] ?? null;
-  const avatarIdentity = avatarParticipant?.identity ?? null;
 
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  // Only subscribe to video - audio is handled automatically by the session
+  const videoTracks = useTracks(
+    [{ source: Track.Source.Camera, withPlaceholder: true }],
+    { onlySubscribed: true, updateOnlyOn: [] },
+  ).filter((ref) => !ref.participant.isLocal);
 
-  useEffect(() => {
-    if (!avatarParticipant) {
-      setIsSpeaking(false);
-      return;
-    }
-
-    setIsSpeaking(avatarParticipant.isSpeaking);
-
-    const handleIsSpeakingChanged = (speaking: boolean) => {
-      setIsSpeaking(speaking);
-    };
-
-    avatarParticipant.on(
-      ParticipantEvent.IsSpeakingChanged,
-      handleIsSpeakingChanged,
-    );
-
-    return () => {
-      avatarParticipant.off(
-        ParticipantEvent.IsSpeakingChanged,
-        handleIsSpeakingChanged,
-      );
-    };
-  }, [avatarParticipant]);
-
-  const tracks = useTracks(
-    [
-      { source: Track.Source.Camera, withPlaceholder: true },
-      { source: Track.Source.Microphone, withPlaceholder: true },
-    ],
-    { onlySubscribed: true },
-  );
-
-  let videoTrackRef: TrackReferenceOrPlaceholder | null = null;
-  let audioTrackRef: TrackReferenceOrPlaceholder | null = null;
-
-  for (const trackRef of tracks) {
-    if (trackRef.participant.identity !== avatarIdentity) continue;
-
-    if (trackRef.source === Track.Source.Camera && !videoTrackRef) {
-      videoTrackRef = trackRef;
-    } else if (trackRef.source === Track.Source.Microphone && !audioTrackRef) {
-      audioTrackRef = trackRef;
-    }
-
-    if (videoTrackRef && audioTrackRef) break;
-  }
-
+  const videoTrackRef = videoTracks[0] ?? null;
   const hasVideo = videoTrackRef !== null && isTrackReference(videoTrackRef);
-  const hasAudio = audioTrackRef !== null && isTrackReference(audioTrackRef);
 
   return {
     participant: avatarParticipant,
     videoTrackRef,
-    audioTrackRef,
-    isSpeaking,
     hasVideo,
-    hasAudio,
   };
 }

@@ -122,16 +122,8 @@ export interface UseAvatarReturn {
   videoTrackRef:
     | import('@livekit/components-react').TrackReferenceOrPlaceholder
     | null;
-  /** The avatar's audio track reference */
-  audioTrackRef:
-    | import('@livekit/components-react').TrackReferenceOrPlaceholder
-    | null;
-  /** Whether the avatar is currently speaking */
-  isSpeaking: boolean;
   /** Whether the avatar has video */
   hasVideo: boolean;
-  /** Whether the avatar has audio */
-  hasAudio: boolean;
 }
 
 /**

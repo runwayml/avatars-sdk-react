@@ -89,7 +89,7 @@ function MyComponent() {
 
 ## useAvatar
 
-Access the remote avatar's participant data and media tracks.
+Access the remote avatar's participant data and video track. Audio is handled automatically by the session.
 
 ### Return Type
 
@@ -97,10 +97,7 @@ Access the remote avatar's participant data and media tracks.
 interface UseAvatarReturn {
   participant: RemoteParticipant | null;
   videoTrackRef: TrackReferenceOrPlaceholder | null;
-  audioTrackRef: TrackReferenceOrPlaceholder | null;
-  isSpeaking: boolean;
   hasVideo: boolean;
-  hasAudio: boolean;
 }
 ```
 
@@ -108,24 +105,19 @@ interface UseAvatarReturn {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `participant` | `RemoteParticipant \| null` | LiveKit remote participant |
+| `participant` | `RemoteParticipant \| null` | Remote avatar participant |
 | `videoTrackRef` | `TrackReferenceOrPlaceholder \| null` | Video track for rendering |
-| `audioTrackRef` | `TrackReferenceOrPlaceholder \| null` | Audio track reference |
-| `isSpeaking` | `boolean` | Whether avatar is currently speaking |
 | `hasVideo` | `boolean` | Whether avatar has video |
-| `hasAudio` | `boolean` | Whether avatar has audio |
 
 ### Usage
 
 ```tsx
 function AvatarStatus() {
-  const { isSpeaking, hasVideo, hasAudio } = useAvatar();
+  const { hasVideo } = useAvatar();
 
   return (
     <div>
       <p>Video: {hasVideo ? 'Yes' : 'No'}</p>
-      <p>Audio: {hasAudio ? 'Yes' : 'No'}</p>
-      <p>Speaking: {isSpeaking ? 'Yes' : 'No'}</p>
     </div>
   );
 }
@@ -137,14 +129,14 @@ function AvatarStatus() {
 import { VideoTrack } from '@livekit/components-react';
 
 function CustomAvatarVideo() {
-  const { videoTrackRef, isSpeaking, hasVideo } = useAvatar();
+  const { videoTrackRef, hasVideo } = useAvatar();
 
   if (!hasVideo || !videoTrackRef) {
     return <Placeholder />;
   }
 
   return (
-    <div className={isSpeaking ? 'speaking' : ''}>
+    <div>
       <VideoTrack trackRef={videoTrackRef} />
     </div>
   );
@@ -262,8 +254,8 @@ function FullCustomUI() {
 
   return (
     <div>
-      {/* Avatar video with speaking indicator */}
-      <div className={avatar.isSpeaking ? 'speaking' : ''}>
+      {/* Avatar video */}
+      <div>
         {avatar.hasVideo && avatar.videoTrackRef && (
           <VideoTrack trackRef={avatar.videoTrackRef} />
         )}

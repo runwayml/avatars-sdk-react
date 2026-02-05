@@ -51,11 +51,11 @@ All components expose data attributes for CSS targeting.
 | `data-avatar-video` | `""` |
 | `data-has-video` | `"true"`, `"false"` |
 | `data-connecting` | `"true"`, `"false"` |
-| `data-speaking` | `"true"`, `"false"` |
 
 ```css
-[data-avatar-video][data-speaking="true"] {
-  box-shadow: 0 0 0 3px #22c55e;
+[data-avatar-video][data-connecting="true"] {
+  background: linear-gradient(45deg, #333, #555);
+  animation: pulse 1.5s infinite;
 }
 ```
 
@@ -98,19 +98,6 @@ Works with Tailwind's arbitrary selectors:
 ```
 
 ## Animation Examples
-
-### Speaking Indicator
-
-```css
-@keyframes speaking-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-}
-
-[data-avatar-video][data-speaking="true"] {
-  animation: speaking-pulse 1s infinite;
-}
-```
 
 ### Loading State
 

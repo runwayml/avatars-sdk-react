@@ -207,38 +207,6 @@ function WithScreenShare() {
 
 ---
 
-## Speaking Detection
-
-### Visual Feedback
-
-```tsx
-import { AvatarCall, AvatarVideo } from '@runwayml/avatars-react';
-import { VideoTrack } from '@livekit/components-react';
-
-function SpeakingAvatar() {
-  return (
-    <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-      <AvatarVideo>
-        {({ hasVideo, isSpeaking, trackRef }) => (
-          <div
-            style={{
-              border: isSpeaking ? '3px solid #22c55e' : '3px solid transparent',
-              transition: 'border-color 0.2s',
-              borderRadius: '12px',
-              overflow: 'hidden',
-            }}
-          >
-            {hasVideo && trackRef && <VideoTrack trackRef={trackRef} />}
-          </div>
-        )}
-      </AvatarVideo>
-    </AvatarCall>
-  );
-}
-```
-
----
-
 ## Authentication
 
 ### With User Auth Token

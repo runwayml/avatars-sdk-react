@@ -143,8 +143,8 @@ Renders the remote avatar's video stream.
 
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isConnecting, isSpeaking, trackRef }) => (
-    <div className={isSpeaking ? 'speaking' : ''}>
+  {({ hasVideo, isConnecting, trackRef }) => (
+    <div>
       {isConnecting && <Spinner />}
       {hasVideo && <VideoTrack trackRef={trackRef} />}
     </div>
