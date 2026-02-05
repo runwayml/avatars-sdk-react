@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { AvatarCall } from '@runwayml/avatars-react';
+import { AvatarCall, type SessionCredentials } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
 const PRESETS = [
@@ -37,18 +37,72 @@ const PRESETS = [
 
 export default function Home() {
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [customAvatarId, setCustomAvatarId] = useState('');
+  const [isCustomCall, setIsCustomCall] = useState(false);
   const selectedPreset = PRESETS.find((p) => p.id === activePreset);
 
-  const closeModal = useCallback(() => setActivePreset(null), []);
+  const closeModal = useCallback(() => {
+    setActivePreset(null);
+    setIsCustomCall(false);
+  }, []);
+
+  const handleCustomStart = useCallback(() => {
+    if (customAvatarId.trim()) {
+      setIsCustomCall(true);
+    }
+  }, [customAvatarId]);
+
+  const handleCustomInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setCustomAvatarId(e.target.value);
+    },
+    [],
+  );
+
+  const handleCustomInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') handleCustomStart();
+    },
+    [handleCustomStart],
+  );
+
+  const handleModalContentClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+    },
+    [],
+  );
+
+  const handlePresetClick = useCallback(
+    (presetId: string) => () => {
+      setActivePreset(presetId);
+    },
+    [],
+  );
+
+  const handleConnect = useCallback(
+    async (avatarId: string): Promise<SessionCredentials> => {
+      const payload = isCustomCall
+        ? { customAvatarId: avatarId }
+        : { avatarId };
+      const res = await fetch('/api/avatar/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      return res.json();
+    },
+    [isCustomCall],
+  );
 
   useEffect(() => {
-    if (!activePreset) return;
+    if (!activePreset && !isCustomCall) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeModal();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activePreset, closeModal]);
+  }, [activePreset, isCustomCall, closeModal]);
 
   return (
     <main className="page">
@@ -73,7 +127,7 @@ export default function Home() {
           <button
             key={preset.id}
             className="preset"
-            onClick={() => setActivePreset(preset.id)}
+            onClick={handlePresetClick(preset.id)}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -89,6 +143,27 @@ export default function Home() {
             </div>
           </button>
         ))}
+      </div>
+
+      <div className="custom-avatar">
+        <h2 className="custom-avatar-title">Or use a custom avatar</h2>
+        <div className="custom-avatar-input-group">
+          <input
+            type="text"
+            value={customAvatarId}
+            onChange={handleCustomInputChange}
+            placeholder="Enter custom avatar ID"
+            className="custom-avatar-input"
+            onKeyDown={handleCustomInputKeyDown}
+          />
+          <button
+            onClick={handleCustomStart}
+            disabled={!customAvatarId.trim()}
+            className="custom-avatar-button"
+          >
+            Start Call
+          </button>
+        </div>
       </div>
 
       <footer className="footer">
@@ -110,12 +185,12 @@ export default function Home() {
         </a>
       </footer>
 
-      {activePreset && selectedPreset && (
+      {(activePreset && selectedPreset) || isCustomCall ? (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal" onClick={handleModalContentClick}>
             <div className="modal-header">
               <span className="modal-title">
-                {selectedPreset.name} · {selectedPreset.subtitle}
+                {isCustomCall ? `Custom Avatar · ${customAvatarId}` : `${selectedPreset?.name} · ${selectedPreset?.subtitle}`}
               </span>
               <button
                 className="modal-close"
@@ -126,15 +201,15 @@ export default function Home() {
               </button>
             </div>
             <AvatarCall
-              avatarId={activePreset}
-              avatarImageUrl={selectedPreset.imageUrl}
-              connectUrl="/api/avatar/connect"
+              avatarId={isCustomCall ? customAvatarId : activePreset!}
+              avatarImageUrl={selectedPreset?.imageUrl}
+              connect={handleConnect}
               onEnd={closeModal}
               onError={console.error}
             />
           </div>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }

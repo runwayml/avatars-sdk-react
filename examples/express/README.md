@@ -45,6 +45,15 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Custom Avatars
+
+In addition to the preset avatars, you can use your own custom avatars created in the [Runway Developer Portal](https://dev.runwayml.com/).
+
+1. Create a custom avatar in the Developer Portal
+2. Copy the avatar ID
+3. Enter it in the "Custom Avatar" input on the example page
+4. Click "Start Call"
+
 ## Project structure
 
 ```

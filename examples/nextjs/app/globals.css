@@ -187,6 +187,86 @@ body {
   }
 }
 
+/* Custom Avatar */
+.custom-avatar {
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+}
+
+.custom-avatar-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.custom-avatar-description a {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.custom-avatar-description a:hover {
+  text-decoration: none;
+}
+
+.custom-avatar-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.custom-avatar-input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.custom-avatar-input:focus {
+  border-color: var(--foreground);
+}
+
+.custom-avatar-input::placeholder {
+  color: var(--muted);
+}
+
+.custom-avatar-button {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--foreground);
+  color: var(--background);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.custom-avatar-button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.custom-avatar-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .custom-avatar-input-group {
+    flex-direction: column;
+  }
+  
+  .custom-avatar-button {
+    width: 100%;
+  }
+}
+
 /* Footer */
 .footer {
   display: flex;

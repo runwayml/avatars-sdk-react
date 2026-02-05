@@ -5,12 +5,13 @@
 
 import type Runway from '@runwayml/sdk';
 
+export type AvatarConfig =
+  | { type: 'runway-preset'; presetId: string }
+  | { type: 'custom'; customId: string };
+
 export interface CreateSessionOptions {
   model: string;
-  avatar: {
-    type: 'runway-preset';
-    presetId: string;
-  };
+  avatar: AvatarConfig;
 }
 
 export interface CreateSessionResponse {

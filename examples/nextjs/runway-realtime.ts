@@ -5,12 +5,13 @@
 
 import type Runway from '@runwayml/sdk';
 
+export type AvatarConfig =
+  | { type: 'runway-preset'; presetId: string }
+  | { type: 'custom'; avatarId: string };
+
 export interface CreateSessionOptions {
   model: string;
-  avatar: {
-    type: 'runway-preset';
-    presetId: string;
-  };
+  avatar: AvatarConfig;
 }
 
 export interface CreateSessionResponse {
@@ -54,6 +55,7 @@ export class RunwayRealtime {
       }
 
       const session = await this.get(sessionId);
+      console.log('session', session);
 
       if (session.status === 'READY' && session.sessionKey) {
         return { sessionKey: session.sessionKey };

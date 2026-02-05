@@ -7,10 +7,17 @@ import { RunwayRealtime } from '../runway-realtime';
 const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 const realtime = new RunwayRealtime(client);
 
-export async function createAvatarSession(avatarId: string) {
+export async function createAvatarSession(
+  avatarId: string,
+  options?: { isCustom?: boolean },
+) {
+  const avatar = options?.isCustom
+    ? { type: 'custom' as const, customId: avatarId }
+    : { type: 'runway-preset' as const, presetId: avatarId };
+
   const { id: sessionId } = await realtime.create({
     model: 'gwm1_avatars',
-    avatar: { type: 'runway-preset', presetId: avatarId },
+    avatar,
   });
 
   const { sessionKey } = await realtime.waitForReady(sessionId);

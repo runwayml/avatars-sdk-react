@@ -16,11 +16,15 @@ app.use(express.static(join(__dirname, 'dist')));
 
 app.post('/api/avatar/connect', async (req, res) => {
   try {
-    const { avatarId } = req.body;
+    const { avatarId, customAvatarId } = req.body;
+
+    const avatar = customAvatarId
+      ? { type: 'custom' as const, customId: customAvatarId }
+      : { type: 'runway-preset' as const, presetId: avatarId };
 
     const { id: sessionId } = await realtime.create({
       model: 'gwm1_avatars',
-      avatar: { type: 'runway-preset', presetId: avatarId },
+      avatar,
     });
 
     const { sessionKey } = await realtime.waitForReady(sessionId);
