@@ -3,13 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "cd node_modules/@runwayml && rm -f avatars-react && ln -s ../../../.. avatars-react",
     "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "@runwayml/avatars-react": "link:../..",
+    "@runwayml/avatars-react": "latest",
     "@runwayml/sdk": "^1.0.0",
     "next": "^15.0.0",
     "react": "^19.0.0",
