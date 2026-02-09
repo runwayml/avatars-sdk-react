@@ -15,6 +15,7 @@ export interface UseCredentialsOptions {
   credentials?: SessionCredentials;
   connectUrl?: string;
   connect?: (avatarId: string) => Promise<SessionCredentials>;
+  baseUrl?: string;
 }
 
 const resourceCache = new Map<string, SuspenseResource<SessionCredentials>>();
@@ -29,12 +30,14 @@ function computeKey(options: UseCredentialsOptions): string {
 async function fetchCredentials(
   options: UseCredentialsOptions,
 ): Promise<SessionCredentials> {
-  const { avatarId, sessionId, sessionKey, connectUrl, connect } = options;
+  const { avatarId, sessionId, sessionKey, connectUrl, connect, baseUrl } =
+    options;
 
   if (sessionId && sessionKey) {
     const { url, token, roomName } = await consumeSession({
       sessionId,
       sessionKey,
+      baseUrl,
     });
     return { sessionId, serverUrl: url, token, roomName };
   }

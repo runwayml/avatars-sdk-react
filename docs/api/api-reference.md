@@ -26,12 +26,16 @@ import { AvatarCall } from '@runwayml/avatars-react';
 | `avatarId` | `string` | ✓ | Avatar preset ID |
 | `connectUrl` | `string` | * | URL to POST for credentials |
 | `connect` | `(avatarId: string) => Promise<SessionCredentials>` | * | Custom connect function |
+| `sessionId` | `string` | * | Session ID (use with `sessionKey`) |
+| `sessionKey` | `string` | * | Session key (use with `sessionId`) |
+| `credentials` | `SessionCredentials` | * | Pre-fetched credentials |
+| `baseUrl` | `string` | | Runway API base URL |
 | `avatarImageUrl` | `string` | | Placeholder image URL |
 | `onEnd` | `() => void` | | Called when session ends |
 | `onError` | `(error: Error) => void` | | Called on error |
 | `children` | `ReactNode` | | Custom layout |
 
-*Either `connectUrl` or `connect` is required.
+*One of these is required: `connectUrl`, `connect`, `sessionId`+`sessionKey`, or `credentials`.
 
 ---
 

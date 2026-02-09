@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `configure()` from `@runwayml/avatars-react/api` had no effect on `AvatarCall` due to separate bundles having their own config state. Replaced with a `baseUrl` prop on `AvatarCall` for explicit API URL configuration.
+
+### Removed
+
+- **Breaking:** Removed `configure()`, `getConfig()`, `resetConfig()`, and `ApiConfig` exports from `@runwayml/avatars-react/api`. Use the `baseUrl` prop on `AvatarCall` instead.
+
 ## [0.3.0] - 2026-02-06
 
 ### Added

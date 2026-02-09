@@ -107,6 +107,8 @@ export interface AvatarCallProps
   connectUrl?: string;
   /** Custom function to fetch SessionCredentials */
   connect?: (avatarId: string) => Promise<SessionCredentials>;
+  /** Base URL for the Runway API (defaults to https://api.dev.runwayml.com) */
+  baseUrl?: string;
   /** Avatar image URL for placeholder/loading states */
   avatarImageUrl?: string;
   /** Callback when session ends */

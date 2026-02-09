@@ -47,6 +47,14 @@ interface AvatarCallProps extends Omit<React.ComponentPropsWithoutRef<'div'>, 'o
   connectUrl?: string;
   /** Custom function to fetch SessionCredentials */
   connect?: (avatarId: string) => Promise<SessionCredentials>;
+  /** Session ID (use with sessionKey - package will call consumeSession) */
+  sessionId?: string;
+  /** Session key (use with sessionId - package will call consumeSession) */
+  sessionKey?: string;
+  /** Pre-fetched credentials (for advanced users who called consumeSession themselves) */
+  credentials?: SessionCredentials;
+  /** Base URL for the Runway API (defaults to https://api.dev.runwayml.com) */
+  baseUrl?: string;
   /** Avatar image URL for placeholder/loading states */
   avatarImageUrl?: string;
   /** Callback when session ends */

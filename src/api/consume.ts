@@ -1,10 +1,10 @@
 import type { ConsumeSessionOptions, ConsumeSessionResponse } from '../types';
-import { getConfig } from './config';
+import { DEFAULT_BASE_URL } from './config';
 
 export async function consumeSession(
   options: ConsumeSessionOptions,
 ): Promise<ConsumeSessionResponse> {
-  const { sessionId, sessionKey, baseUrl = getConfig().baseUrl } = options;
+  const { sessionId, sessionKey, baseUrl = DEFAULT_BASE_URL } = options;
 
   const url = `${baseUrl}/v1/realtime_sessions/${sessionId}/consume`;
   const response = await fetch(url, {

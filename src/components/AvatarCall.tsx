@@ -33,6 +33,7 @@ export function AvatarCall({
   credentials: directCredentials,
   connectUrl,
   connect,
+  baseUrl,
   avatarImageUrl,
   onEnd,
   onError,
@@ -49,6 +50,7 @@ export function AvatarCall({
     credentials: directCredentials,
     connectUrl,
     connect,
+    baseUrl,
   });
 
   const handleSessionError = (err: Error) => {

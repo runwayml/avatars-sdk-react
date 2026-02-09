@@ -27,12 +27,16 @@ High-level component that handles the complete session lifecycle. **Recommended 
 | `avatarId` | `string` | ✓ | Avatar preset ID (e.g., `"game-host"`) |
 | `connectUrl` | `string` | ✓* | URL to POST `{ avatarId }` for credentials |
 | `connect` | `(avatarId: string) => Promise<SessionCredentials>` | ✓* | Custom function to fetch credentials |
+| `sessionId` | `string` | ✓* | Session ID (use with `sessionKey`) |
+| `sessionKey` | `string` | ✓* | Session key (use with `sessionId`) |
+| `credentials` | `SessionCredentials` | ✓* | Pre-fetched credentials |
+| `baseUrl` | `string` | | Runway API base URL (defaults to `https://api.dev.runwayml.com`) |
 | `avatarImageUrl` | `string` | | Avatar image URL (available as `--avatar-image` CSS variable) |
 | `onEnd` | `() => void` | | Called when session ends |
 | `onError` | `(error: Error) => void` | | Called on WebRTC error |
 | `children` | `ReactNode` | | Custom layout (defaults to AvatarVideo + UserVideo + ControlBar) |
 
-*Either `connectUrl` or `connect` is required.
+*One of these is required: `connectUrl`, `connect`, `sessionId`+`sessionKey`, or `credentials`.
 
 ### Basic Usage
 
