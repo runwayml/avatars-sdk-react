@@ -1,6 +1,6 @@
 {
   "name": "@runwayml/avatars-react",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "React SDK for real-time AI avatar interactions with GWM-1",
   "type": "module",
   "main": "./dist/index.cjs",
