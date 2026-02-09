@@ -55,7 +55,6 @@ export class RunwayRealtime {
       }
 
       const session = await this.get(sessionId);
-      console.log('session', session);
 
       if (session.status === 'READY' && session.sessionKey) {
         return { sessionKey: session.sessionKey };

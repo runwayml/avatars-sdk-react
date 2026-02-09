@@ -13,6 +13,7 @@ Prefer docs-led reasoning. Read relevant files before implementation.
 | Hooks (useAvatarSession, useAvatar, useLocalMedia) | `docs/api/hooks.md` |
 | TypeScript types | `docs/api/types.md` |
 | Server-side SDK (@runwayml/sdk) | `docs/guides/server-setup.md` |
+| Loading states & UX | `docs/guides/loading-states.md` |
 | CSS styling & data attributes | `docs/guides/styling.md` |
 | Render prop patterns | `docs/guides/render-props.md` |
 | Next.js integration | `docs/guides/nextjs.md` |
@@ -35,7 +36,7 @@ src/
 **Component hierarchy:**
 ```
 AvatarCall (handles session creation)
-└── AvatarSession (LiveKit provider)
+└── AvatarSession (WebRTC provider)
     ├── AvatarVideo (remote avatar)
     ├── UserVideo (local camera)
     ├── ControlBar (mic/camera/end)

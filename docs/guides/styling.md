@@ -43,34 +43,20 @@ All components expose data attributes for CSS targeting.
 | Attribute | Values | Description |
 |-----------|--------|-------------|
 | `data-avatar-call` | `""` | Always present |
-| `data-state` | `"connecting"`, `"connected"`, `"error"` | Connection state |
 | `data-avatar-id` | Avatar ID | The requested avatar |
-| `data-error` | Error message | Present when state is error |
 
-```css
-[data-avatar-call][data-state="connecting"] {
-  opacity: 0.7;
-}
-
-[data-avatar-call][data-state="error"] {
-  border: 2px solid red;
-}
-
-[data-avatar-call][data-state="connected"] {
-  border: 2px solid green;
-}
-```
+> **Note:** `AvatarCall` suspends during credential fetching — use `<Suspense>` for Phase 1 loading. See [Loading States](./loading-states.md).
 
 ### AvatarVideo
 
 | Attribute | Values |
 |-----------|--------|
 | `data-avatar-video` | `""` |
-| `data-has-video` | `"true"`, `"false"` |
-| `data-connecting` | `"true"`, `"false"` |
+| `data-status` | `"connecting"`, `"waiting"`, `"ready"` |
 
 ```css
-[data-avatar-video][data-connecting="true"] {
+[data-avatar-video][data-status="connecting"],
+[data-avatar-video][data-status="waiting"] {
   background: linear-gradient(45deg, #333, #555);
   animation: pulse 1.5s infinite;
 }
@@ -108,7 +94,7 @@ All components expose data attributes for CSS targeting.
 
 ## Background Image
 
-Use `avatarImageUrl` prop for a placeholder during connection:
+Use `avatarImageUrl` prop to set a CSS variable for background images:
 
 ```tsx
 <AvatarCall
@@ -118,10 +104,10 @@ Use `avatarImageUrl` prop for a placeholder during connection:
 />
 ```
 
-The image is set via `--avatar-image` CSS variable:
+The image is available via `--avatar-image` CSS variable:
 
 ```css
-[data-avatar-call][data-state="connecting"] {
+[data-avatar-call] {
   background-image: var(--avatar-image);
   background-size: cover;
   background-position: center;
@@ -225,7 +211,8 @@ Components also accept `style` prop:
   100% { background-position: 200% 0; }
 }
 
-[data-avatar-video][data-connecting="true"]::before {
+[data-avatar-video][data-status="connecting"]::before,
+[data-avatar-video][data-status="waiting"]::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -250,8 +237,9 @@ Works with Tailwind's arbitrary selectors:
 <AvatarCall
   avatarId="game-host"
   connectUrl="/api/avatar/connect"
-  className="w-full max-w-3xl rounded-xl overflow-hidden
-             data-[state=connecting]:opacity-50
-             data-[state=error]:border-2 data-[state=error]:border-red-500"
-/>
+  className="w-full max-w-3xl rounded-xl overflow-hidden"
+>
+  <AvatarVideo className="w-full h-full data-[status=connecting]:animate-pulse data-[status=waiting]:animate-pulse" />
+  <ControlBar />
+</AvatarCall>
 ```

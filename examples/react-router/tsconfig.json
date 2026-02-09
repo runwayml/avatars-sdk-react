@@ -10,12 +10,7 @@
     "noEmit": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "types": ["@react-router/node", "vite/client"],
-    "paths": {
-      "@runwayml/avatars-react": ["../../dist/index.d.ts"],
-      "@runwayml/avatars-react/api": ["../../dist/api.d.ts"],
-      "@runwayml/avatars-react/styles.css": ["../../dist/styles.css"]
-    }
+    "types": ["@react-router/node", "vite/client"]
   },
   "include": ["app/**/*", "vite.config.ts", "react-router.config.ts"]
 }

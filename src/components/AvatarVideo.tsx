@@ -2,42 +2,39 @@
 
 import { isTrackReference, VideoTrack } from '@livekit/components-react';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { useAvatar } from '../hooks/useAvatar';
-import { useAvatarSession } from '../hooks/useAvatarSession';
-import type { UseAvatarReturn } from '../types';
+import { type AvatarStatus, useAvatarStatus } from '../hooks/useAvatarStatus';
 
-export interface AvatarVideoState {
-  hasVideo: boolean;
-  isConnecting: boolean;
-  trackRef: UseAvatarReturn['videoTrackRef'];
-}
+/** Subset of AvatarStatus relevant to the video display */
+export type AvatarVideoStatus = Extract<
+  AvatarStatus,
+  { status: 'connecting' } | { status: 'waiting' } | { status: 'ready' }
+>;
 
 export interface AvatarVideoProps
   extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
-  children?: (state: AvatarVideoState) => ReactNode;
+  children?: (status: AvatarVideoStatus) => ReactNode;
 }
 
 export function AvatarVideo({ children, ...props }: AvatarVideoProps) {
-  const session = useAvatarSession();
-  const { videoTrackRef, hasVideo } = useAvatar();
+  const avatar = useAvatarStatus();
 
-  const isConnecting = session.state === 'connecting';
-
-  const state: AvatarVideoState = {
-    hasVideo,
-    isConnecting,
-    trackRef: videoTrackRef,
-  };
+  const videoStatus: AvatarVideoStatus =
+    avatar.status === 'ready'
+      ? avatar
+      : avatar.status === 'connecting'
+        ? { status: 'connecting' }
+        : { status: 'waiting' };
 
   if (children) {
-    return <>{children(state)}</>;
+    return <>{children(videoStatus)}</>;
   }
 
   return (
-    <div {...props} data-has-video={hasVideo} data-connecting={isConnecting}>
-      {hasVideo && videoTrackRef && isTrackReference(videoTrackRef) && (
-        <VideoTrack trackRef={videoTrackRef} />
-      )}
+    <div {...props} data-avatar-video="" data-status={videoStatus.status}>
+      {videoStatus.status === 'ready' &&
+        isTrackReference(videoStatus.videoTrackRef) && (
+          <VideoTrack trackRef={videoStatus.videoTrackRef} />
+        )}
     </div>
   );
 }

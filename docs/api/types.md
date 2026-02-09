@@ -37,6 +37,8 @@ interface SessionCredentials {
 
 ### AvatarCallProps
 
+Suspends during credential fetching — wrap in `<Suspense>` to show loading UI.
+
 ```typescript
 interface AvatarCallProps extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {
   /** The avatar ID to connect to */
@@ -79,9 +81,34 @@ interface AvatarSessionProps {
 
 ## Hook Return Types
 
+### AvatarStatus (useAvatarStatus)
+
+Discriminated union for the full avatar lifecycle. **Recommended for most UI rendering.**
+
+```typescript
+type AvatarStatus =
+  | { status: 'connecting' }
+  | { status: 'waiting' }
+  | { status: 'ready'; videoTrackRef: TrackReferenceOrPlaceholder }
+  | { status: 'ending' }
+  | { status: 'ended' }
+  | { status: 'error'; error: Error };
+```
+
+### AvatarVideoStatus (AvatarVideo render prop)
+
+Subset of `AvatarStatus` relevant to video display:
+
+```typescript
+type AvatarVideoStatus =
+  | { status: 'connecting' }
+  | { status: 'waiting' }
+  | { status: 'ready'; videoTrackRef: TrackReferenceOrPlaceholder };
+```
+
 ### UseAvatarSessionReturn
 
-Discriminated union for type-safe state handling:
+Discriminated union for lower-level session state handling:
 
 ```typescript
 type UseAvatarSessionReturn =
@@ -98,9 +125,9 @@ type UseAvatarSessionReturn =
 ```typescript
 interface UseAvatarReturn {
   /** The remote avatar participant */
-  participant: import('livekit-client').RemoteParticipant | null;
+  participant: RemoteParticipant | null;
   /** The avatar's video track reference */
-  videoTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  videoTrackRef: TrackReferenceOrPlaceholder | null;
   /** Whether the avatar has video */
   hasVideo: boolean;
 }
@@ -127,7 +154,7 @@ interface UseLocalMediaReturn {
   /** Toggle screen sharing on/off */
   toggleScreenShare: () => void;
   /** The local video track reference */
-  localVideoTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  localVideoTrackRef: TrackReferenceOrPlaceholder | null;
 }
 ```
 
@@ -160,27 +187,11 @@ import type {
   SessionCredentials,
   AvatarCallProps,
   AvatarSessionProps,
+  AvatarStatus,
+  AvatarVideoStatus,
   UseAvatarReturn,
   UseLocalMediaReturn,
   AvatarSessionContextValue,
 } from '@runwayml/avatars-react';
 ```
 
----
-
-## LiveKit Types
-
-The SDK re-exports or uses types from LiveKit:
-
-```typescript
-import type {
-  RemoteParticipant,
-  LocalParticipant,
-} from 'livekit-client';
-
-import type {
-  TrackReferenceOrPlaceholder,
-} from '@livekit/components-react';
-```
-
-These are used internally but may be needed for advanced custom rendering.

@@ -39,7 +39,7 @@ Instead of rendering fixed UI, components accept a function as children that rec
 ### Example: Custom Video with Loading State
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 <AvatarVideo>
   {({ hasVideo, isConnecting, trackRef }) => (
@@ -80,7 +80,7 @@ import { VideoTrack } from '@livekit/components-react';
 ### Example: Camera Off Placeholder
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 <UserVideo>
   {({ hasVideo, isCameraEnabled, trackRef }) => (

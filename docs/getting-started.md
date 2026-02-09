@@ -27,15 +27,18 @@ Get your API secret from the [Runway Developer Portal](https://dev.runwayml.com/
 ### Client Component
 
 ```tsx
+import { Suspense } from 'react';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css'; // Optional default styles
 
 function App() {
   return (
-    <AvatarCall
-      avatarId="game-host"
-      connectUrl="/api/avatar/connect"
-    />
+    <Suspense fallback={<p>Setting up avatar session...</p>}>
+      <AvatarCall
+        avatarId="game-host"
+        connectUrl="/api/avatar/connect"
+      />
+    </Suspense>
   );
 }
 ```
@@ -94,10 +97,12 @@ export async function POST(req: Request) {
 ## How It Works
 
 1. `AvatarCall` POSTs `{ avatarId }` to your `connectUrl`
-2. Your server creates a session with Runway's API
+2. Your server creates a session with Runway's API (~10–30 seconds)
 3. Server returns WebRTC credentials to the client
-4. `AvatarCall` establishes a real-time video connection
+4. `AvatarCall` establishes a real-time video connection (~1–5 seconds)
 5. User sees and talks to the AI avatar
+
+> **Note:** Session creation (step 2) can take 10–30 seconds. `AvatarCall` **suspends** during this wait — wrap it in `<Suspense>` to show a loading fallback. See the [Loading States guide](guides/loading-states.md) for details.
 
 ## Session States
 
@@ -109,14 +114,16 @@ idle → connecting → active → ending → ended
                  → error ←
 ```
 
-Use the `useAvatarSession` hook to access state:
+Use the `useAvatarStatus` hook to track the lifecycle:
 
 ```tsx
-const { state, error, end } = useAvatarSession();
+const avatar = useAvatarStatus();
+// avatar.status: 'connecting' | 'waiting' | 'ready' | 'ending' | 'ended' | 'error'
 ```
 
 ## Next Steps
 
+- [Loading States](guides/loading-states.md) - Handle loading UI during session setup
 - [Components](api/components.md) - Learn about all available components
 - [Hooks](api/hooks.md) - Access session state with hooks
 - [Styling](guides/styling.md) - Customize the appearance

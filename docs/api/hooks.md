@@ -6,9 +6,73 @@ All hooks must be used within an `AvatarCall` or `AvatarSession` component.
 
 | Hook | Purpose |
 |------|---------|
+| `useAvatarStatus` | **Recommended.** Single discriminated union of the full avatar lifecycle |
 | `useAvatarSession` | Access session state and controls |
 | `useAvatar` | Access remote avatar tracks and state |
 | `useLocalMedia` | Control local camera and microphone |
+
+---
+
+## useAvatarStatus
+
+**Recommended for most use cases.** Returns a single discriminated union that combines session connection state and video availability into one status value.
+
+### Return Type
+
+```typescript
+type AvatarStatus =
+  | { status: 'connecting' }
+  | { status: 'waiting' }
+  | { status: 'ready'; videoTrackRef: TrackReferenceOrPlaceholder }
+  | { status: 'ending' }
+  | { status: 'ended' }
+  | { status: 'error'; error: Error };
+```
+
+### Status Values
+
+| Status | Meaning | Extra fields |
+|--------|---------|--------------|
+| `connecting` | WebRTC connection in progress | — |
+| `waiting` | Connected, waiting for video track to arrive | — |
+| `ready` | Avatar video is streaming | `videoTrackRef` |
+| `ending` | Disconnect in progress | — |
+| `ended` | Session terminated | — |
+| `error` | Something went wrong | `error: Error` |
+
+### Usage
+
+```tsx
+import { VideoTrack } from '@runwayml/avatars-react';
+
+function MyAvatar() {
+  const avatar = useAvatarStatus();
+
+  switch (avatar.status) {
+    case 'connecting':
+      return <Spinner label="Connecting..." />;
+
+    case 'waiting':
+      return <Spinner label="Loading video..." />;
+
+    case 'ready':
+      return <VideoTrack trackRef={avatar.videoTrackRef} />;
+
+    case 'error':
+      return <p>Error: {avatar.error.message}</p>;
+
+    case 'ended':
+      return <p>Call ended</p>;
+
+    case 'ending':
+      return <p>Disconnecting...</p>;
+  }
+}
+```
+
+### When to Use
+
+Use `useAvatarStatus` when you want a simple, switch-based approach to rendering different UI for each phase. For lower-level control (e.g., accessing the raw participant, ending the session), combine with `useAvatarSession` and `useAvatar`.
 
 ---
 
@@ -126,7 +190,7 @@ function AvatarStatus() {
 ### Custom Video Rendering
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 function CustomAvatarVideo() {
   const { videoTrackRef, hasVideo } = useAvatar();
@@ -238,37 +302,43 @@ function DeviceStatus() {
 
 ## Combining Hooks
 
+Use `useAvatarStatus` for rendering and `useAvatarSession` for controls:
+
 ```tsx
 function FullCustomUI() {
+  const avatar = useAvatarStatus();
   const session = useAvatarSession();
-  const avatar = useAvatar();
   const media = useLocalMedia();
 
-  if (session.state === 'connecting') {
-    return <Loading />;
-  }
+  switch (avatar.status) {
+    case 'connecting':
+    case 'waiting':
+      return <Loading />;
 
-  if (session.state === 'error') {
-    return <Error message={session.error.message} />;
-  }
+    case 'error':
+      return <Error message={avatar.error.message} />;
 
-  return (
-    <div>
-      {/* Avatar video */}
-      <div>
-        {avatar.hasVideo && avatar.videoTrackRef && (
+    case 'ended':
+      return <CallEnded />;
+
+    case 'ready':
+      return (
+        <div>
+          {/* Avatar video */}
           <VideoTrack trackRef={avatar.videoTrackRef} />
-        )}
-      </div>
 
-      {/* Controls */}
-      <div>
-        <button onClick={media.toggleMic}>
-          {media.isMicEnabled ? 'Mute' : 'Unmute'}
-        </button>
-        <button onClick={session.end}>End Call</button>
-      </div>
-    </div>
-  );
+          {/* Controls */}
+          <div>
+            <button onClick={media.toggleMic}>
+              {media.isMicEnabled ? 'Mute' : 'Unmute'}
+            </button>
+            <button onClick={session.end}>End Call</button>
+          </div>
+        </div>
+      );
+
+    default:
+      return null;
+  }
 }
 ```

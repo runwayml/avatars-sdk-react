@@ -4,11 +4,9 @@ This example shows how to use `@runwayml/avatars-react` with [React Router](http
 
 ## How to use
 
-Clone and copy the example:
-
 ```bash
-git clone https://github.com/runwayml/avatars-sdk-react.git
-cd avatars-sdk-react/examples/react-router
+npx degit runwayml/avatars-sdk-react/examples/react-router my-avatar-app
+cd my-avatar-app
 npm install
 ```
 

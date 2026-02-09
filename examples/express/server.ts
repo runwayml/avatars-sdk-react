@@ -2,7 +2,6 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import Runway from '@runwayml/sdk';
-import { consumeSession } from '@runwayml/avatars-react/api';
 import { RunwayRealtime } from './runway-realtime';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -28,14 +27,8 @@ app.post('/api/avatar/connect', async (req, res) => {
     });
 
     const { sessionKey } = await realtime.waitForReady(sessionId);
-    const { url, token, roomName } = await consumeSession({ sessionId, sessionKey });
 
-    res.json({
-      sessionId,
-      serverUrl: url,
-      token,
-      roomName,
-    });
+    res.json({ sessionId, sessionKey });
   } catch (error) {
     console.error('Failed to create avatar session:', error);
     res.status(500).json({ error: 'Failed to create avatar session' });

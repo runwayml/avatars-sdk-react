@@ -56,8 +56,17 @@ The styles use CSS custom properties for easy customization:
 
 See [`examples/`](./examples) for complete working examples:
 - [`nextjs`](./examples/nextjs) - Next.js App Router
+- [`nextjs-server-actions`](./examples/nextjs-server-actions) - Next.js with Server Actions
 - [`react-router`](./examples/react-router) - React Router v7 framework mode
 - [`express`](./examples/express) - Express + Vite
+
+Scaffold an example with one command:
+
+```bash
+npx degit runwayml/avatars-sdk-react/examples/nextjs my-avatar-app
+cd my-avatar-app
+npm install
+```
 
 ## How It Works
 

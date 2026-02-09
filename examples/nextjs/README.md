@@ -4,18 +4,10 @@ This example shows how to use `@runwayml/avatars-react` with [Next.js](https://n
 
 ## How to use
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
-
 ```bash
-npx create-next-app --example https://github.com/runwayml/avatars-sdk-react/tree/main/examples/nextjs avatar-app
-```
-
-```bash
-yarn create next-app --example https://github.com/runwayml/avatars-sdk-react/tree/main/examples/nextjs avatar-app
-```
-
-```bash
-pnpm create next-app --example https://github.com/runwayml/avatars-sdk-react/tree/main/examples/nextjs avatar-app
+npx degit runwayml/avatars-sdk-react/examples/nextjs my-avatar-app
+cd my-avatar-app
+npm install
 ```
 
 ## Configuration

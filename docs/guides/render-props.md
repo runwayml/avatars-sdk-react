@@ -8,9 +8,9 @@ Instead of rendering fixed UI, components accept a function as children that rec
 
 ```tsx
 <AvatarVideo>
-  {(state) => (
+  {(avatar) => (
     // You control what renders
-    <YourCustomUI {...state} />
+    <YourCustomUI {...avatar} />
   )}
 </AvatarVideo>
 ```
@@ -19,47 +19,67 @@ Instead of rendering fixed UI, components accept a function as children that rec
 
 - **Full control** over markup and styling
 - **No CSS overrides** needed for custom designs
-- **Access to internal state** (connecting, video availability, etc.)
+- **Access to internal state** as a discriminated union
 - **Integrate with any design system**
 
 ---
 
 ## AvatarVideo Render Prop
 
-### State Object
+### Status Union
 
 ```typescript
-{
-  hasVideo: boolean;      // Whether video track exists
-  isConnecting: boolean;  // Whether connection is in progress
-  trackRef: TrackReferenceOrPlaceholder | null;  // Video track reference
-}
+type AvatarVideoStatus =
+  | { status: 'connecting' }                                     // WebRTC connecting
+  | { status: 'waiting' }                                        // Connected, no video yet
+  | { status: 'ready'; videoTrackRef: TrackReferenceOrPlaceholder }  // Video streaming
 ```
 
 ### Example: Custom Video with Loading State
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 <AvatarVideo>
-  {({ hasVideo, isConnecting, trackRef }) => (
-    <div className="relative">
-      {/* Loading state */}
-      {isConnecting && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+  {(avatar) => (
+    <div className="relative aspect-video bg-gray-900">
+      {avatar.status === 'connecting' && (
+        <div className="absolute inset-0 flex items-center justify-center">
           <Spinner />
         </div>
       )}
 
-      {/* Video */}
-      {hasVideo && trackRef && (
+      {avatar.status === 'waiting' && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="text-white/60">Waiting for video...</p>
+        </div>
+      )}
+
+      {avatar.status === 'ready' && (
         <VideoTrack
-          trackRef={trackRef}
+          trackRef={avatar.videoTrackRef}
           className="w-full h-full object-cover"
         />
       )}
     </div>
   )}
+</AvatarVideo>
+```
+
+### Example: Concise Switch Pattern
+
+```tsx
+<AvatarVideo>
+  {(avatar) => {
+    switch (avatar.status) {
+      case 'connecting':
+        return <Spinner />;
+      case 'waiting':
+        return <Placeholder />;
+      case 'ready':
+        return <VideoTrack trackRef={avatar.videoTrackRef} />;
+    }
+  }}
 </AvatarVideo>
 ```
 
@@ -80,7 +100,7 @@ import { VideoTrack } from '@livekit/components-react';
 ### Example: Camera Off Placeholder
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 <UserVideo>
   {({ hasVideo, isCameraEnabled, trackRef }) => (
@@ -199,56 +219,59 @@ import { VideoTrack } from '@livekit/components-react';
 Build a complete custom UI by combining render props:
 
 ```tsx
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-  <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden">
-    {/* Main avatar video */}
-    <AvatarVideo>
-      {({ hasVideo, isConnecting, trackRef }) => (
-        <>
-          {isConnecting && <LoadingOverlay />}
-          {hasVideo && trackRef && (
-            <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+    <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden">
+      {/* Main avatar video */}
+      <AvatarVideo>
+        {(avatar) => {
+          switch (avatar.status) {
+            case 'connecting':
+            case 'waiting':
+              return <LoadingOverlay />;
+            case 'ready':
+              return <VideoTrack trackRef={avatar.videoTrackRef} className="w-full h-full object-cover" />;
+          }
+        }}
+      </AvatarVideo>
+
+      {/* Picture-in-picture user video */}
+      <div className="absolute bottom-4 right-4">
+        <UserVideo>
+          {({ hasVideo, isCameraEnabled, trackRef }) => (
+            <div className="w-32 h-24 rounded-lg overflow-hidden bg-gray-800">
+              {hasVideo && isCameraEnabled && trackRef ? (
+                <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
+              ) : (
+                <CameraOffPlaceholder />
+              )}
+            </div>
           )}
-        </>
-      )}
-    </AvatarVideo>
+        </UserVideo>
+      </div>
 
-    {/* Picture-in-picture user video */}
-    <div className="absolute bottom-4 right-4">
-      <UserVideo>
-        {({ hasVideo, isCameraEnabled, trackRef }) => (
-          <div className="w-32 h-24 rounded-lg overflow-hidden bg-gray-800">
-            {hasVideo && isCameraEnabled && trackRef ? (
-              <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
-            ) : (
-              <CameraOffPlaceholder />
-            )}
-          </div>
-        )}
-      </UserVideo>
+      {/* Custom controls */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <ControlBar>
+          {(controls) => <CustomControls {...controls} />}
+        </ControlBar>
+      </div>
     </div>
-
-    {/* Custom controls */}
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-      <ControlBar>
-        {(controls) => <CustomControls {...controls} />}
-      </ControlBar>
-    </div>
-  </div>
-</AvatarCall>
+  </AvatarCall>
+</Suspense>
 ```
 
 ---
 
 ## Using VideoTrack
 
-The `trackRef` from render props is used with LiveKit's `VideoTrack` component:
+The `videoTrackRef` from render props (when `status === 'ready'`) is used with the `VideoTrack` component:
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 // In a render prop
-{trackRef && <VideoTrack trackRef={trackRef} />}
+{avatar.status === 'ready' && <VideoTrack trackRef={avatar.videoTrackRef} />}
 ```
 
 This is the same component used internally by the default renderers.
@@ -262,5 +285,5 @@ This is the same component used internally by the default renderers.
 | Quick prototype | Default rendering (no children) |
 | Minor style tweaks | CSS + data attributes |
 | Custom layout, same elements | Custom children with default components |
-| Completely custom UI | Render props |
-| Design system integration | Render props |
+| Completely custom UI | Render props or `useAvatarStatus` hook |
+| Design system integration | Render props or `useAvatarStatus` hook |

@@ -1,5 +1,23 @@
 'use client';
 
+/**
+ * AvatarCall Component
+ *
+ * High-level component that handles the complete session lifecycle.
+ * Suspends during credential fetching (Phase 1) — wrap in <Suspense> to
+ * show loading UI while the server creates the session.
+ *
+ * @example
+ * ```tsx
+ * <Suspense fallback={<Loading />}>
+ *   <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+ *     <AvatarVideo />
+ *     <ControlBar />
+ *   </AvatarCall>
+ * </Suspense>
+ * ```
+ */
+
 import { useCredentials } from '../hooks/useCredentials';
 import { useLatest } from '../hooks/useLatest';
 import type { AvatarCallProps } from '../types';
@@ -24,14 +42,13 @@ export function AvatarCall({
 }: AvatarCallProps) {
   const onErrorRef = useLatest(onError);
 
-  const { status, credentials, error } = useCredentials({
+  const credentials = useCredentials({
     avatarId,
     sessionId,
     sessionKey,
     credentials: directCredentials,
     connectUrl,
     connect,
-    onError,
   });
 
   const handleSessionError = (err: Error) => {
@@ -42,36 +59,10 @@ export function AvatarCall({
     ? ({ '--avatar-image': `url(${avatarImageUrl})` } as React.CSSProperties)
     : undefined;
 
-  if (status === 'idle' || status === 'connecting') {
-    return (
-      <div
-        {...props}
-        data-avatar-call=""
-        data-state="connecting"
-        data-avatar-id={avatarId}
-        style={{ ...props.style, ...backgroundStyle }}
-      />
-    );
-  }
-
-  if (status === 'error' || !credentials) {
-    return (
-      <div
-        {...props}
-        data-avatar-call=""
-        data-state="error"
-        data-avatar-id={avatarId}
-        data-error={error?.message}
-        style={{ ...props.style, ...backgroundStyle }}
-      />
-    );
-  }
-
   return (
     <div
       {...props}
       data-avatar-call=""
-      data-state="connected"
       data-avatar-id={avatarId}
       style={{ ...props.style, ...backgroundStyle }}
     >

@@ -1,6 +1,6 @@
 ---
 name: runway-avatar
-description: React SDK for building real-time AI avatar experiences via WebRTC. Use when integrating Runway's GWM-1 avatar API into React applications, building video calling apps with AI avatars, or implementing real-time avatar interactions with LiveKit.
+description: React SDK for building real-time AI avatar experiences via WebRTC. Use when integrating Runway's GWM-1 avatar API into React applications, building video calling apps with AI avatars, or implementing real-time avatar interactions.
 license: MIT
 metadata:
   author: runwayml
@@ -31,7 +31,7 @@ React SDK for building real-time AI avatar experiences via WebRTC.
 **Component hierarchy:**
 ```
 AvatarCall (handles session creation)
-└── AvatarSession (LiveKit provider)
+└── AvatarSession (WebRTC provider)
     ├── AvatarVideo (remote avatar)
     ├── UserVideo (local camera)
     ├── ControlBar (mic/camera/end)

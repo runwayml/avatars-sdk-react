@@ -1,5 +1,4 @@
 import Runway from '@runwayml/sdk';
-import { consumeSession } from '@runwayml/avatars-react/api';
 import { RunwayRealtime } from '../../../../runway-realtime';
 
 const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
@@ -18,12 +17,6 @@ export async function POST(req: Request) {
   });
 
   const { sessionKey } = await realtime.waitForReady(sessionId);
-  const { url, token, roomName } = await consumeSession({ sessionId, sessionKey });
 
-  return Response.json({
-    sessionId,
-    serverUrl: url,
-    token,
-    roomName,
-  });
+  return Response.json({ sessionId, sessionKey });
 }

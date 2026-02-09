@@ -36,9 +36,17 @@ const credentials = await createAvatarSession('coding-teacher');
 
 ## Setup
 
-1. Copy `.env.example` to `.env` and add your Runway API secret
-2. Install dependencies: `npm install`
-3. Run the dev server: `npm run dev`
+```bash
+npx degit runwayml/avatars-sdk-react/examples/nextjs-server-actions my-avatar-app
+cd my-avatar-app
+npm install
+```
+
+Copy `.env.example` to `.env` and add your Runway API secret, then run the dev server:
+
+```bash
+npm run dev
+```
 
 The app will be available at `http://localhost:3001`.
 

@@ -18,14 +18,17 @@ Build custom avatar interfaces using render props and hooks.
 Use CSS custom properties and data attributes:
 
 ```tsx
+import { Suspense } from 'react';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
-<AvatarCall
-  avatarId="game-host"
-  connectUrl="/api/avatar/connect"
-  className="my-avatar"
-/>
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall
+    avatarId="game-host"
+    connectUrl="/api/avatar/connect"
+    className="my-avatar"
+  />
+</Suspense>
 ```
 
 ```css
@@ -33,14 +36,6 @@ import '@runwayml/avatars-react/styles.css';
   --avatar-bg: #1a1a2e;
   --avatar-radius: 12px;
   --avatar-end-call-bg: #dc2626;
-}
-
-.my-avatar[data-state="connecting"] {
-  opacity: 0.7;
-}
-
-.my-avatar[data-state="error"] {
-  border: 2px solid red;
 }
 ```
 
@@ -58,18 +53,20 @@ import {
   ControlBar,
 } from '@runwayml/avatars-react';
 
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-  <div className="custom-layout">
-    {/* Side by side layout */}
-    <div className="videos">
-      <AvatarVideo className="main" />
-      <UserVideo className="sidebar" />
-    </div>
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+    <div className="custom-layout">
+      {/* Side by side layout */}
+      <div className="videos">
+        <AvatarVideo className="main" />
+        <UserVideo className="sidebar" />
+      </div>
 
-    {/* Controls at top */}
-    <ControlBar className="top-controls" showScreenShare />
-  </div>
-</AvatarCall>
+      {/* Controls at top */}
+      <ControlBar className="top-controls" showScreenShare />
+    </div>
+  </AvatarCall>
+</Suspense>
 ```
 
 ---
@@ -79,115 +76,124 @@ import {
 Full control over individual component rendering:
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-  {/* Custom avatar display */}
-  <AvatarVideo>
-    {({ hasVideo, isConnecting, trackRef }) => (
-      <div className="avatar">
-        {isConnecting && <Spinner />}
-        {hasVideo && trackRef && <VideoTrack trackRef={trackRef} />}
-      </div>
-    )}
-  </AvatarVideo>
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+    {/* Custom avatar display */}
+    <AvatarVideo>
+      {(avatar) => {
+        switch (avatar.status) {
+          case 'connecting':
+          case 'waiting':
+            return <div className="avatar"><Spinner /></div>;
+          case 'ready':
+            return <div className="avatar"><VideoTrack trackRef={avatar.videoTrackRef} /></div>;
+        }
+      }}
+    </AvatarVideo>
 
-  {/* Custom user video */}
-  <UserVideo>
-    {({ hasVideo, isCameraEnabled, trackRef }) => (
-      <div className="pip">
-        {hasVideo && isCameraEnabled && trackRef ? (
-          <VideoTrack trackRef={trackRef} />
-        ) : (
-          <Avatar fallback="You" />
-        )}
-      </div>
-    )}
-  </UserVideo>
+    {/* Custom user video */}
+    <UserVideo>
+      {({ hasVideo, isCameraEnabled, trackRef }) => (
+        <div className="pip">
+          {hasVideo && isCameraEnabled && trackRef ? (
+            <VideoTrack trackRef={trackRef} />
+          ) : (
+            <Avatar fallback="You" />
+          )}
+        </div>
+      )}
+    </UserVideo>
 
-  {/* Custom controls */}
-  <ControlBar>
-    {({ isMicEnabled, isCameraEnabled, toggleMic, toggleCamera, endCall }) => (
-      <div className="controls">
-        <Button onClick={toggleMic} variant={isMicEnabled ? 'default' : 'destructive'}>
-          {isMicEnabled ? <Mic /> : <MicOff />}
-        </Button>
-        <Button onClick={toggleCamera} variant={isCameraEnabled ? 'default' : 'destructive'}>
-          {isCameraEnabled ? <Video /> : <VideoOff />}
-        </Button>
-        <Button onClick={endCall} variant="destructive">
-          <PhoneOff />
-        </Button>
-      </div>
-    )}
-  </ControlBar>
-</AvatarCall>
+    {/* Custom controls */}
+    <ControlBar>
+      {({ isMicEnabled, isCameraEnabled, toggleMic, toggleCamera, endCall }) => (
+        <div className="controls">
+          <Button onClick={toggleMic} variant={isMicEnabled ? 'default' : 'destructive'}>
+            {isMicEnabled ? <Mic /> : <MicOff />}
+          </Button>
+          <Button onClick={toggleCamera} variant={isCameraEnabled ? 'default' : 'destructive'}>
+            {isCameraEnabled ? <Video /> : <VideoOff />}
+          </Button>
+          <Button onClick={endCall} variant="destructive">
+            <PhoneOff />
+          </Button>
+        </div>
+      )}
+    </ControlBar>
+  </AvatarCall>
+</Suspense>
 ```
 
 ---
 
 ## Level 4: Hooks Only
 
-Build completely from scratch:
+Build completely from scratch using `useAvatarStatus`:
 
 ```tsx
-import { AvatarCall, useAvatarSession, useAvatar, useLocalMedia } from '@runwayml/avatars-react';
-import { VideoTrack } from '@livekit/components-react';
+import { AvatarCall, useAvatarStatus, useAvatarSession, useLocalMedia } from '@runwayml/avatars-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 function MyCustomUI() {
+  const avatar = useAvatarStatus();
   const session = useAvatarSession();
-  const avatar = useAvatar();
   const media = useLocalMedia();
 
-  if (session.state === 'connecting') {
-    return <FullScreenLoader />;
+  switch (avatar.status) {
+    case 'connecting':
+    case 'waiting':
+      return <FullScreenLoader />;
+
+    case 'error':
+      return <ErrorScreen error={avatar.error} />;
+
+    case 'ended':
+      return <CallEndedScreen />;
+
+    case 'ready':
+      return (
+        <div className="call-screen">
+          {/* Avatar */}
+          <div className="avatar-container">
+            <VideoTrack trackRef={avatar.videoTrackRef} />
+          </div>
+
+          {/* User PIP */}
+          <div className="pip">
+            {media.isCameraEnabled && media.localVideoTrackRef && (
+              <VideoTrack trackRef={media.localVideoTrackRef} />
+            )}
+          </div>
+
+          {/* Controls */}
+          <div className="controls">
+            <button onClick={media.toggleMic}>
+              {media.isMicEnabled ? 'Mute' : 'Unmute'}
+            </button>
+            <button onClick={media.toggleCamera}>
+              {media.isCameraEnabled ? 'Hide' : 'Show'}
+            </button>
+            <button onClick={session.end}>
+              End Call
+            </button>
+          </div>
+        </div>
+      );
+
+    default:
+      return null;
   }
-
-  if (session.state === 'error') {
-    return <ErrorScreen error={session.error} />;
-  }
-
-  if (session.state === 'ended') {
-    return <CallEndedScreen />;
-  }
-
-  return (
-    <div className="call-screen">
-      {/* Avatar */}
-      <div className="avatar-container">
-        {avatar.hasVideo && avatar.videoTrackRef && (
-          <VideoTrack trackRef={avatar.videoTrackRef} />
-        )}
-      </div>
-
-      {/* User PIP */}
-      <div className="pip">
-        {media.isCameraEnabled && media.localVideoTrackRef && (
-          <VideoTrack trackRef={media.localVideoTrackRef} />
-        )}
-      </div>
-
-      {/* Controls */}
-      <div className="controls">
-        <button onClick={media.toggleMic}>
-          {media.isMicEnabled ? 'Mute' : 'Unmute'}
-        </button>
-        <button onClick={media.toggleCamera}>
-          {media.isCameraEnabled ? 'Hide' : 'Show'}
-        </button>
-        <button onClick={session.end}>
-          End Call
-        </button>
-      </div>
-    </div>
-  );
 }
 
 function App() {
   return (
-    <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-      <MyCustomUI />
-    </AvatarCall>
+    <Suspense fallback={<FullScreenLoader />}>
+      <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+        <MyCustomUI />
+      </AvatarCall>
+    </Suspense>
   );
 }
 ```
@@ -199,17 +205,17 @@ function App() {
 ### With Tailwind CSS
 
 ```tsx
-<AvatarCall
-  avatarId="game-host"
-  connectUrl="/api/avatar/connect"
-  className="w-full max-w-4xl aspect-video rounded-xl overflow-hidden
-             data-[state=connecting]:opacity-50
-             data-[state=error]:ring-2 data-[state=error]:ring-red-500"
->
-  <AvatarVideo className="w-full h-full object-cover" />
-  <UserVideo className="absolute bottom-4 right-4 w-32 rounded-lg" />
-  <ControlBar className="absolute bottom-4 left-1/2 -translate-x-1/2" />
-</AvatarCall>
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall
+    avatarId="game-host"
+    connectUrl="/api/avatar/connect"
+    className="w-full max-w-4xl aspect-video rounded-xl overflow-hidden"
+  >
+    <AvatarVideo className="w-full h-full object-cover" />
+    <UserVideo className="absolute bottom-4 right-4 w-32 rounded-lg" />
+    <ControlBar className="absolute bottom-4 left-1/2 -translate-x-1/2" />
+  </AvatarCall>
+</Suspense>
 ```
 
 ### With shadcn/ui
@@ -218,28 +224,30 @@ function App() {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-  <Card className="p-0 overflow-hidden">
-    <AvatarVideo className="aspect-video" />
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+    <Card className="p-0 overflow-hidden">
+      <AvatarVideo className="aspect-video" />
 
-    <ControlBar>
-      {({ isMicEnabled, toggleMic, endCall }) => (
-        <div className="flex gap-2 p-4 justify-center">
-          <Button
-            variant={isMicEnabled ? 'outline' : 'destructive'}
-            size="icon"
-            onClick={toggleMic}
-          >
-            {isMicEnabled ? <Mic /> : <MicOff />}
-          </Button>
-          <Button variant="destructive" onClick={endCall}>
-            End Call
-          </Button>
-        </div>
-      )}
-    </ControlBar>
-  </Card>
-</AvatarCall>
+      <ControlBar>
+        {({ isMicEnabled, toggleMic, endCall }) => (
+          <div className="flex gap-2 p-4 justify-center">
+            <Button
+              variant={isMicEnabled ? 'outline' : 'destructive'}
+              size="icon"
+              onClick={toggleMic}
+            >
+              {isMicEnabled ? <Mic /> : <MicOff />}
+            </Button>
+            <Button variant="destructive" onClick={endCall}>
+              End Call
+            </Button>
+          </div>
+        )}
+      </ControlBar>
+    </Card>
+  </AvatarCall>
+</Suspense>
 ```
 
 ---
@@ -264,33 +272,49 @@ function FullscreenAvatar() {
 
   return (
     <div ref={containerRef}>
-      <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-        <AvatarVideo />
-        <button onClick={toggleFullscreen}>
-          {isFullscreen ? 'Exit' : 'Fullscreen'}
-        </button>
-      </AvatarCall>
+      <Suspense fallback={<LoadingScreen />}>
+        <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+          <AvatarVideo />
+          <button onClick={toggleFullscreen}>
+            {isFullscreen ? 'Exit' : 'Fullscreen'}
+          </button>
+        </AvatarCall>
+      </Suspense>
     </div>
   );
 }
 ```
 
-### Loading State
+### Loading States
+
+There are two loading phases. See the [Loading States guide](./loading-states.md) for full details.
+
+**Phase 1 (session setup)** — handled by `<Suspense>`:
 
 ```tsx
-<AvatarVideo>
-  {({ hasVideo, isConnecting, trackRef }) => (
-    <div className="relative aspect-video bg-gray-900">
-      {isConnecting && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="animate-spin h-8 w-8 border-2 border-white
-                          border-t-transparent rounded-full" />
-        </div>
-      )}
-      {hasVideo && trackRef && (
-        <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
-      )}
-    </div>
-  )}
-</AvatarVideo>
+<Suspense fallback={<SessionSetupLoading />}>
+  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+    <AvatarUI />
+  </AvatarCall>
+</Suspense>
+```
+
+**Phase 2 (video loading)** — handled by `useAvatarStatus` or `AvatarVideo` render prop:
+
+```tsx
+function AvatarUI() {
+  const avatar = useAvatarStatus();
+
+  switch (avatar.status) {
+    case 'connecting':
+    case 'waiting':
+      return <Spinner />;
+    case 'ready':
+      return <VideoTrack trackRef={avatar.videoTrackRef} />;
+    case 'error':
+      return <p>{avatar.error.message}</p>;
+    default:
+      return null;
+  }
+}
 ```

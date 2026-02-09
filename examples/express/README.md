@@ -4,11 +4,9 @@ This example shows how to use `@runwayml/avatars-react` with [Express](https://e
 
 ## How to use
 
-Clone and copy the example:
-
 ```bash
-git clone https://github.com/runwayml/avatars-sdk-react.git
-cd avatars-sdk-react/examples/express
+npx degit runwayml/avatars-sdk-react/examples/express my-avatar-app
+cd my-avatar-app
 npm install
 ```
 

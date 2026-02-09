@@ -108,7 +108,7 @@ function AvatarStatus() {
 ### Custom Video Rendering
 
 ```tsx
-import { VideoTrack } from '@livekit/components-react';
+import { VideoTrack } from '@runwayml/avatars-react';
 
 function CustomAvatarVideo() {
   const { videoTrackRef, hasVideo } = useAvatar();

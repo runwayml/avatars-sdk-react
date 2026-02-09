@@ -242,6 +242,5 @@ Handles avatar audio playback. Included automatically in `AvatarSession`.
 ```tsx
 import { AudioRenderer } from '@runwayml/avatars-react';
 
-// Re-exports LiveKit's RoomAudioRenderer
 <AudioRenderer />
 ```

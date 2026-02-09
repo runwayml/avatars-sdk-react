@@ -18,6 +18,8 @@
 
 High-level component that handles the complete session lifecycle. **Recommended for most use cases.**
 
+**Suspends during credential fetching** — wrap in `<Suspense>` to show loading UI while the server creates the session. See the [Loading States guide](../guides/loading-states.md) for details.
+
 ### Props
 
 | Prop | Type | Required | Description |
@@ -25,9 +27,9 @@ High-level component that handles the complete session lifecycle. **Recommended 
 | `avatarId` | `string` | ✓ | Avatar preset ID (e.g., `"game-host"`) |
 | `connectUrl` | `string` | ✓* | URL to POST `{ avatarId }` for credentials |
 | `connect` | `(avatarId: string) => Promise<SessionCredentials>` | ✓* | Custom function to fetch credentials |
-| `avatarImageUrl` | `string` | | Placeholder image during connection |
+| `avatarImageUrl` | `string` | | Avatar image URL (available as `--avatar-image` CSS variable) |
 | `onEnd` | `() => void` | | Called when session ends |
-| `onError` | `(error: Error) => void` | | Called on error |
+| `onError` | `(error: Error) => void` | | Called on WebRTC error |
 | `children` | `ReactNode` | | Custom layout (defaults to AvatarVideo + UserVideo + ControlBar) |
 
 *Either `connectUrl` or `connect` is required.
@@ -35,41 +37,47 @@ High-level component that handles the complete session lifecycle. **Recommended 
 ### Basic Usage
 
 ```tsx
-<AvatarCall
-  avatarId="game-host"
-  connectUrl="/api/avatar/connect"
-/>
+<Suspense fallback={<p>Connecting to avatar...</p>}>
+  <AvatarCall
+    avatarId="game-host"
+    connectUrl="/api/avatar/connect"
+  />
+</Suspense>
 ```
 
 ### Custom Connect Function
 
 ```tsx
-<AvatarCall
-  avatarId="game-host"
-  connect={async (avatarId) => {
-    const res = await fetch('/api/avatar/connect', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ avatarId }),
-    });
-    return res.json();
-  }}
-/>
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall
+    avatarId="game-host"
+    connect={async (avatarId) => {
+      const res = await fetch('/api/avatar/connect', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ avatarId }),
+      });
+      return res.json();
+    }}
+  />
+</Suspense>
 ```
 
 ### Custom Layout
 
 ```tsx
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-  <div className="my-layout">
-    <AvatarVideo className="main-video" />
-    <UserVideo className="pip" />
-    <ControlBar className="bottom-bar" />
-  </div>
-</AvatarCall>
+<Suspense fallback={<LoadingScreen />}>
+  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+    <div className="my-layout">
+      <AvatarVideo className="main-video" />
+      <UserVideo className="pip" />
+      <ControlBar className="bottom-bar" />
+    </div>
+  </AvatarCall>
+</Suspense>
 ```
 
 ### Data Attributes
@@ -77,9 +85,7 @@ High-level component that handles the complete session lifecycle. **Recommended 
 | Attribute | Values | Description |
 |-----------|--------|-------------|
 | `data-avatar-call` | `""` | Always present |
-| `data-state` | `"connecting"`, `"connected"`, `"error"` | Current connection state |
 | `data-avatar-id` | Avatar ID | The requested avatar |
-| `data-error` | Error message | Present when state is error |
 
 ---
 
@@ -150,32 +156,37 @@ Renders the remote avatar's video stream.
 
 ### Render Prop
 
+The render prop receives a discriminated union (`AvatarVideoStatus`) with three possible statuses:
+
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isConnecting, trackRef }) => (
-    <div>
-      {isConnecting && <Spinner />}
-      {hasVideo && <VideoTrack trackRef={trackRef} />}
-    </div>
-  )}
+  {(avatar) => {
+    switch (avatar.status) {
+      case 'connecting':
+        return <Spinner />;
+      case 'waiting':
+        return <p>Waiting for video...</p>;
+      case 'ready':
+        return <VideoTrack trackRef={avatar.videoTrackRef} />;
+    }
+  }}
 </AvatarVideo>
 ```
 
-### Render Prop State
+### Render Prop Status
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `hasVideo` | `boolean` | Whether avatar video is available |
-| `isConnecting` | `boolean` | Whether connection is in progress |
-| `trackRef` | `TrackReferenceOrPlaceholder` | Video track reference for custom rendering |
+| Status | Extra fields | Description |
+|--------|-------------|-------------|
+| `connecting` | — | WebRTC connection in progress |
+| `waiting` | — | Connected, waiting for video track |
+| `ready` | `videoTrackRef: TrackReferenceOrPlaceholder` | Video is streaming |
 
 ### Data Attributes
 
 | Attribute | Values |
 |-----------|--------|
 | `data-avatar-video` | `""` |
-| `data-has-video` | `"true"` or `"false"` |
-| `data-connecting` | `"true"` or `"false"` |
+| `data-status` | `"connecting"`, `"waiting"`, `"ready"` |
 
 ---
 
@@ -325,6 +336,5 @@ Usually not needed directly, but available for custom session implementations:
 ```tsx
 import { AudioRenderer } from '@runwayml/avatars-react';
 
-// Re-exports LiveKit's RoomAudioRenderer
 <AudioRenderer />
 ```

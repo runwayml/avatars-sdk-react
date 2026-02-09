@@ -15,10 +15,7 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./*"],
-      "@runwayml/avatars-react": ["../../dist/index.d.ts"],
-      "@runwayml/avatars-react/api": ["../../dist/api.d.ts"],
-      "@runwayml/avatars-react/styles.css": ["../../dist/styles.css"]
+      "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

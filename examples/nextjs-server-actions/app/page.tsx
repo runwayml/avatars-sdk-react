@@ -1,106 +1,34 @@
-'use client';
+import Runway from '@runwayml/sdk';
+import { RunwayRealtime } from '../runway-realtime';
+import { AvatarPicker } from './avatar-picker';
 
-import { useCallback, useEffect, useState } from 'react';
-import { AvatarCall } from '@runwayml/avatars-react';
-import '@runwayml/avatars-react/styles.css';
-import { createAvatarSession } from './actions';
+const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
+const realtime = new RunwayRealtime(client);
 
-const PRESETS = [
-  {
-    id: 'coding-teacher',
-    name: 'Ivy',
-    subtitle: 'Coding Teacher',
-    imageUrl:
-      'https://runway-static-assets.s3.us-east-1.amazonaws.com/devportal/avatars/character-reference/example-1.jpeg',
-  },
-  {
-    id: 'game-host',
-    name: 'Tooth',
-    subtitle: 'Game Host',
-    imageUrl:
-      'https://runway-static-assets.s3.us-east-1.amazonaws.com/devportal/avatars/character-reference/example-2.jpeg',
-  },
-  {
-    id: 'customer-service',
-    name: 'Jordan',
-    subtitle: 'Customer Service',
-    imageUrl:
-      'https://runway-static-assets.s3.us-east-1.amazonaws.com/devportal/avatars/character-reference/example-3.jpeg',
-  },
-  {
-    id: 'trivia-host',
-    name: 'Maya',
-    subtitle: 'Trivia Host',
-    imageUrl:
-      'https://runway-static-assets.s3.us-east-1.amazonaws.com/devportal/avatars/character-reference/example-4.jpeg',
-  },
-];
+async function createAvatarSession(
+  avatarId: string,
+  options?: { isCustom?: boolean },
+) {
+  'use server';
 
-export default function Home() {
-  const [activePreset, setActivePreset] = useState<string | null>(null);
-  const [customAvatarId, setCustomAvatarId] = useState('');
-  const [isCustomCall, setIsCustomCall] = useState(false);
-  const selectedPreset = PRESETS.find((p) => p.id === activePreset);
+  const avatar = options?.isCustom
+    ? { type: 'custom' as const, customId: avatarId }
+    : { type: 'runway-preset' as const, presetId: avatarId };
 
-  const closeModal = useCallback(() => {
-    setActivePreset(null);
-    setIsCustomCall(false);
-  }, []);
+  const { id: sessionId } = await realtime.create({
+    model: 'gwm1_avatars',
+    avatar,
+  });
 
-  const handleCustomStart = useCallback(() => {
-    if (customAvatarId.trim()) {
-      setIsCustomCall(true);
-    }
-  }, [customAvatarId]);
+  const { sessionKey } = await realtime.waitForReady(sessionId);
 
-  const handleCustomInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setCustomAvatarId(e.target.value);
-    },
-    [],
-  );
+  return { sessionId, sessionKey };
+}
 
-  const handleCustomInputKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') handleCustomStart();
-    },
-    [handleCustomStart],
-  );
-
-  const handleModalContentClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-    },
-    [],
-  );
-
-  const handlePresetClick = useCallback(
-    (presetId: string) => () => {
-      setActivePreset(presetId);
-    },
-    [],
-  );
-
-  const handleConnect = useCallback(
-    (avatarId: string) => {
-      return createAvatarSession(avatarId, { isCustom: isCustomCall });
-    },
-    [isCustomCall],
-  );
-
-  useEffect(() => {
-    if (!activePreset && !isCustomCall) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activePreset, isCustomCall, closeModal]);
-
+export default function Page() {
   return (
     <main className="page">
       <header className="header">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://d3phaj0sisr2ct.cloudfront.net/logos/runway_api.svg"
           alt="Runway API"
@@ -115,49 +43,7 @@ export default function Home() {
         </p>
       </header>
 
-      <div className="presets">
-        {PRESETS.map((preset) => (
-          <button
-            key={preset.id}
-            className="preset"
-            onClick={handlePresetClick(preset.id)}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={preset.imageUrl}
-              alt={preset.name}
-              width={240}
-              height={320}
-              className="preset-avatar"
-            />
-            <div className="preset-info">
-              <span className="preset-name">{preset.name}</span>
-              <span className="preset-subtitle">{preset.subtitle}</span>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      <div className="custom-avatar">
-        <h2 className="custom-avatar-title">Or use a custom avatar</h2>
-        <div className="custom-avatar-input-group">
-          <input
-            type="text"
-            value={customAvatarId}
-            onChange={handleCustomInputChange}
-            placeholder="Enter custom avatar ID"
-            className="custom-avatar-input"
-            onKeyDown={handleCustomInputKeyDown}
-          />
-          <button
-            onClick={handleCustomStart}
-            disabled={!customAvatarId.trim()}
-            className="custom-avatar-button"
-          >
-            Start Call
-          </button>
-        </div>
-      </div>
+      <AvatarPicker connect={createAvatarSession} />
 
       <footer className="footer">
         <a
@@ -177,32 +63,6 @@ export default function Home() {
           GitHub
         </a>
       </footer>
-
-      {(activePreset && selectedPreset) || isCustomCall ? (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal" onClick={handleModalContentClick}>
-            <div className="modal-header">
-              <span className="modal-title">
-                {isCustomCall ? `Custom Avatar · ${customAvatarId}` : `${selectedPreset?.name} · ${selectedPreset?.subtitle}`}
-              </span>
-              <button
-                className="modal-close"
-                onClick={closeModal}
-                aria-label="Close"
-              >
-                <CloseIcon aria-hidden="true" />
-              </button>
-            </div>
-            <AvatarCall
-              avatarId={isCustomCall ? customAvatarId : activePreset!}
-              avatarImageUrl={selectedPreset?.imageUrl}
-              connect={handleConnect}
-              onEnd={closeModal}
-              onError={console.error}
-            />
-          </div>
-        </div>
-      ) : null}
     </main>
   );
 }
@@ -223,15 +83,6 @@ function GitHubIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" {...props}>
       <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-    </svg>
-  );
-}
-
-function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <path d="M18 6L6 18" />
-      <path d="M6 6l12 12" />
     </svg>
   );
 }

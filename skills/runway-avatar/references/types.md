@@ -98,9 +98,9 @@ type UseAvatarSessionReturn =
 ```typescript
 interface UseAvatarReturn {
   /** The remote avatar participant */
-  participant: import('livekit-client').RemoteParticipant | null;
+  participant: RemoteParticipant | null;
   /** The avatar's video track reference */
-  videoTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  videoTrackRef: TrackReferenceOrPlaceholder | null;
   /** Whether the avatar has video */
   hasVideo: boolean;
 }
@@ -127,7 +127,7 @@ interface UseLocalMediaReturn {
   /** Toggle screen sharing on/off */
   toggleScreenShare: () => void;
   /** The local video track reference */
-  localVideoTrackRef: import('@livekit/components-react').TrackReferenceOrPlaceholder | null;
+  localVideoTrackRef: TrackReferenceOrPlaceholder | null;
 }
 ```
 

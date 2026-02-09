@@ -1,37 +1,12 @@
 'use client';
 
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect } from 'react';
 import { consumeSession } from '../api/consume';
 import type { SessionCredentials } from '../types';
-
-interface CredentialsState {
-  status: 'idle' | 'connecting' | 'connected' | 'error';
-  credentials: SessionCredentials | null;
-  error: Error | null;
-}
-
-type CredentialsAction =
-  | { type: 'CONNECT' }
-  | { type: 'CONNECTED'; credentials: SessionCredentials }
-  | { type: 'ERROR'; error: Error };
-
-function credentialsReducer(
-  _state: CredentialsState,
-  action: CredentialsAction,
-): CredentialsState {
-  switch (action.type) {
-    case 'CONNECT':
-      return { status: 'connecting', credentials: null, error: null };
-    case 'CONNECTED':
-      return {
-        status: 'connected',
-        credentials: action.credentials,
-        error: null,
-      };
-    case 'ERROR':
-      return { status: 'error', credentials: null, error: action.error };
-  }
-}
+import {
+  createSuspenseResource,
+  type SuspenseResource,
+} from '../utils/suspense-resource';
 
 export interface UseCredentialsOptions {
   avatarId: string;
@@ -40,106 +15,74 @@ export interface UseCredentialsOptions {
   credentials?: SessionCredentials;
   connectUrl?: string;
   connect?: (avatarId: string) => Promise<SessionCredentials>;
-  onError?: (error: Error) => void;
+}
+
+const resourceCache = new Map<string, SuspenseResource<SessionCredentials>>();
+
+function computeKey(options: UseCredentialsOptions): string {
+  if (options.credentials) return `direct:${options.credentials.sessionId}`;
+  if (options.sessionId && options.sessionKey)
+    return `session:${options.sessionId}`;
+  return `connect:${options.avatarId}:${options.connectUrl ?? 'custom'}`;
+}
+
+async function fetchCredentials(
+  options: UseCredentialsOptions,
+): Promise<SessionCredentials> {
+  const { avatarId, sessionId, sessionKey, connectUrl, connect } = options;
+
+  if (sessionId && sessionKey) {
+    const { url, token, roomName } = await consumeSession({
+      sessionId,
+      sessionKey,
+    });
+    return { sessionId, serverUrl: url, token, roomName };
+  }
+
+  if (connect) {
+    return connect(avatarId);
+  }
+
+  if (connectUrl) {
+    const response = await fetch(connectUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatarId }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to connect: ${response.status} ${errorText}`);
+    }
+
+    return response.json();
+  }
+
+  throw new Error(
+    'AvatarCall requires one of: credentials, sessionId+sessionKey, connectUrl, or connect',
+  );
 }
 
 export function useCredentials(
   options: UseCredentialsOptions,
-): CredentialsState {
-  const {
-    avatarId,
-    sessionId,
-    sessionKey,
-    credentials: directCredentials,
-    connectUrl,
-    connect,
-    onError,
-  } = options;
-
-  const [state, dispatch] = useReducer(credentialsReducer, {
-    status: 'idle',
-    credentials: null,
-    error: null,
-  });
-
-  const fetchedForRef = useRef<string | null>(null);
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
-
-  const mode = directCredentials
-    ? 'direct'
-    : sessionId && sessionKey
-      ? 'session'
-      : connectUrl || connect
-        ? 'connect'
-        : null;
+): SessionCredentials {
+  const key = computeKey(options);
 
   useEffect(() => {
-    if (mode !== 'direct' || !directCredentials) return;
-    dispatch({ type: 'CONNECTED', credentials: directCredentials });
-  }, [mode, directCredentials]);
+    return () => {
+      resourceCache.delete(key);
+    };
+  }, [key]);
 
-  useEffect(() => {
-    if (mode !== 'session' || !sessionId || !sessionKey) return;
-    if (fetchedForRef.current === sessionId) return;
-    fetchedForRef.current = sessionId;
+  if (options.credentials) {
+    return options.credentials;
+  }
 
-    dispatch({ type: 'CONNECT' });
+  let resource = resourceCache.get(key);
+  if (!resource) {
+    resource = createSuspenseResource(fetchCredentials(options));
+    resourceCache.set(key, resource);
+  }
 
-    consumeSession({ sessionId, sessionKey })
-      .then(({ url, token, roomName }) => {
-        dispatch({
-          type: 'CONNECTED',
-          credentials: { sessionId, serverUrl: url, token, roomName },
-        });
-      })
-      .catch((err) => {
-        const error = err instanceof Error ? err : new Error(String(err));
-        dispatch({ type: 'ERROR', error });
-        onErrorRef.current?.(error);
-      });
-  }, [mode, sessionId, sessionKey]);
-
-  useEffect(() => {
-    if (mode !== 'connect') return;
-    if (fetchedForRef.current === avatarId) return;
-    fetchedForRef.current = avatarId;
-
-    dispatch({ type: 'CONNECT' });
-
-    async function fetchCredentials(): Promise<SessionCredentials> {
-      if (connect) {
-        return connect(avatarId);
-      }
-
-      if (connectUrl) {
-        const response = await fetch(connectUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatarId }),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to connect: ${response.status} ${errorText}`);
-        }
-
-        return response.json();
-      }
-
-      throw new Error('No connect method available');
-    }
-
-    fetchCredentials()
-      .then((credentials) => {
-        dispatch({ type: 'CONNECTED', credentials });
-      })
-      .catch((err) => {
-        const error = err instanceof Error ? err : new Error(String(err));
-        dispatch({ type: 'ERROR', error });
-        onErrorRef.current?.(error);
-      });
-  }, [mode, avatarId, connectUrl, connect]);
-
-  return state;
+  return resource.read();
 }

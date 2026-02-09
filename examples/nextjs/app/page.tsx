@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { AvatarCall, type SessionCredentials } from '@runwayml/avatars-react';
+import { useCallback, useEffect, useState, Suspense } from 'react';
+import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
 const PRESETS = [
@@ -35,54 +35,30 @@ const PRESETS = [
   },
 ];
 
+interface SessionInfo {
+  sessionId: string;
+  sessionKey: string;
+}
+
 export default function Home() {
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [customAvatarId, setCustomAvatarId] = useState('');
   const [isCustomCall, setIsCustomCall] = useState(false);
+  const [session, setSession] = useState<SessionInfo | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const selectedPreset = PRESETS.find((p) => p.id === activePreset);
 
   const closeModal = useCallback(() => {
     setActivePreset(null);
     setIsCustomCall(false);
+    setSession(null);
+    setIsCreating(false);
   }, []);
 
-  const handleCustomStart = useCallback(() => {
-    if (customAvatarId.trim()) {
-      setIsCustomCall(true);
-    }
-  }, [customAvatarId]);
-
-  const handleCustomInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setCustomAvatarId(e.target.value);
-    },
-    [],
-  );
-
-  const handleCustomInputKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') handleCustomStart();
-    },
-    [handleCustomStart],
-  );
-
-  const handleModalContentClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-    },
-    [],
-  );
-
-  const handlePresetClick = useCallback(
-    (presetId: string) => () => {
-      setActivePreset(presetId);
-    },
-    [],
-  );
-
-  const handleConnect = useCallback(
-    async (avatarId: string): Promise<SessionCredentials> => {
-      const payload = isCustomCall
+  async function startCall(avatarId: string, isCustom: boolean) {
+    setIsCreating(true);
+    try {
+      const payload = isCustom
         ? { customAvatarId: avatarId }
         : { avatarId };
       const res = await fetch('/api/avatar/connect', {
@@ -90,10 +66,23 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      return res.json();
-    },
-    [isCustomCall],
-  );
+      setSession(await res.json());
+    } catch (err) {
+      console.error(err);
+      setIsCreating(false);
+    }
+  }
+
+  function handlePresetClick(presetId: string) {
+    setActivePreset(presetId);
+    startCall(presetId, false);
+  }
+
+  function handleCustomStart() {
+    if (!customAvatarId.trim()) return;
+    setIsCustomCall(true);
+    startCall(customAvatarId, true);
+  }
 
   useEffect(() => {
     if (!activePreset && !isCustomCall) return;
@@ -103,6 +92,9 @@ export default function Home() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [activePreset, isCustomCall, closeModal]);
+
+  const avatarId = isCustomCall ? customAvatarId : activePreset!;
+  const isModalOpen = (activePreset && selectedPreset) || isCustomCall;
 
   return (
     <main className="page">
@@ -127,7 +119,7 @@ export default function Home() {
           <button
             key={preset.id}
             className="preset"
-            onClick={handlePresetClick(preset.id)}
+            onClick={() => handlePresetClick(preset.id)}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -151,10 +143,10 @@ export default function Home() {
           <input
             type="text"
             value={customAvatarId}
-            onChange={handleCustomInputChange}
+            onChange={(e) => setCustomAvatarId(e.target.value)}
             placeholder="Enter custom avatar ID"
             className="custom-avatar-input"
-            onKeyDown={handleCustomInputKeyDown}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCustomStart(); }}
           />
           <button
             onClick={handleCustomStart}
@@ -185,12 +177,14 @@ export default function Home() {
         </a>
       </footer>
 
-      {(activePreset && selectedPreset) || isCustomCall ? (
+      {isModalOpen ? (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal" onClick={handleModalContentClick}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <span className="modal-title">
-                {isCustomCall ? `Custom Avatar · ${customAvatarId}` : `${selectedPreset?.name} · ${selectedPreset?.subtitle}`}
+                {isCustomCall
+                  ? `Custom Avatar · ${customAvatarId}`
+                  : `${selectedPreset?.name} · ${selectedPreset?.subtitle}`}
               </span>
               <button
                 className="modal-close"
@@ -200,13 +194,20 @@ export default function Home() {
                 <CloseIcon aria-hidden="true" />
               </button>
             </div>
-            <AvatarCall
-              avatarId={isCustomCall ? customAvatarId : activePreset!}
-              avatarImageUrl={selectedPreset?.imageUrl}
-              connect={handleConnect}
-              onEnd={closeModal}
-              onError={console.error}
-            />
+            {session ? (
+              <Suspense fallback={<div className="modal-loading">Connecting...</div>}>
+                <AvatarCall
+                  avatarId={avatarId}
+                  sessionId={session.sessionId}
+                  sessionKey={session.sessionKey}
+                  avatarImageUrl={selectedPreset?.imageUrl}
+                  onEnd={closeModal}
+                  onError={console.error}
+                />
+              </Suspense>
+            ) : isCreating ? (
+              <div className="modal-loading">Creating avatar session...</div>
+            ) : null}
           </div>
         </div>
       ) : null}
