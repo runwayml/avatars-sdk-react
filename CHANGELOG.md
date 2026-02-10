@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-02-10
+
 ### Changed
 
 - **Breaking:** `AvatarCall` now renders a minimal loading UI during credential fetching instead of rendering children. This ensures hooks like `useLocalMedia` and `useAvatar` are always called within a valid LiveKit context. For custom loading UI, use `AvatarSession` directly.
