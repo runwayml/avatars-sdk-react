@@ -17,11 +17,9 @@ Phase 1                          Phase 2
 └──────────────────────────┘     └─────────────────────────┘
 ```
 
-**Phase 1 (Session Setup):** Your server creates a Runway session, polls until ready, and returns WebRTC credentials. `AvatarCall` shows a loading state during this phase.
+**Phase 1 (Session Setup):** Your server creates a Runway session, polls until ready, and returns WebRTC credentials. `AvatarCall` shows a built-in loading state during this phase.
 
-**Phase 2 (Video Loading):** The client establishes a WebRTC connection and waits for the avatar's video track. Use the `useAvatarStatus` hook or `AvatarVideo` render prop to show appropriate UI.
-
-Both phases are handled seamlessly — just render `AvatarCall` and the SDK manages the loading experience.
+**Phase 2 (Video Loading):** The client establishes a WebRTC connection and waits for the avatar's video track. Your custom children are rendered during this phase, and you can use `useAvatarStatus` or the `AvatarVideo` render prop to show appropriate UI.
 
 ---
 
@@ -46,11 +44,28 @@ That's it. The default styles show a blurred avatar placeholder during loading, 
 
 ---
 
+## How Loading Works
+
+### Phase 1: Credential Fetching
+
+During credential fetching, `AvatarCall` renders a minimal loading UI. Your custom `children` are **not** rendered during this phase — this ensures hooks like `useLocalMedia` always have access to the session context.
+
+The built-in loading UI:
+- Shows the blurred `avatarImageUrl` as a background (if provided)
+- Displays a subtle spinner animation
+- Uses the `data-avatar-status="connecting"` attribute for CSS styling
+
+### Phase 2: Video Loading
+
+Once credentials are ready, your `children` are rendered inside the session context. Use `useAvatarStatus` or `AvatarVideo` render props to handle the WebRTC connection and video loading states.
+
+---
+
 ## Customizing Loading UI
 
 ### With Avatar Placeholder Image
 
-The `avatarImageUrl` prop shows a blurred placeholder during loading:
+The `avatarImageUrl` prop shows a blurred placeholder during both loading phases:
 
 ```tsx
 <AvatarCall
@@ -65,9 +80,9 @@ The default styles automatically:
 - Fade it out smoothly when video becomes ready
 - Display a subtle pulse animation during connection
 
-### Using useAvatarStatus
+### Custom Phase 2 UI with useAvatarStatus
 
-For full control over loading UI, use the `useAvatarStatus` hook inside `AvatarCall`:
+For custom UI during Phase 2 (after credentials are ready), use the `useAvatarStatus` hook:
 
 ```tsx
 import { AvatarCall, useAvatarStatus, VideoTrack } from '@runwayml/avatars-react';
@@ -109,7 +124,7 @@ function CustomAvatarUI() {
 
 | Status | Meaning | Extra fields |
 |--------|---------|--------------|
-| `connecting` | Fetching credentials or WebRTC connecting | — |
+| `connecting` | WebRTC connecting | — |
 | `waiting` | Connected, waiting for video track | — |
 | `ready` | Avatar video is streaming | `videoTrackRef` |
 | `ending` | Disconnect in progress | — |
@@ -139,6 +154,46 @@ The render prop provides a subset of statuses relevant to video: `connecting`, `
 
 ---
 
+## Full Control: AvatarSession
+
+For complete control over **both** loading phases, use `AvatarSession` directly. This lets you:
+- Show custom UI during credential fetching (Phase 1)
+- Fully control the session lifecycle
+
+```tsx
+import { AvatarSession, AvatarVideo, ControlBar } from '@runwayml/avatars-react';
+import type { SessionCredentials } from '@runwayml/avatars-react';
+
+function CustomAvatarPage() {
+  const [credentials, setCredentials] = useState<SessionCredentials | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    fetch('/api/avatar/connect', {
+      method: 'POST',
+      body: JSON.stringify({ avatarId: 'game-host' }),
+    })
+      .then((res) => res.json())
+      .then(setCredentials)
+      .catch(setError);
+  }, []);
+
+  // Phase 1: You control this entirely
+  if (error) return <p>Failed to connect: {error.message}</p>;
+  if (!credentials) return <MyCustomLoadingUI />;
+
+  // Phase 2: Children rendered inside session context
+  return (
+    <AvatarSession credentials={credentials}>
+      <AvatarVideo />
+      <ControlBar />
+    </AvatarSession>
+  );
+}
+```
+
+---
+
 ## Error Handling
 
 Handle errors with the `onError` callback:
@@ -154,7 +209,7 @@ Handle errors with the `onError` callback:
 />
 ```
 
-Or check for errors with `useAvatarStatus`:
+Or check for errors with `useAvatarStatus` (during Phase 2):
 
 ```tsx
 function AvatarUI() {
@@ -172,7 +227,7 @@ function AvatarUI() {
 
 ## Complete Example
 
-Full custom UI with loading states:
+Full custom UI with loading states (Phase 2 only — Phase 1 uses default loading UI):
 
 ```tsx
 import {
@@ -235,58 +290,6 @@ function ErrorScreen({ message }: { message: string }) {
 ```
 
 ---
-
-## Low-Level: AvatarSession
-
-If you manage credentials yourself with `AvatarSession`, you handle Phase 1 entirely in your own code:
-
-```tsx
-import { AvatarSession, AvatarVideo, ControlBar, useAvatarStatus, VideoTrack } from '@runwayml/avatars-react';
-import type { SessionCredentials } from '@runwayml/avatars-react';
-
-function CustomAvatarPage() {
-  const [credentials, setCredentials] = useState<SessionCredentials | null>(null);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    fetch('/api/avatar/connect', {
-      method: 'POST',
-      body: JSON.stringify({ avatarId: 'game-host' }),
-    })
-      .then((res) => res.json())
-      .then(setCredentials)
-      .catch(setError);
-  }, []);
-
-  // Phase 1: You control this entirely
-  if (error) return <p>Failed to connect: {error.message}</p>;
-  if (!credentials) return <Spinner label="Creating avatar session..." />;
-
-  // Phase 2: useAvatarStatus handles the rest inside AvatarSession
-  return (
-    <AvatarSession credentials={credentials}>
-      <CustomVideoUI />
-      <ControlBar />
-    </AvatarSession>
-  );
-}
-
-function CustomVideoUI() {
-  const avatar = useAvatarStatus();
-
-  switch (avatar.status) {
-    case 'connecting':
-    case 'waiting':
-      return <Spinner />;
-    case 'ready':
-      return <VideoTrack trackRef={avatar.videoTrackRef} />;
-    case 'error':
-      return <p>{avatar.error.message}</p>;
-    default:
-      return null;
-  }
-}
-```
 
 ---
 

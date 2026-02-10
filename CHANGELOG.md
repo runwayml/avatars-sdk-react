@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** `AvatarCall` now renders a minimal loading UI during credential fetching instead of rendering children. This ensures hooks like `useLocalMedia` and `useAvatar` are always called within a valid LiveKit context. For custom loading UI, use `AvatarSession` directly.
+- Device availability check is now non-blocking — calls connect immediately and check devices in background with 1s timeout
+- Loading spinner is now centered relative to the full container, not affected by control bar position
+
+### Fixed
+
+- Fixed "No room provided" error when using `AvatarCall` — hooks are no longer called outside LiveKitRoom context
+- Fixed duplicate `consumeSession` calls caused by unstable `connect` callback references or React StrictMode
+- Fixed calls not starting when device check took too long or hung
+- Added user placeholder icon for `UserVideo` when camera is unavailable
+- `UserVideo` PIP is now hidden when camera is disabled (cleaner UI)
+
+### Removed
+
+- Removed `LoadingSessionProvider` (internal component, was not exported)
+
 ## [0.6.0] - 2026-02-10
 
 ### Changed

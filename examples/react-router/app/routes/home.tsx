@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState, Suspense } from 'react';
+import { useLoaderData } from 'react-router';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
+
+export function loader() {
+  return {
+    baseUrl: process.env.RUNWAYML_BASE_URL,
+  };
+}
 
 const PRESETS = [
   {
@@ -39,6 +46,7 @@ interface SessionInfo {
 }
 
 export default function Home() {
+  const { baseUrl } = useLoaderData<typeof loader>();
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [customAvatarId, setCustomAvatarId] = useState('');
   const [isCustomCall, setIsCustomCall] = useState(false);
@@ -196,6 +204,7 @@ export default function Home() {
                   avatarId={avatarId}
                   sessionId={session.sessionId}
                   sessionKey={session.sessionKey}
+                  baseUrl={baseUrl}
                   avatarImageUrl={selectedPreset?.imageUrl}
                   onEnd={closeModal}
                   onError={console.error}

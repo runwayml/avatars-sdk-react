@@ -64,6 +64,8 @@
 /* AvatarVideo */
 [data-avatar-video] {
   flex: 1;
+  width: 100%;
+  min-height: 0; /* Allow flex item to shrink */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -187,6 +189,31 @@
   transform: scaleX(-1);
 }
 
+/* User placeholder icon when camera is off or unavailable */
+[data-avatar-user-video][data-avatar-has-video="false"]::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40%;
+  height: 40%;
+  background-color: var(--avatar-text-secondary);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+/* Hide user video PIP entirely when camera is disabled */
+[data-avatar-user-video][data-avatar-camera-enabled="false"] {
+  display: none;
+}
+
 /* ScreenShareVideo */
 [data-avatar-screen-share] {
   position: absolute;
@@ -213,8 +240,9 @@
 }
 
 /* Loading spinner - shown when avatar video is connecting/waiting */
-[data-avatar-video][data-avatar-status="connecting"]::before,
-[data-avatar-video][data-avatar-status="waiting"]::before {
+/* Positioned relative to the full container, not just the video area */
+[data-avatar-call]:has([data-avatar-video][data-avatar-status="connecting"])::after,
+[data-avatar-call]:has([data-avatar-video][data-avatar-status="waiting"])::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -226,7 +254,8 @@
   border-top-color: rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   animation: avatar-spin 0.8s linear infinite;
-  z-index: 1;
+  z-index: 3;
+  pointer-events: none;
 }
 
 @keyframes avatar-spin {
@@ -255,8 +284,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-avatar-video][data-avatar-status="connecting"]::before,
-  [data-avatar-video][data-avatar-status="waiting"]::before,
+  [data-avatar-call]:has([data-avatar-video][data-avatar-status="connecting"])::after,
+  [data-avatar-call]:has([data-avatar-video][data-avatar-status="waiting"])::after,
   [data-avatar-video][data-avatar-status="connecting"]::after,
   [data-avatar-video][data-avatar-status="waiting"]::after {
     animation: none;

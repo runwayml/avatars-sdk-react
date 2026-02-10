@@ -18,7 +18,7 @@
 
 High-level component that handles the complete session lifecycle. **Recommended for most use cases.**
 
-Handles credential fetching and loading states internally — just render it and the SDK manages the rest. See the [Loading States guide](../guides/loading-states.md) for details.
+Handles credential fetching and loading states internally — just render it and the SDK manages the rest. During credential fetching, a built-in loading UI is shown. Once credentials are ready, your `children` are rendered inside the session context. See the [Loading States guide](../guides/loading-states.md) for details.
 
 ### Props
 

@@ -53,7 +53,9 @@
     "lint:fix": "biome lint --write src/",
     "format": "biome format --write src/",
     "check": "biome check src/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "example:link": "bun run build && bun link && cd examples/react-router && bun link @runwayml/avatars-react",
+    "example:dev": "bun run example:link && cd examples/react-router && bun run dev"
   },
   "keywords": [
     "runwayml",

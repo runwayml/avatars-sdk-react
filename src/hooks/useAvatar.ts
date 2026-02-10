@@ -5,7 +5,8 @@
  *
  * Provides access to the remote avatar participant's video track.
  * Audio is handled automatically by the session.
- * Returns safe defaults when called outside of LiveKitRoom context.
+ *
+ * Must be used within an AvatarSession or AvatarCall component.
  *
  * @example
  * ```tsx
@@ -23,7 +24,6 @@
 
 import {
   isTrackReference,
-  useMaybeRoomContext,
   useRemoteParticipants,
   useTracks,
 } from '@livekit/components-react';
@@ -36,10 +36,7 @@ import type { UseAvatarReturn } from '../types';
  * @returns Avatar participant info and video track reference
  */
 export function useAvatar(): UseAvatarReturn {
-  const room = useMaybeRoomContext();
-  const hasRoomContext = room !== undefined;
-
-  const remoteParticipants = useRemoteParticipants({ room });
+  const remoteParticipants = useRemoteParticipants();
   const avatarParticipant = remoteParticipants[0] ?? null;
 
   // Only subscribe to video - audio is handled automatically by the session
@@ -48,11 +45,10 @@ export function useAvatar(): UseAvatarReturn {
     {
       onlySubscribed: true,
       updateOnlyOn: [],
-      room: hasRoomContext ? room : undefined,
     },
   ).filter((ref) => !ref.participant.isLocal);
 
-  const videoTrackRef = hasRoomContext ? (videoTracks[0] ?? null) : null;
+  const videoTrackRef = videoTracks[0] ?? null;
   const hasVideo = videoTrackRef !== null && isTrackReference(videoTrackRef);
 
   return {

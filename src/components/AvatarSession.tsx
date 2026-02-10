@@ -40,29 +40,37 @@ import type {
 
 /**
  * Check if a media device of the given kind is available
+ * Returns within timeout to avoid blocking the connection
  */
 async function hasMediaDevice(
   kind: 'audioinput' | 'videoinput',
+  timeoutMs = 1000,
 ): Promise<boolean> {
   try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.some((device) => device.kind === kind);
+    const timeoutPromise = new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(false), timeoutMs),
+    );
+    const checkPromise = navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => devices.some((device) => device.kind === kind));
+
+    return await Promise.race([checkPromise, timeoutPromise]);
   } catch {
     return false;
   }
 }
 
 /**
- * Hook to check device availability before connecting
+ * Hook to check device availability before connecting.
+ * Completes quickly to avoid blocking the connection.
  */
 function useDeviceAvailability(
   requestAudio: boolean,
   requestVideo: boolean,
-): { audio: boolean; video: boolean; isChecking: boolean } {
+): { audio: boolean; video: boolean } {
   const [state, setState] = useState({
-    audio: false,
-    video: false,
-    isChecking: true,
+    audio: requestAudio, // Optimistically assume devices exist
+    video: requestVideo,
   });
 
   useEffect(() => {
@@ -78,7 +86,6 @@ function useDeviceAvailability(
         setState({
           audio: requestAudio && hasAudio,
           video: requestVideo && hasVideo,
-          isChecking: false,
         });
       }
     }
@@ -148,21 +155,6 @@ export function AvatarSession({
     ...DEFAULT_ROOM_OPTIONS,
     ...__unstable_roomOptions,
   };
-
-  if (deviceAvailability.isChecking) {
-    return (
-      <AvatarSessionContext.Provider
-        value={{
-          state: 'connecting',
-          sessionId: credentials.sessionId,
-          error: null,
-          end: async () => {},
-        }}
-      >
-        {children}
-      </AvatarSessionContext.Provider>
-    );
-  }
 
   return (
     <LiveKitRoom
@@ -257,31 +249,4 @@ export function useAvatarSessionContext(): AvatarSessionContextValue {
  */
 export function useMaybeAvatarSessionContext(): AvatarSessionContextValue | null {
   return useContext(AvatarSessionContext);
-}
-
-/**
- * Provider for loading/error states before the actual session is established.
- * Used by AvatarCall to provide context during credential fetching.
- */
-export function LoadingSessionProvider({
-  state,
-  error,
-  children,
-}: {
-  state: 'connecting' | 'error';
-  error: Error | null;
-  children: ReactNode;
-}) {
-  const contextValue: AvatarSessionContextValue = {
-    state,
-    sessionId: '',
-    error,
-    end: async () => {},
-  };
-
-  return (
-    <AvatarSessionContext.Provider value={contextValue}>
-      {children}
-    </AvatarSessionContext.Provider>
-  );
 }

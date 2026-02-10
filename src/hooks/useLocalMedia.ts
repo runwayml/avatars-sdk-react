@@ -2,7 +2,6 @@
 
 import {
   useLocalParticipant,
-  useMaybeRoomContext,
   useMediaDevices,
   useTracks,
 } from '@livekit/components-react';
@@ -13,13 +12,13 @@ import { useLatest } from './useLatest';
 
 /**
  * Hook for local media controls (mic, camera, screen share).
- * Returns safe defaults when called outside of LiveKitRoom context.
+ *
+ * Must be used within an AvatarSession or AvatarCall component.
+ * For use outside the session context, use AvatarSession directly
+ * and manage your own loading states.
  */
 export function useLocalMedia(): UseLocalMediaReturn {
-  const room = useMaybeRoomContext();
-  const hasRoomContext = room !== undefined;
-
-  const { localParticipant } = useLocalParticipant({ room });
+  const { localParticipant } = useLocalParticipant();
 
   const audioDevices = useMediaDevices({ kind: 'audioinput' });
   const videoDevices = useMediaDevices({ kind: 'videoinput' });
@@ -62,19 +61,17 @@ export function useLocalMedia(): UseLocalMediaReturn {
     {
       onlySubscribed: false,
       updateOnlyOn: [],
-      room: hasRoomContext ? room : undefined,
     },
   );
 
   const localIdentity = localParticipant?.identity;
 
-  const localVideoTrackRef = hasRoomContext
-    ? (tracks.find(
-        (trackRef) =>
-          trackRef.participant.identity === localIdentity &&
-          trackRef.source === Track.Source.Camera,
-      ) ?? null)
-    : null;
+  const localVideoTrackRef =
+    tracks.find(
+      (trackRef) =>
+        trackRef.participant.identity === localIdentity &&
+        trackRef.source === Track.Source.Camera,
+    ) ?? null;
 
   return {
     hasMic,

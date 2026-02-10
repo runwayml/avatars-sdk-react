@@ -4,7 +4,6 @@ import {
   isTrackReference,
   type TrackReferenceOrPlaceholder,
   useLocalParticipant,
-  useMaybeRoomContext,
   useTracks,
   VideoTrack,
 } from '@livekit/components-react';
@@ -21,29 +20,30 @@ export interface ScreenShareVideoProps
   children?: (state: ScreenShareVideoState) => ReactNode;
 }
 
+/**
+ * Component for displaying local screen share video.
+ *
+ * Must be used within an AvatarSession or AvatarCall component.
+ */
 export function ScreenShareVideo({
   children,
   ...props
 }: ScreenShareVideoProps) {
-  const room = useMaybeRoomContext();
-  const hasRoomContext = room !== undefined;
-
-  const { localParticipant } = useLocalParticipant({ room });
+  const { localParticipant } = useLocalParticipant();
 
   const tracks = useTracks(
     [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
-    { onlySubscribed: false, room: hasRoomContext ? room : undefined },
+    { onlySubscribed: false },
   );
 
   const localIdentity = localParticipant?.identity;
 
-  const screenShareTrackRef = hasRoomContext
-    ? (tracks.find(
-        (trackRef) =>
-          trackRef.participant.identity === localIdentity &&
-          trackRef.source === Track.Source.ScreenShare,
-      ) ?? null)
-    : null;
+  const screenShareTrackRef =
+    tracks.find(
+      (trackRef) =>
+        trackRef.participant.identity === localIdentity &&
+        trackRef.source === Track.Source.ScreenShare,
+    ) ?? null;
 
   const isSharing =
     screenShareTrackRef !== null && isTrackReference(screenShareTrackRef);

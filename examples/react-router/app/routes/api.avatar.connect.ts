@@ -1,7 +1,10 @@
 import Runway from '@runwayml/sdk';
 import { RunwayRealtime } from '../../runway-realtime';
 
-const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
+const client = new Runway({
+  apiKey: process.env.RUNWAYML_API_SECRET,
+  baseURL: process.env.RUNWAYML_BASE_URL,
+});
 const realtime = new RunwayRealtime(client);
 
 export async function action({ request }: { request: Request }) {

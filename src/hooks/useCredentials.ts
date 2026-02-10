@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { consumeSession } from '../api/consume';
 import type { SessionCredentials } from '../types';
 import { useLatest } from './useLatest';
@@ -75,6 +75,9 @@ export function useCredentials(
   } = options;
 
   const onErrorRef = useLatest(onError);
+  const connectRef = useLatest(connect);
+
+  const fetchedKeyRef = useRef<string | null>(null);
 
   const [state, setState] = useState<CredentialsState>(() => {
     if (directCredentials) {
@@ -83,7 +86,7 @@ export function useCredentials(
     return { status: 'loading', credentials: null, error: null };
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: onErrorRef is a stable ref from useLatest - we intentionally read .current at call time
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs are stable - we read .current at call time
   useEffect(() => {
     if (directCredentials) {
       setState({
@@ -93,6 +96,11 @@ export function useCredentials(
       });
       return;
     }
+
+    const credentialKey = `${avatarId}:${sessionId}:${sessionKey}:${connectUrl}:${baseUrl}`;
+
+    if (fetchedKeyRef.current === credentialKey) return;
+    fetchedKeyRef.current = credentialKey;
 
     let cancelled = false;
     setState({ status: 'loading', credentials: null, error: null });
@@ -104,7 +112,7 @@ export function useCredentials(
           sessionId,
           sessionKey,
           connectUrl,
-          connect,
+          connect: connectRef.current ?? undefined,
           baseUrl,
         };
         const credentials = await fetchCredentials(fetchOptions);
@@ -125,15 +133,7 @@ export function useCredentials(
     return () => {
       cancelled = true;
     };
-  }, [
-    directCredentials,
-    avatarId,
-    sessionId,
-    sessionKey,
-    connectUrl,
-    connect,
-    baseUrl,
-  ]);
+  }, [directCredentials, avatarId, sessionId, sessionKey, connectUrl, baseUrl]);
 
   return state;
 }
