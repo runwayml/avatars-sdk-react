@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-10
+
 ### Changed
 
 - **Breaking:** All data attributes are now namespaced with `avatar-` prefix to prevent conflicts with other libraries:
@@ -25,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed z-index issue where blurred background could overlay the video when embedded in external websites
+- Added missing `data-avatar-enabled` attribute to screen-share and end-call control buttons
 
 ## [0.4.0] - 2026-02-09
 
