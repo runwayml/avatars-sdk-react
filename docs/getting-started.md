@@ -27,18 +27,15 @@ Get your API secret from the [Runway Developer Portal](https://dev.runwayml.com/
 ### Client Component
 
 ```tsx
-import { Suspense } from 'react';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css'; // Optional default styles
 
 function App() {
   return (
-    <Suspense fallback={<p>Setting up avatar session...</p>}>
-      <AvatarCall
-        avatarId="game-host"
-        connectUrl="/api/avatar/connect"
-      />
-    </Suspense>
+    <AvatarCall
+      avatarId="game-host"
+      connectUrl="/api/avatar/connect"
+    />
   );
 }
 ```
@@ -102,7 +99,7 @@ export async function POST(req: Request) {
 4. `AvatarCall` establishes a real-time video connection (~1–5 seconds)
 5. User sees and talks to the AI avatar
 
-> **Note:** Session creation (step 2) can take 10–30 seconds. `AvatarCall` **suspends** during this wait — wrap it in `<Suspense>` to show a loading fallback. See the [Loading States guide](guides/loading-states.md) for details.
+> **Note:** Session creation (step 2) can take 10–30 seconds. `AvatarCall` handles loading states internally — use `avatarImageUrl` and the default styles for a polished loading experience. See the [Loading States guide](guides/loading-states.md) for details.
 
 ## Session States
 

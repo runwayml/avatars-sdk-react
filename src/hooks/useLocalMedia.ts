@@ -2,6 +2,7 @@
 
 import {
   useLocalParticipant,
+  useMaybeRoomContext,
   useMediaDevices,
   useTracks,
 } from '@livekit/components-react';
@@ -10,14 +11,21 @@ import { useCallback } from 'react';
 import type { UseLocalMediaReturn } from '../types';
 import { useLatest } from './useLatest';
 
+/**
+ * Hook for local media controls (mic, camera, screen share).
+ * Returns safe defaults when called outside of LiveKitRoom context.
+ */
 export function useLocalMedia(): UseLocalMediaReturn {
-  const { localParticipant } = useLocalParticipant();
+  const room = useMaybeRoomContext();
+  const hasRoomContext = room !== undefined;
+
+  const { localParticipant } = useLocalParticipant({ room });
 
   const audioDevices = useMediaDevices({ kind: 'audioinput' });
   const videoDevices = useMediaDevices({ kind: 'videoinput' });
 
-  const hasMic = audioDevices.length > 0;
-  const hasCamera = videoDevices.length > 0;
+  const hasMic = audioDevices?.length > 0;
+  const hasCamera = videoDevices?.length > 0;
 
   const isMicEnabled = localParticipant?.isMicrophoneEnabled ?? false;
   const isCameraEnabled = localParticipant?.isCameraEnabled ?? false;
@@ -30,40 +38,43 @@ export function useLocalMedia(): UseLocalMediaReturn {
   const hasMicRef = useLatest(hasMic);
   const hasCameraRef = useLatest(hasCamera);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleMic = useCallback(() => {
-    // Only toggle if we have a mic, or if we're disabling (always allow disable)
     if (hasMicRef.current || isMicEnabledRef.current) {
       localParticipant?.setMicrophoneEnabled(!isMicEnabledRef.current);
     }
-  }, [localParticipant, isMicEnabledRef, hasMicRef]);
+  }, [localParticipant]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleCamera = useCallback(() => {
-    // Only toggle if we have a camera, or if we're disabling (always allow disable)
     if (hasCameraRef.current || isCameraEnabledRef.current) {
       localParticipant?.setCameraEnabled(!isCameraEnabledRef.current);
     }
-  }, [localParticipant, isCameraEnabledRef, hasCameraRef]);
+  }, [localParticipant]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleScreenShare = useCallback(() => {
     localParticipant?.setScreenShareEnabled(!isScreenShareEnabledRef.current);
-  }, [localParticipant, isScreenShareEnabledRef]);
+  }, [localParticipant]);
 
   const tracks = useTracks(
     [{ source: Track.Source.Camera, withPlaceholder: true }],
     {
       onlySubscribed: false,
       updateOnlyOn: [],
+      room: hasRoomContext ? room : undefined,
     },
   );
 
   const localIdentity = localParticipant?.identity;
 
-  const localVideoTrackRef =
-    tracks.find(
-      (trackRef) =>
-        trackRef.participant.identity === localIdentity &&
-        trackRef.source === Track.Source.Camera,
-    ) ?? null;
+  const localVideoTrackRef = hasRoomContext
+    ? (tracks.find(
+        (trackRef) =>
+          trackRef.participant.identity === localIdentity &&
+          trackRef.source === Track.Source.Camera,
+      ) ?? null)
+    : null;
 
   return {
     hasMic,

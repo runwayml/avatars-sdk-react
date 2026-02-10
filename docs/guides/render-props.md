@@ -219,46 +219,44 @@ import { VideoTrack } from '@runwayml/avatars-react';
 Build a complete custom UI by combining render props:
 
 ```tsx
-<Suspense fallback={<LoadingScreen />}>
-  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-    <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden">
-      {/* Main avatar video */}
-      <AvatarVideo>
-        {(avatar) => {
-          switch (avatar.status) {
-            case 'connecting':
-            case 'waiting':
-              return <LoadingOverlay />;
-            case 'ready':
-              return <VideoTrack trackRef={avatar.videoTrackRef} className="w-full h-full object-cover" />;
-          }
-        }}
-      </AvatarVideo>
+<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+  <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden">
+    {/* Main avatar video */}
+    <AvatarVideo>
+      {(avatar) => {
+        switch (avatar.status) {
+          case 'connecting':
+          case 'waiting':
+            return <LoadingOverlay />;
+          case 'ready':
+            return <VideoTrack trackRef={avatar.videoTrackRef} className="w-full h-full object-cover" />;
+        }
+      }}
+    </AvatarVideo>
 
-      {/* Picture-in-picture user video */}
-      <div className="absolute bottom-4 right-4">
-        <UserVideo>
-          {({ hasVideo, isCameraEnabled, trackRef }) => (
-            <div className="w-32 h-24 rounded-lg overflow-hidden bg-gray-800">
-              {hasVideo && isCameraEnabled && trackRef ? (
-                <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
-              ) : (
-                <CameraOffPlaceholder />
-              )}
-            </div>
-          )}
-        </UserVideo>
-      </div>
-
-      {/* Custom controls */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-        <ControlBar>
-          {(controls) => <CustomControls {...controls} />}
-        </ControlBar>
-      </div>
+    {/* Picture-in-picture user video */}
+    <div className="absolute bottom-4 right-4">
+      <UserVideo>
+        {({ hasVideo, isCameraEnabled, trackRef }) => (
+          <div className="w-32 h-24 rounded-lg overflow-hidden bg-gray-800">
+            {hasVideo && isCameraEnabled && trackRef ? (
+              <VideoTrack trackRef={trackRef} className="w-full h-full object-cover" />
+            ) : (
+              <CameraOffPlaceholder />
+            )}
+          </div>
+        )}
+      </UserVideo>
     </div>
-  </AvatarCall>
-</Suspense>
+
+    {/* Custom controls */}
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+      <ControlBar>
+        {(controls) => <CustomControls {...controls} />}
+      </ControlBar>
+    </div>
+  </div>
+</AvatarCall>
 ```
 
 ---

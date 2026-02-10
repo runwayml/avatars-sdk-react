@@ -47,7 +47,7 @@ All components expose namespaced data attributes for CSS targeting. The `avatar-
 | `data-avatar-call` | `""` | Always present |
 | `data-avatar-id` | Avatar ID | The requested avatar |
 
-> **Note:** `AvatarCall` suspends during credential fetching — use `<Suspense>` for Phase 1 loading. See [Loading States](./loading-states.md).
+> **Note:** `AvatarCall` handles loading states internally. Use `avatarImageUrl` for a polished loading experience. See [Loading States](./loading-states.md).
 
 ### AvatarVideo
 

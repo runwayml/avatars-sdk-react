@@ -4,24 +4,22 @@
  * AvatarCall Component
  *
  * High-level component that handles the complete session lifecycle.
- * Suspends during credential fetching (Phase 1) — wrap in <Suspense> to
- * show loading UI while the server creates the session.
+ * Manages credential fetching, connection, and video display internally
+ * with a seamless loading experience.
  *
  * @example
  * ```tsx
- * <Suspense fallback={<Loading />}>
- *   <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
- *     <AvatarVideo />
- *     <ControlBar />
- *   </AvatarCall>
- * </Suspense>
+ * <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+ *   <AvatarVideo />
+ *   <ControlBar />
+ * </AvatarCall>
  * ```
  */
 
 import { useCredentials } from '../hooks/useCredentials';
 import { useLatest } from '../hooks/useLatest';
 import type { AvatarCallProps } from '../types';
-import { AvatarSession } from './AvatarSession';
+import { AvatarSession, LoadingSessionProvider } from './AvatarSession';
 import { AvatarVideo } from './AvatarVideo';
 import { ControlBar } from './ControlBar';
 import { UserVideo } from './UserVideo';
@@ -43,7 +41,7 @@ export function AvatarCall({
 }: AvatarCallProps) {
   const onErrorRef = useLatest(onError);
 
-  const credentials = useCredentials({
+  const credentialsState = useCredentials({
     avatarId,
     sessionId,
     sessionKey,
@@ -51,6 +49,7 @@ export function AvatarCall({
     connectUrl,
     connect,
     baseUrl,
+    onError: (err) => onErrorRef.current?.(err),
   });
 
   const handleSessionError = (err: Error) => {
@@ -61,6 +60,32 @@ export function AvatarCall({
     ? ({ '--avatar-image': `url(${avatarImageUrl})` } as React.CSSProperties)
     : undefined;
 
+  const defaultChildren = (
+    <>
+      <AvatarVideo />
+      <UserVideo />
+      <ControlBar />
+    </>
+  );
+
+  if (credentialsState.status !== 'ready') {
+    return (
+      <div
+        {...props}
+        data-avatar-call=""
+        data-avatar-id={avatarId}
+        style={{ ...props.style, ...backgroundStyle }}
+      >
+        <LoadingSessionProvider
+          state={credentialsState.status === 'error' ? 'error' : 'connecting'}
+          error={credentialsState.error}
+        >
+          {children ?? defaultChildren}
+        </LoadingSessionProvider>
+      </div>
+    );
+  }
+
   return (
     <div
       {...props}
@@ -69,18 +94,12 @@ export function AvatarCall({
       style={{ ...props.style, ...backgroundStyle }}
     >
       <AvatarSession
-        credentials={credentials}
+        credentials={credentialsState.credentials}
         onEnd={onEnd}
         onError={handleSessionError}
         __unstable_roomOptions={__unstable_roomOptions}
       >
-        {children ?? (
-          <>
-            <AvatarVideo />
-            <UserVideo />
-            <ControlBar />
-          </>
-        )}
+        {children ?? defaultChildren}
       </AvatarSession>
     </div>
   );

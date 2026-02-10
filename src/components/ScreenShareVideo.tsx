@@ -4,6 +4,7 @@ import {
   isTrackReference,
   type TrackReferenceOrPlaceholder,
   useLocalParticipant,
+  useMaybeRoomContext,
   useTracks,
   VideoTrack,
 } from '@livekit/components-react';
@@ -24,21 +25,25 @@ export function ScreenShareVideo({
   children,
   ...props
 }: ScreenShareVideoProps) {
-  const { localParticipant } = useLocalParticipant();
+  const room = useMaybeRoomContext();
+  const hasRoomContext = room !== undefined;
+
+  const { localParticipant } = useLocalParticipant({ room });
 
   const tracks = useTracks(
     [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
-    { onlySubscribed: false },
+    { onlySubscribed: false, room: hasRoomContext ? room : undefined },
   );
 
   const localIdentity = localParticipant?.identity;
 
-  const screenShareTrackRef =
-    tracks.find(
-      (trackRef) =>
-        trackRef.participant.identity === localIdentity &&
-        trackRef.source === Track.Source.ScreenShare,
-    ) ?? null;
+  const screenShareTrackRef = hasRoomContext
+    ? (tracks.find(
+        (trackRef) =>
+          trackRef.participant.identity === localIdentity &&
+          trackRef.source === Track.Source.ScreenShare,
+      ) ?? null)
+    : null;
 
   const isSharing =
     screenShareTrackRef !== null && isTrackReference(screenShareTrackRef);

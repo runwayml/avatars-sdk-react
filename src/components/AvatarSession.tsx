@@ -137,7 +137,6 @@ export function AvatarSession({
 }: AvatarSessionProps) {
   const errorRef = useRef<Error | null>(null);
 
-  // Check device availability to avoid "Requested device not found" errors
   const deviceAvailability = useDeviceAvailability(requestAudio, requestVideo);
 
   const handleError = (error: Error) => {
@@ -150,9 +149,19 @@ export function AvatarSession({
     ...__unstable_roomOptions,
   };
 
-  // Don't connect until we've checked device availability
   if (deviceAvailability.isChecking) {
-    return null;
+    return (
+      <AvatarSessionContext.Provider
+        value={{
+          state: 'connecting',
+          sessionId: credentials.sessionId,
+          error: null,
+          end: async () => {},
+        }}
+      >
+        {children}
+      </AvatarSessionContext.Provider>
+    );
   }
 
   return (
@@ -248,4 +257,31 @@ export function useAvatarSessionContext(): AvatarSessionContextValue {
  */
 export function useMaybeAvatarSessionContext(): AvatarSessionContextValue | null {
   return useContext(AvatarSessionContext);
+}
+
+/**
+ * Provider for loading/error states before the actual session is established.
+ * Used by AvatarCall to provide context during credential fetching.
+ */
+export function LoadingSessionProvider({
+  state,
+  error,
+  children,
+}: {
+  state: 'connecting' | 'error';
+  error: Error | null;
+  children: ReactNode;
+}) {
+  const contextValue: AvatarSessionContextValue = {
+    state,
+    sessionId: '',
+    error,
+    end: async () => {},
+  };
+
+  return (
+    <AvatarSessionContext.Provider value={contextValue}>
+      {children}
+    </AvatarSessionContext.Provider>
+  );
 }

@@ -37,7 +37,7 @@ interface SessionCredentials {
 
 ### AvatarCallProps
 
-Suspends during credential fetching — wrap in `<Suspense>` to show loading UI.
+Handles credential fetching and loading states internally.
 
 ```typescript
 interface AvatarCallProps extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {

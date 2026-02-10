@@ -212,7 +212,33 @@
   }
 }
 
-/* Loading state - shown when avatar video is connecting/waiting */
+/* Loading spinner - shown when avatar video is connecting/waiting */
+[data-avatar-video][data-avatar-status="connecting"]::before,
+[data-avatar-video][data-avatar-status="waiting"]::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: avatar-spin 0.8s linear infinite;
+  z-index: 1;
+}
+
+@keyframes avatar-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Shimmer overlay - subtle loading effect */
 [data-avatar-video][data-avatar-status="connecting"]::after,
 [data-avatar-video][data-avatar-status="waiting"]::after {
   content: "";
@@ -221,7 +247,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.03),
     transparent
   );
   background-size: 200% 100%;
@@ -229,6 +255,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-avatar-video][data-avatar-status="connecting"]::before,
+  [data-avatar-video][data-avatar-status="waiting"]::before,
   [data-avatar-video][data-avatar-status="connecting"]::after,
   [data-avatar-video][data-avatar-status="waiting"]::after {
     animation: none;

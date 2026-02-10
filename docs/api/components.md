@@ -18,7 +18,7 @@
 
 High-level component that handles the complete session lifecycle. **Recommended for most use cases.**
 
-**Suspends during credential fetching** — wrap in `<Suspense>` to show loading UI while the server creates the session. See the [Loading States guide](../guides/loading-states.md) for details.
+Handles credential fetching and loading states internally — just render it and the SDK manages the rest. See the [Loading States guide](../guides/loading-states.md) for details.
 
 ### Props
 
@@ -30,12 +30,12 @@ High-level component that handles the complete session lifecycle. **Recommended 
 | `sessionId` | `string` | ✓* | Session ID (use with `sessionKey`) |
 | `sessionKey` | `string` | ✓* | Session key (use with `sessionId`) |
 | `credentials` | `SessionCredentials` | ✓* | Pre-fetched credentials |
-| `baseUrl` | `string` | | Runway API base URL (defaults to `https://api.dev.runwayml.com`) |
-| `avatarImageUrl` | `string` | | Avatar image URL (available as `--avatar-image` CSS variable) |
+| `baseUrl` | `string` | | Runway API base URL (defaults to `https://api.runwayml.com`) |
+| `avatarImageUrl` | `string` | | Avatar image URL for loading placeholder (available as `--avatar-image` CSS variable) |
 | `className` | `string` | | CSS class name |
 | `style` | `CSSProperties` | | Inline styles |
 | `onEnd` | `() => void` | | Called when session ends |
-| `onError` | `(error: Error) => void` | | Called on WebRTC error |
+| `onError` | `(error: Error) => void` | | Called on credential or WebRTC error |
 | `children` | `ReactNode` | | Custom layout (defaults to AvatarVideo + UserVideo + ControlBar) |
 
 *One of these is required: `connectUrl`, `connect`, `sessionId`+`sessionKey`, or `credentials`.
@@ -43,47 +43,42 @@ High-level component that handles the complete session lifecycle. **Recommended 
 ### Basic Usage
 
 ```tsx
-<Suspense fallback={<p>Connecting to avatar...</p>}>
-  <AvatarCall
-    avatarId="game-host"
-    connectUrl="/api/avatar/connect"
-  />
-</Suspense>
+<AvatarCall
+  avatarId="game-host"
+  connectUrl="/api/avatar/connect"
+  avatarImageUrl="/avatars/game-host.png"
+/>
 ```
 
 ### Custom Connect Function
 
 ```tsx
-<Suspense fallback={<LoadingScreen />}>
-  <AvatarCall
-    avatarId="game-host"
-    connect={async (avatarId) => {
-      const res = await fetch('/api/avatar/connect', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ avatarId }),
-      });
-      return res.json();
-    }}
-  />
-</Suspense>
+<AvatarCall
+  avatarId="game-host"
+  connect={async (avatarId) => {
+    const res = await fetch('/api/avatar/connect', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ avatarId }),
+    });
+    return res.json();
+  }}
+/>
 ```
 
 ### Custom Layout
 
 ```tsx
-<Suspense fallback={<LoadingScreen />}>
-  <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-    <div className="my-layout">
-      <AvatarVideo className="main-video" />
-      <UserVideo className="pip" />
-      <ControlBar className="bottom-bar" />
-    </div>
-  </AvatarCall>
-</Suspense>
+<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+  <div className="my-layout">
+    <AvatarVideo className="main-video" />
+    <UserVideo className="pip" />
+    <ControlBar className="bottom-bar" />
+  </div>
+</AvatarCall>
 ```
 
 ### Data Attributes

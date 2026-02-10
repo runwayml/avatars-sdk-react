@@ -1,8 +1,8 @@
 # Loading States
 
-Connecting to an AI avatar involves multiple steps that can take **10–30 seconds**. The SDK uses React Suspense to make loading states easy to handle.
+Connecting to an AI avatar involves multiple steps that can take **10–30 seconds**. The SDK handles loading states internally for a seamless experience.
 
-## The Two Loading Phases
+## The Loading Phases
 
 ```
 Phase 1                          Phase 2
@@ -14,107 +14,73 @@ Phase 1                          Phase 2
 │ • Returns credentials    │     │ • First frame renders    │
 │                          │     │                          │
 │ ~10–30 seconds           │     │ ~1–5 seconds             │
-│ Handled by: Suspense     │     │ Handled by: useAvatarStatus │
 └──────────────────────────┘     └─────────────────────────┘
 ```
 
-**Phase 1 (Session Setup):** Your server creates a Runway session, polls until ready, and returns WebRTC credentials. `AvatarCall` **suspends** during this phase — wrap it in `<Suspense>` to show a loading fallback.
+**Phase 1 (Session Setup):** Your server creates a Runway session, polls until ready, and returns WebRTC credentials. `AvatarCall` shows a loading state during this phase.
 
 **Phase 2 (Video Loading):** The client establishes a WebRTC connection and waits for the avatar's video track. Use the `useAvatarStatus` hook or `AvatarVideo` render prop to show appropriate UI.
+
+Both phases are handled seamlessly — just render `AvatarCall` and the SDK manages the loading experience.
 
 ---
 
 ## Quick Start
 
 ```tsx
-import { Suspense } from 'react';
 import { AvatarCall } from '@runwayml/avatars-react';
+import '@runwayml/avatars-react/styles.css';
 
 function App() {
   return (
-    <Suspense fallback={<LoadingScreen />}>
-      <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect" />
-    </Suspense>
-  );
-}
-
-function LoadingScreen() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-4">
-      <p className="text-lg">Setting up your session...</p>
-      <p className="text-sm text-gray-400">This usually takes 10–20 seconds</p>
-      <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full" />
-    </div>
+    <AvatarCall
+      avatarId="game-host"
+      connectUrl="/api/avatar/connect"
+      avatarImageUrl="/avatars/game-host.png"
+    />
   );
 }
 ```
 
-That's it. When credentials are ready, `AvatarCall` renders. While fetching, React shows your `<Suspense>` fallback.
+That's it. The default styles show a blurred avatar placeholder during loading, which smoothly transitions to the live video when ready.
 
 ---
 
-## Phase 1: Session Setup (Suspense)
-
-`AvatarCall` suspends during credential fetching, integrating with React's built-in `<Suspense>` component. This means:
-
-- **Loading UI** is defined at the call site, not buried in a prop
-- **Error handling** works with Error Boundaries
-- **Composition** — nest boundaries, share fallbacks, combine with other suspending components
-
-### With Error Boundary
-
-Handle both loading and error states declaratively:
-
-```tsx
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-
-<ErrorBoundary fallback={<p>Something went wrong</p>}>
-  <Suspense fallback={<LoadingScreen />}>
-    <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect" />
-  </Suspense>
-</ErrorBoundary>
-```
+## Customizing Loading UI
 
 ### With Avatar Placeholder Image
 
-Combine `<Suspense>` with `avatarImageUrl` for a polished loading experience:
+The `avatarImageUrl` prop shows a blurred placeholder during loading:
 
 ```tsx
-<Suspense
-  fallback={
-    <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden">
-      <img
-        src="/avatars/game-host.png"
-        alt=""
-        className="w-full h-full object-cover opacity-40 blur-sm"
-      />
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <p className="text-white text-lg font-medium">Connecting to avatar...</p>
-        <div className="mt-3 animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full" />
-      </div>
-    </div>
-  }
->
-  <AvatarCall
-    avatarId="game-host"
-    connectUrl="/api/avatar/connect"
-    avatarImageUrl="/avatars/game-host.png"
-  />
-</Suspense>
+<AvatarCall
+  avatarId="game-host"
+  connectUrl="/api/avatar/connect"
+  avatarImageUrl="/avatars/game-host.png"
+/>
 ```
 
----
+The default styles automatically:
+- Show the blurred image as a background during loading
+- Fade it out smoothly when video becomes ready
+- Display a subtle pulse animation during connection
 
-## Phase 2: Video Loading (useAvatarStatus)
+### Using useAvatarStatus
 
-After credentials arrive, the WebRTC connection begins. Use the `useAvatarStatus` hook inside `<AvatarCall>` to track the full lifecycle as a single discriminated union:
+For full control over loading UI, use the `useAvatarStatus` hook inside `AvatarCall`:
 
 ```tsx
-import { useAvatarStatus } from '@runwayml/avatars-react';
-import { VideoTrack } from '@runwayml/avatars-react';
+import { AvatarCall, useAvatarStatus, VideoTrack } from '@runwayml/avatars-react';
 
-function MyAvatarUI() {
+function App() {
+  return (
+    <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+      <CustomAvatarUI />
+    </AvatarCall>
+  );
+}
+
+function CustomAvatarUI() {
   const avatar = useAvatarStatus();
 
   switch (avatar.status) {
@@ -143,7 +109,7 @@ function MyAvatarUI() {
 
 | Status | Meaning | Extra fields |
 |--------|---------|--------------|
-| `connecting` | WebRTC connection in progress | — |
+| `connecting` | Fetching credentials or WebRTC connecting | — |
 | `waiting` | Connected, waiting for video track | — |
 | `ready` | Avatar video is streaming | `videoTrackRef` |
 | `ending` | Disconnect in progress | — |
@@ -173,65 +139,87 @@ The render prop provides a subset of statuses relevant to video: `connecting`, `
 
 ---
 
-## Complete Example
+## Error Handling
 
-Handling both phases with full custom UI:
+Handle errors with the `onError` callback:
 
 ```tsx
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+<AvatarCall
+  avatarId="game-host"
+  connectUrl="/api/avatar/connect"
+  onError={(error) => {
+    console.error('Avatar error:', error);
+    // Show error UI, retry, etc.
+  }}
+/>
+```
+
+Or check for errors with `useAvatarStatus`:
+
+```tsx
+function AvatarUI() {
+  const avatar = useAvatarStatus();
+
+  if (avatar.status === 'error') {
+    return <p>Failed to connect: {avatar.error.message}</p>;
+  }
+
+  // ... rest of UI
+}
+```
+
+---
+
+## Complete Example
+
+Full custom UI with loading states:
+
+```tsx
 import {
   AvatarCall,
   AvatarVideo,
   ControlBar,
   useAvatarStatus,
+  VideoTrack,
 } from '@runwayml/avatars-react';
-import { VideoTrack } from '@runwayml/avatars-react';
 
 function AvatarPage() {
   return (
-    <ErrorBoundary fallback={<ErrorScreen />}>
-      <Suspense fallback={<SessionSetupLoading />}>
-        <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
-          <AvatarUI />
-        </AvatarCall>
-      </Suspense>
-    </ErrorBoundary>
+    <AvatarCall
+      avatarId="game-host"
+      connectUrl="/api/avatar/connect"
+      avatarImageUrl="/avatars/game-host.png"
+      onError={(error) => console.error(error)}
+    >
+      <AvatarUI />
+    </AvatarCall>
   );
 }
 
-/** Phase 1 fallback — shown during server-side session creation */
-function SessionSetupLoading() {
-  return (
-    <div className="flex flex-col items-center justify-center h-96 bg-gray-900 rounded-xl gap-3">
-      <div className="animate-pulse">
-        <img src="/avatars/game-host.png" alt="" className="w-20 h-20 rounded-full opacity-80" />
-      </div>
-      <p className="text-white font-medium">Setting up your session...</p>
-      <p className="text-white/50 text-sm">This usually takes 10–20 seconds</p>
-    </div>
-  );
-}
-
-/** Phase 2 — shown after credentials arrive */
 function AvatarUI() {
+  const avatar = useAvatarStatus();
+
+  if (avatar.status === 'error') {
+    return <ErrorScreen message={avatar.error.message} />;
+  }
+
   return (
     <div className="relative w-full max-w-3xl aspect-video rounded-xl overflow-hidden bg-gray-900">
       <AvatarVideo>
-        {(avatar) => {
-          switch (avatar.status) {
+        {(videoStatus) => {
+          switch (videoStatus.status) {
             case 'connecting':
             case 'waiting':
               return (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                   <div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full" />
                   <p className="text-white/70 text-sm">
-                    {avatar.status === 'connecting' ? 'Connecting...' : 'Loading video...'}
+                    {videoStatus.status === 'connecting' ? 'Connecting...' : 'Loading video...'}
                   </p>
                 </div>
               );
             case 'ready':
-              return <VideoTrack trackRef={avatar.videoTrackRef} className="w-full h-full object-cover" />;
+              return <VideoTrack trackRef={videoStatus.videoTrackRef} className="w-full h-full object-cover" />;
           }
         }}
       </AvatarVideo>
@@ -241,8 +229,8 @@ function AvatarUI() {
   );
 }
 
-function ErrorScreen() {
-  return <p className="text-red-500 text-center p-8">Failed to connect. Please try again.</p>;
+function ErrorScreen({ message }: { message: string }) {
+  return <p className="text-red-500 text-center p-8">Failed to connect: {message}</p>;
 }
 ```
 
@@ -253,7 +241,7 @@ function ErrorScreen() {
 If you manage credentials yourself with `AvatarSession`, you handle Phase 1 entirely in your own code:
 
 ```tsx
-import { AvatarSession, AvatarVideo, ControlBar, useAvatarStatus } from '@runwayml/avatars-react';
+import { AvatarSession, AvatarVideo, ControlBar, useAvatarStatus, VideoTrack } from '@runwayml/avatars-react';
 import type { SessionCredentials } from '@runwayml/avatars-react';
 
 function CustomAvatarPage() {
@@ -305,7 +293,7 @@ function CustomVideoUI() {
 ## Tips
 
 - **Set user expectations.** Session setup takes 10–30 seconds. Show a message like "This usually takes 10–20 seconds" so users don't think it's broken.
-- **Use `avatarImageUrl`** to show who they'll be talking to during the Suspense fallback.
-- **Show different messages per phase.** "Setting up session..." for Phase 1 (Suspense fallback) vs "Loading video..." for Phase 2 (`useAvatarStatus`) helps users understand progress.
+- **Use `avatarImageUrl`** to show who they'll be talking to during loading.
+- **Show different messages per phase.** "Setting up session..." vs "Loading video..." helps users understand progress.
 - **Add an indeterminate progress indicator** rather than a simple spinner — it better communicates that something is happening during a long wait.
-- **Handle errors with Error Boundaries.** Phase 1 errors (credential fetching failures) throw to the nearest Error Boundary. Phase 2 errors are available via `useAvatarStatus` with `status: 'error'`.
+- **Handle errors with `onError`** for credential fetching failures, and check `useAvatarStatus` for connection errors.

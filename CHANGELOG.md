@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-02-10
+
+### Changed
+
+- **Breaking:** `AvatarCall` no longer uses React Suspense. Loading states are now handled internally for a seamless experience. Remove any `<Suspense>` wrappers around `AvatarCall`.
+
+### Removed
+
+- Removed Suspense-based credential fetching from `AvatarCall` — loading is now handled internally
+- Removed `suspense-resource.ts` utility (no longer needed)
+
+### Fixed
+
+- Fixed "Requested device not found" error when connecting or toggling mic/camera on devices without those peripherals
+- Fixed awkward loading state gap between Suspense resolution and video becoming ready
+- Added default loading spinner to AvatarVideo during connecting/waiting states
+- Fixed loading spinner positioning — now properly centered with absolute positioning
+- Fixed hooks (`useLocalMedia`, `useAvatar`) crashing when called outside LiveKitRoom context during credential loading
+
 ## [0.5.0] - 2026-02-10
 
 ### Changed
@@ -30,7 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added missing `data-avatar-enabled` attribute to screen-share and end-call control buttons
 - Added missing `toggleScreenShare` function to ControlBar render prop state
 - Blurred background now fades out smoothly when video becomes ready
-- Fixed "Requested device not found" error when connecting or toggling mic/camera on devices without those peripherals
 
 ## [0.4.0] - 2026-02-09
 

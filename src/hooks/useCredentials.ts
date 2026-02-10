@@ -1,12 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { consumeSession } from '../api/consume';
 import type { SessionCredentials } from '../types';
-import {
-  createSuspenseResource,
-  type SuspenseResource,
-} from '../utils/suspense-resource';
+import { useLatest } from './useLatest';
 
 export interface UseCredentialsOptions {
   avatarId: string;
@@ -16,16 +13,13 @@ export interface UseCredentialsOptions {
   connectUrl?: string;
   connect?: (avatarId: string) => Promise<SessionCredentials>;
   baseUrl?: string;
+  onError?: (error: Error) => void;
 }
 
-const resourceCache = new Map<string, SuspenseResource<SessionCredentials>>();
-
-function computeKey(options: UseCredentialsOptions): string {
-  if (options.credentials) return `direct:${options.credentials.sessionId}`;
-  if (options.sessionId && options.sessionKey)
-    return `session:${options.sessionId}`;
-  return `connect:${options.avatarId}:${options.connectUrl ?? 'custom'}`;
-}
+export type CredentialsState =
+  | { status: 'loading'; credentials: null; error: null }
+  | { status: 'ready'; credentials: SessionCredentials; error: null }
+  | { status: 'error'; credentials: null; error: Error };
 
 async function fetchCredentials(
   options: UseCredentialsOptions,
@@ -68,24 +62,78 @@ async function fetchCredentials(
 
 export function useCredentials(
   options: UseCredentialsOptions,
-): SessionCredentials {
-  const key = computeKey(options);
+): CredentialsState {
+  const {
+    credentials: directCredentials,
+    avatarId,
+    sessionId,
+    sessionKey,
+    connectUrl,
+    connect,
+    baseUrl,
+    onError,
+  } = options;
 
+  const onErrorRef = useLatest(onError);
+
+  const [state, setState] = useState<CredentialsState>(() => {
+    if (directCredentials) {
+      return { status: 'ready', credentials: directCredentials, error: null };
+    }
+    return { status: 'loading', credentials: null, error: null };
+  });
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: onErrorRef is a stable ref from useLatest - we intentionally read .current at call time
   useEffect(() => {
+    if (directCredentials) {
+      setState({
+        status: 'ready',
+        credentials: directCredentials,
+        error: null,
+      });
+      return;
+    }
+
+    let cancelled = false;
+    setState({ status: 'loading', credentials: null, error: null });
+
+    async function load() {
+      try {
+        const fetchOptions: UseCredentialsOptions = {
+          avatarId,
+          sessionId,
+          sessionKey,
+          connectUrl,
+          connect,
+          baseUrl,
+        };
+        const credentials = await fetchCredentials(fetchOptions);
+        if (!cancelled) {
+          setState({ status: 'ready', credentials, error: null });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const error = err instanceof Error ? err : new Error(String(err));
+          setState({ status: 'error', credentials: null, error });
+          onErrorRef.current?.(error);
+        }
+      }
+    }
+
+    load();
+
     return () => {
-      resourceCache.delete(key);
+      cancelled = true;
     };
-  }, [key]);
+  }, [
+    directCredentials,
+    avatarId,
+    sessionId,
+    sessionKey,
+    connectUrl,
+    connect,
+    baseUrl,
+  ]);
 
-  if (options.credentials) {
-    return options.credentials;
-  }
-
-  let resource = resourceCache.get(key);
-  if (!resource) {
-    resource = createSuspenseResource(fetchCredentials(options));
-    resourceCache.set(key, resource);
-  }
-
-  return resource.read();
+  return state;
 }
