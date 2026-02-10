@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** All data attributes are now namespaced with `avatar-` prefix to prevent conflicts with other libraries:
+  - `data-status` → `data-avatar-status`
+  - `data-active` → `data-avatar-active`
+  - `data-control` → `data-avatar-control`
+  - `data-enabled` → `data-avatar-enabled`
+  - `data-has-video` → `data-avatar-has-video`
+  - `data-camera-enabled` → `data-avatar-camera-enabled`
+  - `data-mirror` → `data-avatar-mirror`
+  - `data-sharing` → `data-avatar-sharing`
+- Added new marker attributes: `data-avatar-video`, `data-avatar-user-video`, `data-avatar-control-bar`, `data-avatar-screen-share`
+- CSS custom properties are now scoped to `[data-avatar-call]` instead of `:root` to prevent global namespace pollution
+- Default styles now use `isolation: isolate` to create a proper stacking context and prevent z-index conflicts
+
+### Fixed
+
+- Fixed z-index issue where blurred background could overlay the video when embedded in external websites
+
 ## [0.4.0] - 2026-02-09
 
 ### Fixed

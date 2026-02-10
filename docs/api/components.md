@@ -32,6 +32,8 @@ High-level component that handles the complete session lifecycle. **Recommended 
 | `credentials` | `SessionCredentials` | ✓* | Pre-fetched credentials |
 | `baseUrl` | `string` | | Runway API base URL (defaults to `https://api.dev.runwayml.com`) |
 | `avatarImageUrl` | `string` | | Avatar image URL (available as `--avatar-image` CSS variable) |
+| `className` | `string` | | CSS class name |
+| `style` | `CSSProperties` | | Inline styles |
 | `onEnd` | `() => void` | | Called when session ends |
 | `onError` | `(error: Error) => void` | | Called on WebRTC error |
 | `children` | `ReactNode` | | Custom layout (defaults to AvatarVideo + UserVideo + ControlBar) |
@@ -190,7 +192,7 @@ The render prop receives a discriminated union (`AvatarVideoStatus`) with three 
 | Attribute | Values |
 |-----------|--------|
 | `data-avatar-video` | `""` |
-| `data-status` | `"connecting"`, `"waiting"`, `"ready"` |
+| `data-avatar-status` | `"connecting"`, `"waiting"`, `"ready"` |
 
 ---
 
@@ -233,6 +235,15 @@ Renders the local user's camera feed.
 | `hasVideo` | `boolean` | Whether local video track exists |
 | `isCameraEnabled` | `boolean` | Whether camera is currently on |
 | `trackRef` | `TrackReferenceOrPlaceholder` | Video track reference |
+
+### Data Attributes
+
+| Attribute | Values |
+|-----------|--------|
+| `data-avatar-user-video` | `""` |
+| `data-avatar-has-video` | `"true"`, `"false"` |
+| `data-avatar-camera-enabled` | `"true"`, `"false"` |
+| `data-avatar-mirror` | `"true"`, `"false"` |
 
 ---
 
@@ -296,6 +307,20 @@ Media control buttons for microphone, camera, screen share, and end call.
 | `endCall` | `() => Promise<void>` | End the session |
 | `isActive` | `boolean` | Whether session is active |
 
+### Data Attributes
+
+| Attribute | Values |
+|-----------|--------|
+| `data-avatar-control-bar` | `""` |
+| `data-avatar-active` | `"true"`, `"false"` |
+
+### Control Button Attributes
+
+| Attribute | Values |
+|-----------|--------|
+| `data-avatar-control` | `"microphone"`, `"camera"`, `"screen-share"`, `"end-call"` |
+| `data-avatar-enabled` | `"true"`, `"false"` |
+
 ---
 
 ## ScreenShareVideo
@@ -328,6 +353,13 @@ Renders the local user's screen share.
   )}
 </ScreenShareVideo>
 ```
+
+### Data Attributes
+
+| Attribute | Values |
+|-----------|--------|
+| `data-avatar-screen-share` | `""` |
+| `data-avatar-sharing` | `"true"`, `"false"` |
 
 ---
 

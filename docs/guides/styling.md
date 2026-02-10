@@ -10,22 +10,24 @@ import '@runwayml/avatars-react/styles.css';
 
 ## CSS Custom Properties
 
-Customize the default styles with CSS variables:
+Customize the default styles with CSS variables. Variables are scoped to `[data-avatar-call]`:
 
 ```css
-:root {
-  --avatar-bg: #a78bfa;           /* Video background color */
-  --avatar-radius: 16px;          /* Container border radius */
-  --avatar-control-size: 48px;    /* Control button size */
-  --avatar-end-call-bg: #ef4444;  /* End call button color */
+[data-avatar-call] {
+  --avatar-bg-connecting: #a78bfa;  /* Video background color */
+  --avatar-radius: 16px;            /* Container border radius */
+  --avatar-control-size: 48px;      /* Control button size */
+  --avatar-end-call-bg: #ef4444;    /* End call button color */
+  --avatar-pip-size: 120px;         /* User video PIP size */
+  --avatar-pip-radius: 12px;        /* User video border radius */
 }
 ```
 
 ### Example: Dark Theme
 
 ```css
-:root {
-  --avatar-bg: #1a1a2e;
+[data-avatar-call] {
+  --avatar-bg-connecting: #1a1a2e;
   --avatar-radius: 8px;
   --avatar-control-size: 56px;
   --avatar-end-call-bg: #dc2626;
@@ -36,7 +38,7 @@ Customize the default styles with CSS variables:
 
 ## Data Attributes
 
-All components expose data attributes for CSS targeting.
+All components expose namespaced data attributes for CSS targeting. The `avatar-` prefix prevents conflicts with other libraries.
 
 ### AvatarCall
 
@@ -52,13 +54,12 @@ All components expose data attributes for CSS targeting.
 | Attribute | Values |
 |-----------|--------|
 | `data-avatar-video` | `""` |
-| `data-status` | `"connecting"`, `"waiting"`, `"ready"` |
+| `data-avatar-status` | `"connecting"`, `"waiting"`, `"ready"` |
 
 ```css
-[data-avatar-video][data-status="connecting"],
-[data-avatar-video][data-status="waiting"] {
+[data-avatar-video][data-avatar-status="connecting"],
+[data-avatar-video][data-avatar-status="waiting"] {
   background: linear-gradient(45deg, #333, #555);
-  animation: pulse 1.5s infinite;
 }
 ```
 
@@ -66,12 +67,13 @@ All components expose data attributes for CSS targeting.
 
 | Attribute | Values |
 |-----------|--------|
-| `data-user-video` | `""` |
-| `data-has-video` | `"true"`, `"false"` |
-| `data-camera-enabled` | `"true"`, `"false"` |
+| `data-avatar-user-video` | `""` |
+| `data-avatar-has-video` | `"true"`, `"false"` |
+| `data-avatar-camera-enabled` | `"true"`, `"false"` |
+| `data-avatar-mirror` | `"true"`, `"false"` |
 
 ```css
-[data-user-video][data-camera-enabled="false"] {
+[data-avatar-user-video][data-avatar-camera-enabled="false"] {
   background: #333;
 }
 ```
@@ -80,15 +82,36 @@ All components expose data attributes for CSS targeting.
 
 | Attribute | Values |
 |-----------|--------|
-| `data-control-bar` | `""` |
+| `data-avatar-control-bar` | `""` |
+| `data-avatar-active` | `"true"`, `"false"` |
 
 ```css
-[data-control-bar] {
+[data-avatar-control-bar] {
   display: flex;
   gap: 12px;
   justify-content: center;
 }
 ```
+
+### Control Buttons
+
+| Attribute | Values |
+|-----------|--------|
+| `data-avatar-control` | `"microphone"`, `"camera"`, `"screen-share"`, `"end-call"` |
+| `data-avatar-enabled` | `"true"`, `"false"` |
+
+```css
+[data-avatar-control][data-avatar-enabled="false"] {
+  background: rgba(239, 68, 68, 0.2);
+}
+```
+
+### ScreenShareVideo
+
+| Attribute | Values |
+|-----------|--------|
+| `data-avatar-screen-share` | `""` |
+| `data-avatar-sharing` | `"true"`, `"false"` |
 
 ---
 
@@ -211,8 +234,8 @@ Components also accept `style` prop:
   100% { background-position: 200% 0; }
 }
 
-[data-avatar-video][data-status="connecting"]::before,
-[data-avatar-video][data-status="waiting"]::before {
+[data-avatar-video][data-avatar-status="connecting"]::before,
+[data-avatar-video][data-avatar-status="waiting"]::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -239,7 +262,39 @@ Works with Tailwind's arbitrary selectors:
   connectUrl="/api/avatar/connect"
   className="w-full max-w-3xl rounded-xl overflow-hidden"
 >
-  <AvatarVideo className="w-full h-full data-[status=connecting]:animate-pulse data-[status=waiting]:animate-pulse" />
+  <AvatarVideo className="w-full h-full data-[avatar-status=connecting]:animate-pulse data-[avatar-status=waiting]:animate-pulse" />
   <ControlBar />
 </AvatarCall>
+```
+
+---
+
+## CSS Modules
+
+```tsx
+import styles from './avatar.module.css';
+
+<AvatarCall
+  avatarId="game-host"
+  connectUrl="/api/avatar/connect"
+  className={styles.container}
+>
+  <AvatarVideo className={styles.video} />
+  <ControlBar className={styles.controls} />
+</AvatarCall>
+```
+
+---
+
+## Stacking Context
+
+The default styles use `isolation: isolate` on `[data-avatar-call]` to create a new stacking context. This prevents z-index conflicts with parent elements and ensures the avatar UI layers correctly.
+
+If you're not using the default styles, consider adding this to your container:
+
+```css
+.my-avatar-container {
+  isolation: isolate;
+  position: relative;
+}
 ```

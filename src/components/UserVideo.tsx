@@ -1,7 +1,7 @@
 'use client';
 
-import type { ReactNode, ComponentPropsWithoutRef } from 'react';
-import { VideoTrack, isTrackReference } from '@livekit/components-react';
+import { isTrackReference, VideoTrack } from '@livekit/components-react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { useLocalMedia } from '../hooks/useLocalMedia';
 import type { UseLocalMediaReturn } from '../types';
 
@@ -11,15 +11,21 @@ export interface UserVideoState {
   trackRef: UseLocalMediaReturn['localVideoTrackRef'];
 }
 
-export interface UserVideoProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
+export interface UserVideoProps
+  extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   mirror?: boolean;
   children?: (state: UserVideoState) => ReactNode;
 }
 
-export function UserVideo({ children, mirror = true, ...props }: UserVideoProps) {
+export function UserVideo({
+  children,
+  mirror = true,
+  ...props
+}: UserVideoProps) {
   const { localVideoTrackRef, isCameraEnabled } = useLocalMedia();
 
-  const hasVideo = localVideoTrackRef !== null && isTrackReference(localVideoTrackRef);
+  const hasVideo =
+    localVideoTrackRef !== null && isTrackReference(localVideoTrackRef);
 
   const state: UserVideoState = {
     hasVideo,
@@ -34,13 +40,16 @@ export function UserVideo({ children, mirror = true, ...props }: UserVideoProps)
   return (
     <div
       {...props}
-      data-has-video={hasVideo}
-      data-camera-enabled={isCameraEnabled}
-      data-mirror={mirror}
+      data-avatar-user-video=""
+      data-avatar-has-video={hasVideo}
+      data-avatar-camera-enabled={isCameraEnabled}
+      data-avatar-mirror={mirror}
     >
-      {hasVideo && localVideoTrackRef && isTrackReference(localVideoTrackRef) && (
-        <VideoTrack trackRef={localVideoTrackRef} />
-      )}
+      {hasVideo &&
+        localVideoTrackRef &&
+        isTrackReference(localVideoTrackRef) && (
+          <VideoTrack trackRef={localVideoTrackRef} />
+        )}
     </div>
   );
 }

@@ -7,15 +7,16 @@
  * @example
  * import '@runwayml/avatars-react/styles.css';
  *
- * Customize via CSS variables:
- * :root {
- *   --avatar-bg: #8b5cf6;
+ * Customize via CSS variables on the container:
+ * [data-avatar-call] {
+ *   --avatar-bg-connecting: #8b5cf6;
  *   --avatar-radius: 24px;
  * }
  */
 
-/* CSS Custom Properties */
-:root {
+/* AvatarCall Container - CSS Custom Properties scoped to component */
+[data-avatar-call] {
+  /* Customizable variables */
   --avatar-bg-connecting: #1a1a1a;
   --avatar-radius: 16px;
   --avatar-control-bg: rgba(255, 255, 255, 0.1);
@@ -27,10 +28,8 @@
   --avatar-text-secondary: rgba(255, 255, 255, 0.7);
   --avatar-pip-size: 120px;
   --avatar-pip-radius: 12px;
-}
 
-/* AvatarCall Container */
-[data-avatar-call] {
+  /* Container styles */
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -39,6 +38,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  isolation: isolate; /* Creates new stacking context */
 }
 
 /* Blurred avatar image background */
@@ -51,31 +51,31 @@
   background-position: center;
   filter: blur(20px) brightness(0.5);
   transform: scale(1.1);
-  z-index: 0;
+  z-index: -1;
 }
 
 /* AvatarVideo */
-[data-has-video] {
+[data-avatar-video] {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 1;
+  z-index: 0;
 }
 
-[data-has-video] video {
+[data-avatar-video] video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-[data-has-video="true"] {
+[data-avatar-video][data-avatar-status="ready"] {
   background: transparent;
 }
 
 /* ControlBar */
-[data-active] {
+[data-avatar-control-bar] {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -90,14 +90,14 @@
 }
 
 @media (max-width: 480px) {
-  [data-active] {
+  [data-avatar-control-bar] {
     padding: 16px;
     gap: 8px;
   }
 }
 
 /* Control buttons */
-[data-control] {
+[data-avatar-control] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,43 +112,43 @@
 }
 
 @media (max-width: 480px) {
-  [data-control] {
+  [data-avatar-control] {
     width: 40px;
     height: 40px;
   }
-  
-  [data-control] svg {
+
+  [data-avatar-control] svg {
     width: 18px;
     height: 18px;
   }
 }
 
-[data-control]:hover {
+[data-avatar-control]:hover {
   background: var(--avatar-control-bg-hover);
 }
 
-[data-control]:focus-visible {
+[data-avatar-control]:focus-visible {
   outline: 2px solid var(--avatar-text-color);
   outline-offset: 2px;
 }
 
 /* Disabled state (muted) */
-[data-control][data-enabled="false"] {
+[data-avatar-control][data-avatar-enabled="false"] {
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
 }
 
 /* End call button */
-[data-control="end-call"] {
+[data-avatar-control="end-call"] {
   background: var(--avatar-end-call-bg);
 }
 
-[data-control="end-call"]:hover {
+[data-avatar-control="end-call"]:hover {
   background: var(--avatar-end-call-bg-hover);
 }
 
 /* UserVideo (self-view PIP) */
-[data-camera-enabled] {
+[data-avatar-user-video] {
   position: absolute;
   bottom: 88px;
   right: 24px;
@@ -158,11 +158,11 @@
   overflow: hidden;
   background: var(--avatar-bg-connecting);
   border: 2px solid rgba(255, 255, 255, 0.2);
-  z-index: 2;
+  z-index: 1;
 }
 
 @media (max-width: 480px) {
-  [data-camera-enabled] {
+  [data-avatar-user-video] {
     width: 80px;
     bottom: 72px;
     right: 12px;
@@ -170,24 +170,25 @@
   }
 }
 
-[data-camera-enabled] video {
+[data-avatar-user-video] video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-[data-mirror="true"] video {
+[data-avatar-user-video][data-avatar-mirror="true"] video {
   transform: scaleX(-1);
 }
 
 /* ScreenShareVideo */
-[data-sharing] {
+[data-avatar-screen-share] {
   position: absolute;
   inset: 0;
   background: #000;
+  z-index: 1;
 }
 
-[data-sharing] video {
+[data-avatar-screen-share] video {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -195,7 +196,8 @@
 
 /* Loading skeleton animation */
 @keyframes avatar-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -203,36 +205,25 @@
   }
 }
 
-[data-avatar-call][data-state="connecting"]::after {
-  content: "Connecting…";
+/* Loading state - shown when avatar video is connecting/waiting */
+[data-avatar-video][data-avatar-status="connecting"]::after,
+[data-avatar-video][data-avatar-status="waiting"]::after {
+  content: "";
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--avatar-text-color);
-  font-size: 16px;
-  font-weight: 500;
-  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  background-size: 200% 100%;
   animation: avatar-pulse 2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-avatar-call][data-state="connecting"]::after {
+  [data-avatar-video][data-avatar-status="connecting"]::after,
+  [data-avatar-video][data-avatar-status="waiting"]::after {
     animation: none;
   }
-}
-
-/* Error state */
-[data-avatar-call][data-state="error"]::after {
-  content: "Connection failed";
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fca5a5;
-  font-size: 16px;
-  font-weight: 500;
-  z-index: 1;
 }

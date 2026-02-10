@@ -9,8 +9,10 @@ import { useLocalMedia } from '../hooks/useLocalMedia';
 export interface ControlBarState {
   isMicEnabled: boolean;
   isCameraEnabled: boolean;
+  isScreenShareEnabled: boolean;
   toggleMic: () => void;
   toggleCamera: () => void;
+  toggleScreenShare: () => void;
   endCall: () => Promise<void>;
   isActive: boolean;
 }
@@ -33,16 +35,24 @@ export function ControlBar({
   ...props
 }: ControlBarProps) {
   const session = useAvatarSession();
-  const { isMicEnabled, isCameraEnabled, toggleMic, toggleCamera } =
-    useLocalMedia();
+  const {
+    isMicEnabled,
+    isCameraEnabled,
+    isScreenShareEnabled,
+    toggleMic,
+    toggleCamera,
+    toggleScreenShare,
+  } = useLocalMedia();
 
   const isActive = session.state === 'active';
 
   const state: ControlBarState = {
     isMicEnabled,
     isCameraEnabled,
+    isScreenShareEnabled,
     toggleMic,
     toggleCamera,
+    toggleScreenShare,
     endCall: session.end,
     isActive,
   };
@@ -56,13 +66,13 @@ export function ControlBar({
   }
 
   return (
-    <div {...props} data-active={isActive}>
+    <div {...props} data-avatar-control-bar="" data-avatar-active={isActive}>
       {showMicrophone && (
         <button
           type="button"
           onClick={toggleMic}
-          data-control="microphone"
-          data-enabled={isMicEnabled}
+          data-avatar-control="microphone"
+          data-avatar-enabled={isMicEnabled}
           aria-label={isMicEnabled ? 'Mute microphone' : 'Unmute microphone'}
         >
           {microphoneIcon}
@@ -72,8 +82,8 @@ export function ControlBar({
         <button
           type="button"
           onClick={toggleCamera}
-          data-control="camera"
-          data-enabled={isCameraEnabled}
+          data-avatar-control="camera"
+          data-avatar-enabled={isCameraEnabled}
           aria-label={isCameraEnabled ? 'Turn off camera' : 'Turn on camera'}
         >
           {cameraIcon}
@@ -83,7 +93,8 @@ export function ControlBar({
         <TrackToggle
           source={Track.Source.ScreenShare}
           showIcon={false}
-          data-control="screen-share"
+          data-avatar-control="screen-share"
+          data-avatar-enabled={isScreenShareEnabled}
           aria-label="Toggle screen share"
         >
           {screenShareIcon}
@@ -93,7 +104,8 @@ export function ControlBar({
         <button
           type="button"
           onClick={session.end}
-          data-control="end-call"
+          data-avatar-control="end-call"
+          data-avatar-enabled={true}
           aria-label="End call"
         >
           {phoneIcon}

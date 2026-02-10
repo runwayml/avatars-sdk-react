@@ -1,41 +1,47 @@
 'use client';
 
-import type { ReactNode, ComponentPropsWithoutRef } from 'react';
 import {
+  isTrackReference,
+  type TrackReferenceOrPlaceholder,
   useLocalParticipant,
   useTracks,
   VideoTrack,
-  isTrackReference,
-  type TrackReferenceOrPlaceholder,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 export interface ScreenShareVideoState {
   isSharing: boolean;
   trackRef: TrackReferenceOrPlaceholder | null;
 }
 
-export interface ScreenShareVideoProps extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
+export interface ScreenShareVideoProps
+  extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
   children?: (state: ScreenShareVideoState) => ReactNode;
 }
 
-export function ScreenShareVideo({ children, ...props }: ScreenShareVideoProps) {
+export function ScreenShareVideo({
+  children,
+  ...props
+}: ScreenShareVideoProps) {
   const { localParticipant } = useLocalParticipant();
 
   const tracks = useTracks(
     [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
-    { onlySubscribed: false }
+    { onlySubscribed: false },
   );
 
   const localIdentity = localParticipant?.identity;
 
-  const screenShareTrackRef = tracks.find(
-    (trackRef) =>
-      trackRef.participant.identity === localIdentity &&
-      trackRef.source === Track.Source.ScreenShare
-  ) ?? null;
+  const screenShareTrackRef =
+    tracks.find(
+      (trackRef) =>
+        trackRef.participant.identity === localIdentity &&
+        trackRef.source === Track.Source.ScreenShare,
+    ) ?? null;
 
-  const isSharing = screenShareTrackRef !== null && isTrackReference(screenShareTrackRef);
+  const isSharing =
+    screenShareTrackRef !== null && isTrackReference(screenShareTrackRef);
 
   const state: ScreenShareVideoState = {
     isSharing,
@@ -51,7 +57,7 @@ export function ScreenShareVideo({ children, ...props }: ScreenShareVideoProps) 
   }
 
   return (
-    <div {...props} data-sharing={isSharing}>
+    <div {...props} data-avatar-screen-share="" data-avatar-sharing={isSharing}>
       {screenShareTrackRef && isTrackReference(screenShareTrackRef) && (
         <VideoTrack trackRef={screenShareTrackRef} />
       )}

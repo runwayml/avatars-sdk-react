@@ -30,7 +30,11 @@ export function AvatarVideo({ children, ...props }: AvatarVideoProps) {
   }
 
   return (
-    <div {...props} data-avatar-video="" data-status={videoStatus.status}>
+    <div
+      {...props}
+      data-avatar-video=""
+      data-avatar-status={videoStatus.status}
+    >
       {videoStatus.status === 'ready' &&
         isTrackReference(videoStatus.videoTrackRef) && (
           <VideoTrack trackRef={videoStatus.videoTrackRef} />
