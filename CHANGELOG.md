@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed z-index issue where blurred background could overlay the video when embedded in external websites
 - Added missing `data-avatar-enabled` attribute to screen-share and end-call control buttons
+- Added missing `toggleScreenShare` function to ControlBar render prop state
+- Blurred background now fades out smoothly when video becomes ready
+- Fixed "Requested device not found" error when connecting or toggling mic/camera on devices without those peripherals
 
 ## [0.4.0] - 2026-02-09
 

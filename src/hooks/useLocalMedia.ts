@@ -27,13 +27,22 @@ export function useLocalMedia(): UseLocalMediaReturn {
   const isCameraEnabledRef = useLatest(isCameraEnabled);
   const isScreenShareEnabledRef = useLatest(isScreenShareEnabled);
 
+  const hasMicRef = useLatest(hasMic);
+  const hasCameraRef = useLatest(hasCamera);
+
   const toggleMic = useCallback(() => {
-    localParticipant?.setMicrophoneEnabled(!isMicEnabledRef.current);
-  }, [localParticipant, isMicEnabledRef]);
+    // Only toggle if we have a mic, or if we're disabling (always allow disable)
+    if (hasMicRef.current || isMicEnabledRef.current) {
+      localParticipant?.setMicrophoneEnabled(!isMicEnabledRef.current);
+    }
+  }, [localParticipant, isMicEnabledRef, hasMicRef]);
 
   const toggleCamera = useCallback(() => {
-    localParticipant?.setCameraEnabled(!isCameraEnabledRef.current);
-  }, [localParticipant, isCameraEnabledRef]);
+    // Only toggle if we have a camera, or if we're disabling (always allow disable)
+    if (hasCameraRef.current || isCameraEnabledRef.current) {
+      localParticipant?.setCameraEnabled(!isCameraEnabledRef.current);
+    }
+  }, [localParticipant, isCameraEnabledRef, hasCameraRef]);
 
   const toggleScreenShare = useCallback(() => {
     localParticipant?.setScreenShareEnabled(!isScreenShareEnabledRef.current);

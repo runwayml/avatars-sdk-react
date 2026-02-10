@@ -41,7 +41,7 @@
   isolation: isolate; /* Creates new stacking context */
 }
 
-/* Blurred avatar image background */
+/* Blurred avatar image background (placeholder during connection) */
 [data-avatar-call]::before {
   content: "";
   position: absolute;
@@ -52,6 +52,13 @@
   filter: blur(20px) brightness(0.5);
   transform: scale(1.1);
   z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+/* Hide blurred background when video is ready */
+[data-avatar-call]:has([data-avatar-video][data-avatar-status="ready"])::before {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* AvatarVideo */

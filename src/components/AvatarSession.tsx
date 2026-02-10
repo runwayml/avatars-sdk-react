@@ -28,13 +28,70 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useRef,
+  useState,
 } from 'react';
 import type {
   AvatarSessionContextValue,
   AvatarSessionProps,
   SessionState,
 } from '../types';
+
+/**
+ * Check if a media device of the given kind is available
+ */
+async function hasMediaDevice(
+  kind: 'audioinput' | 'videoinput',
+): Promise<boolean> {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.some((device) => device.kind === kind);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Hook to check device availability before connecting
+ */
+function useDeviceAvailability(
+  requestAudio: boolean,
+  requestVideo: boolean,
+): { audio: boolean; video: boolean; isChecking: boolean } {
+  const [state, setState] = useState({
+    audio: false,
+    video: false,
+    isChecking: true,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkDevices() {
+      const [hasAudio, hasVideo] = await Promise.all([
+        requestAudio ? hasMediaDevice('audioinput') : Promise.resolve(false),
+        requestVideo ? hasMediaDevice('videoinput') : Promise.resolve(false),
+      ]);
+
+      if (!cancelled) {
+        setState({
+          audio: requestAudio && hasAudio,
+          video: requestVideo && hasVideo,
+          isChecking: false,
+        });
+      }
+    }
+
+    checkDevices();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [requestAudio, requestVideo]);
+
+  return state;
+}
 
 const DEFAULT_ROOM_OPTIONS: RoomOptions = {
   adaptiveStream: false,
@@ -72,13 +129,16 @@ const AvatarSessionContext = createContext<AvatarSessionContextValue | null>(
 export function AvatarSession({
   credentials,
   children,
-  audio = true,
-  video = true,
+  audio: requestAudio = true,
+  video: requestVideo = true,
   onEnd,
   onError,
   __unstable_roomOptions,
 }: AvatarSessionProps) {
   const errorRef = useRef<Error | null>(null);
+
+  // Check device availability to avoid "Requested device not found" errors
+  const deviceAvailability = useDeviceAvailability(requestAudio, requestVideo);
 
   const handleError = (error: Error) => {
     errorRef.current = error;
@@ -90,13 +150,18 @@ export function AvatarSession({
     ...__unstable_roomOptions,
   };
 
+  // Don't connect until we've checked device availability
+  if (deviceAvailability.isChecking) {
+    return null;
+  }
+
   return (
     <LiveKitRoom
       serverUrl={credentials.serverUrl}
       token={credentials.token}
       connect={true}
-      audio={audio}
-      video={video}
+      audio={deviceAvailability.audio}
+      video={deviceAvailability.video}
       onDisconnected={() => onEnd?.()}
       onError={handleError}
       options={roomOptions}
