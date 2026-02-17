@@ -55,7 +55,8 @@
     "check": "biome check src/",
     "typecheck": "tsc --noEmit",
     "example:link": "bun run build && bun link && cd examples/react-router && bun link @runwayml/avatars-react",
-    "example:dev": "bun run example:link && cd examples/react-router && bun run dev"
+    "example:dev": "bun run example:link && cd examples/react-router && bun run dev",
+    "playground:dev": "cd playground && bun install && bun run dev"
   },
   "keywords": [
     "runwayml",
