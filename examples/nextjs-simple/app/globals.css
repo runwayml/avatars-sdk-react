@@ -100,7 +100,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  width: 240px;
+  width: 360px;
   aspect-ratio: 3 / 4;
   background: var(--background);
   border: 1px solid var(--border);
