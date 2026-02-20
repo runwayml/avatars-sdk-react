@@ -5,7 +5,7 @@ This example shows how to use `@runwayml/avatars-react` with [Next.js](https://n
 ## How to use
 
 ```bash
-npx degit runwayml/avatars-sdk-react/examples/nextjs my-avatar-app
+npx degit runwayml/avatars-sdk-react/examples/nextjs-simple my-avatar-app
 cd my-avatar-app
 npm install
 ```
