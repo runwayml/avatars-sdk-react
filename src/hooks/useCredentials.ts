@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import { consumeSession } from '../api/consume';
 import type { SessionCredentials } from '../types';
-import { useLatest } from './useLatest';
+import { useQuery } from './useQuery';
 
 export interface UseCredentialsOptions {
   avatarId: string;
@@ -74,67 +74,39 @@ export function useCredentials(
     onError,
   } = options;
 
-  const onErrorRef = useLatest(onError);
-  const connectRef = useLatest(connect);
+  const queryKey = `credentials:${avatarId}:${sessionId}:${sessionKey}:${connectUrl}:${baseUrl}`;
 
-  const fetchedKeyRef = useRef<string | null>(null);
+  const queryFn = useCallback(
+    () =>
+      fetchCredentials({
+        avatarId,
+        sessionId,
+        sessionKey,
+        connectUrl,
+        connect,
+        baseUrl,
+      }),
+    [avatarId, sessionId, sessionKey, connectUrl, connect, baseUrl],
+  );
 
-  const [state, setState] = useState<CredentialsState>(() => {
-    if (directCredentials) {
-      return { status: 'ready', credentials: directCredentials, error: null };
-    }
-    return { status: 'loading', credentials: null, error: null };
+  const query = useQuery({
+    queryKey,
+    queryFn,
+    enabled: !directCredentials,
+    onError,
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refs are stable - we read .current at call time
-  useEffect(() => {
-    if (directCredentials) {
-      setState({
-        status: 'ready',
-        credentials: directCredentials,
-        error: null,
-      });
-      return;
-    }
+  if (directCredentials) {
+    return { status: 'ready', credentials: directCredentials, error: null };
+  }
 
-    const credentialKey = `${avatarId}:${sessionId}:${sessionKey}:${connectUrl}:${baseUrl}`;
+  if (query.status === 'success') {
+    return { status: 'ready', credentials: query.data, error: null };
+  }
 
-    if (fetchedKeyRef.current === credentialKey) return;
-    fetchedKeyRef.current = credentialKey;
+  if (query.status === 'error') {
+    return { status: 'error', credentials: null, error: query.error };
+  }
 
-    let cancelled = false;
-    setState({ status: 'loading', credentials: null, error: null });
-
-    async function load() {
-      try {
-        const fetchOptions: UseCredentialsOptions = {
-          avatarId,
-          sessionId,
-          sessionKey,
-          connectUrl,
-          connect: connectRef.current ?? undefined,
-          baseUrl,
-        };
-        const credentials = await fetchCredentials(fetchOptions);
-        if (!cancelled) {
-          setState({ status: 'ready', credentials, error: null });
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const error = err instanceof Error ? err : new Error(String(err));
-          setState({ status: 'error', credentials: null, error });
-          onErrorRef.current?.(error);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      cancelled = true;
-      fetchedKeyRef.current = null;
-    };
-  }, [directCredentials, avatarId, sessionId, sessionKey, connectUrl, baseUrl]);
-
-  return state;
+  return { status: 'loading', credentials: null, error: null };
 }
