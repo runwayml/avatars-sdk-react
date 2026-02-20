@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-02-20
+
+### Fixed
+
+- Fixed React Strict Mode breaking credential fetching — credentials are now cached at module level (similar to React Query) so they survive component unmount/remount cycles
+
+### Changed
+
+- Refactored `useCredentials` to use a new internal `useQuery` hook with `useSyncExternalStore` for proper React 18 concurrent rendering support
+
 ## [0.7.1] - 2026-02-20
 
 ### Fixed
