@@ -132,6 +132,7 @@ export function useCredentials(
 
     return () => {
       cancelled = true;
+      fetchedKeyRef.current = null;
     };
   }, [directCredentials, avatarId, sessionId, sessionKey, connectUrl, baseUrl]);
 

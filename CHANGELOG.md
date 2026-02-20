@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed React Strict Mode breaking credential fetching — the `useCredentials` hook now properly resets its deduplication ref on cleanup, allowing the second render to fetch credentials
+
 ## [0.7.0] - 2026-02-10
 
 ### Changed
