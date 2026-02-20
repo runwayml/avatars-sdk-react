@@ -160,7 +160,7 @@ export default function Home() {
 
       <footer className="footer">
         <a
-          href="https://docs.runwayml.com/avatars"
+          href="https://docs.dev.runwayml.com"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -168,7 +168,7 @@ export default function Home() {
           Documentation
         </a>
         <a
-          href="https://github.com/runwayml/avatar-react"
+          href="https://github.com/runwayml/avatars-sdk-react"
           target="_blank"
           rel="noopener noreferrer"
         >
