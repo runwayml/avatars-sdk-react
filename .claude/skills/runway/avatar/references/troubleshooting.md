@@ -1,1 +1,0 @@
-../../../../../docs/reference/troubleshooting.md

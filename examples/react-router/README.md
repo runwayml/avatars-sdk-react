@@ -1,55 +1,32 @@
-# React Router Avatar Example
+# React Router v7 Example
 
-This example shows how to use `@runwayml/avatars-react` with [React Router](https://reactrouter.com/) v7 framework mode.
+Uses React Router v7 framework mode with file-based routing.
 
-## How to use
+## Quick Start
 
 ```bash
 npx degit runwayml/avatars-sdk-react/examples/react-router my-avatar-app
 cd my-avatar-app
 npm install
-```
-
-## Configuration
-
-Copy the example environment file and add your API secret:
-
-```bash
 cp .env.example .env
-```
-
-Then edit `.env` with your credentials.
-
-## Running locally
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) and navigate to the avatar page.
+Add your Runway API secret to `.env` from [dev.runwayml.com](https://dev.runwayml.com/).
 
-## Custom Avatars
+Open [http://localhost:5173](http://localhost:5173).
 
-In addition to the preset avatars, you can use your own custom avatars created in the [Runway Developer Portal](https://dev.runwayml.com/).
-
-1. Create a custom avatar in the Developer Portal
-2. Copy the avatar ID
-3. Enter it in the "Custom Avatar" input on the example page
-4. Click "Start Call"
-
-## Project structure
+## Project Structure
 
 ```
 app/
-├── root.tsx                  # Root layout
 ├── routes.ts                 # Route configuration
 └── routes/
-    ├── home.tsx              # Home page
     ├── avatar.tsx            # Avatar call page
     └── api.avatar.connect.ts # API action for session creation
 ```
 
 ## Learn More
 
-- [Runway Avatar SDK Documentation](https://github.com/runwayml/avatars-sdk-react)
-- [React Router Documentation](https://reactrouter.com/)
+- [Runway Avatar SDK](https://github.com/runwayml/avatars-sdk-react)
+- [React Router](https://reactrouter.com/)

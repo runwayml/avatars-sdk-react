@@ -1,1 +1,0 @@
-../../../../../docs/guides/server-setup.md

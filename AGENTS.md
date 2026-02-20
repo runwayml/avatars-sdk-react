@@ -2,23 +2,13 @@
 
 Context for AI agents working with `@runwayml/avatars-react` - a React SDK for real-time AI avatar interactions via WebRTC.
 
-## Documentation Index
+## Quick Reference
 
-Prefer docs-led reasoning. Read relevant files before implementation.
-
-| Topic | File |
-|-------|------|
-| Quick start | `docs/getting-started.md` |
-| Components (AvatarCall, AvatarVideo, etc.) | `docs/api/components.md` |
-| Hooks (useAvatarSession, useAvatar, useLocalMedia) | `docs/api/hooks.md` |
-| TypeScript types | `docs/api/types.md` |
-| Server-side SDK (@runwayml/sdk) | `docs/guides/server-setup.md` |
-| Loading states & UX | `docs/guides/loading-states.md` |
-| CSS styling & data attributes | `docs/guides/styling.md` |
-| Render prop patterns | `docs/guides/render-props.md` |
-| Next.js integration | `docs/guides/nextjs.md` |
-| Available avatar presets | `docs/reference/preset-avatars.md` |
-| Troubleshooting | `docs/reference/troubleshooting.md` |
+| Resource | Location |
+|----------|----------|
+| Package README | `README.md` |
+| Next.js example | `examples/nextjs/` |
+| Types | `src/types.ts` |
 
 ## Architecture
 
@@ -31,9 +21,8 @@ src/
 └── index.ts       # Public exports
 ```
 
-## Key Patterns
+## Component Hierarchy
 
-**Component hierarchy:**
 ```
 AvatarCall (handles session creation)
 └── AvatarSession (WebRTC provider)
@@ -43,16 +32,44 @@ AvatarCall (handles session creation)
     └── ScreenShareVideo
 ```
 
+## Key Patterns
+
 **Session states:** `idle` → `connecting` → `active` → `ending` → `ended` (or `error`)
 
 **Render props:** All display components accept `children` as render function:
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isConnecting, trackRef }) => <CustomUI />}
+  {(avatar) => {
+    switch (avatar.status) {
+      case 'connecting': return <Spinner />;
+      case 'waiting': return <Placeholder />;
+      case 'ready': return <VideoTrack trackRef={avatar.videoTrackRef} />;
+    }
+  }}
 </AvatarVideo>
 ```
 
 **Hooks require context:** Must be inside `<AvatarCall>` or `<AvatarSession>`
+
+## Components
+
+| Component | Purpose |
+|-----------|---------|
+| `AvatarCall` | High-level component, handles session creation |
+| `AvatarSession` | Low-level, requires pre-fetched credentials |
+| `AvatarVideo` | Renders remote avatar video |
+| `UserVideo` | Renders local camera |
+| `ControlBar` | Mic/camera/end-call buttons |
+| `ScreenShareVideo` | Renders screen share |
+
+## Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `useAvatarStatus` | Discriminated union of full avatar lifecycle (recommended) |
+| `useAvatarSession` | Session state and `end()` control |
+| `useAvatar` | Remote avatar video track |
+| `useLocalMedia` | Local mic/camera toggles |
 
 ## Commands
 

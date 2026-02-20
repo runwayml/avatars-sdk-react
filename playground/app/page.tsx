@@ -153,7 +153,17 @@ export default function Home() {
         </p>
       </header>
 
-      <div className="api-key-section">
+      <form
+        className="api-key-section"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (hasApiKey) {
+            handleClearApiKey();
+          } else {
+            handleSaveApiKey();
+          }
+        }}
+      >
         <div className="api-key-header">
           <span className="api-key-title">
             <KeyIcon aria-hidden="true" />
@@ -170,15 +180,15 @@ export default function Home() {
             onChange={(e) => setApiKeyInput(e.target.value)}
             placeholder="rw_xxxxxxxxxxxx"
             className="api-key-input"
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveApiKey(); }}
+            autoComplete="off"
           />
           {hasApiKey ? (
-            <button onClick={handleClearApiKey} className="api-key-button clear">
+            <button type="submit" className="api-key-button clear">
               Clear
             </button>
           ) : (
             <button
-              onClick={handleSaveApiKey}
+              type="submit"
               disabled={!apiKeyInput.trim()}
               className="api-key-button"
             >
@@ -192,7 +202,7 @@ export default function Home() {
             Runway Dashboard
           </a>
         </p>
-      </div>
+      </form>
 
       <div className="presets">
         {PRESETS.map((preset) => (
