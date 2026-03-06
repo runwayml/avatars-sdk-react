@@ -37,7 +37,7 @@ import '@runwayml/avatars-react/styles.css';
 export default function AvatarPage() {
   return (
     <AvatarCall
-      avatarId="game-host"
+      avatarId="music-superstar"
       connectUrl="/api/avatar/connect"
     />
   );

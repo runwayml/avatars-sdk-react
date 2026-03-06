@@ -15,10 +15,10 @@
  * @example
  * ```tsx
  * // Simple usage - handles everything automatically
- * <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect" />
+ * <AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect" />
  *
  * // Custom children - rendered once connected
- * <AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+ * <AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect">
  *   <AvatarVideo />
  *   <ControlBar />
  * </AvatarCall>

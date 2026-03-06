@@ -28,7 +28,7 @@ export async function createAvatarSession(avatarId: string) {
 }
 
 // Client component
-<AvatarCall avatarId="game-host" connect={createAvatarSession} />
+<AvatarCall avatarId="music-superstar" connect={createAvatarSession} />
 ```
 
 ## Learn More

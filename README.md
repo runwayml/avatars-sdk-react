@@ -24,7 +24,7 @@ import { AvatarCall } from '@runwayml/avatars-react';
 function App() {
   return (
     <AvatarCall
-      avatarId="game-host"
+      avatarId="music-superstar"
       connectUrl="/api/avatar/connect"
     />
   );
@@ -33,7 +33,7 @@ function App() {
 
 That's it! The component handles session creation, WebRTC connection, and renders a default UI with the avatar video and controls.
 
-You can use preset avatars like `game-host`, `coding-teacher`, `language-tutor`, and more. See the [Runway Developer Portal](https://dev.runwayml.com/) for the full list and creating custom avatars.
+You can use preset avatars like `music-superstar`, `cat-character`, `fashion-designer`, `cooking-teacher`, and more. See the [Runway Developer Portal](https://dev.runwayml.com/) for the full list and creating custom avatars.
 
 ### Optional: Add Default Styles
 
@@ -112,7 +112,7 @@ For more control over the connection flow:
 
 ```tsx
 <AvatarCall
-  avatarId="game-host"
+  avatarId="music-superstar"
   connect={async (avatarId) => {
     const res = await fetch('/api/avatar/connect', {
       method: 'POST',
@@ -134,7 +134,7 @@ Use the built-in components for custom layouts:
 ```tsx
 import { AvatarCall, AvatarVideo, ControlBar, UserVideo } from '@runwayml/avatars-react';
 
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect">
+<AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect">
   <div className="call-layout">
     <AvatarVideo className="avatar" />
     <UserVideo className="self-view" />
@@ -163,7 +163,7 @@ All components support render props for complete control:
 Style connection states with CSS:
 
 ```tsx
-<AvatarCall avatarId="game-host" connectUrl="/api/avatar/connect" className="my-avatar" />
+<AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect" className="my-avatar" />
 ```
 
 ```css
@@ -184,7 +184,7 @@ Style connection states with CSS:
 
 ```tsx
 <AvatarCall
-  avatarId="game-host"
+  avatarId="music-superstar"
   connectUrl="/api/avatar/connect"
   onEnd={() => console.log('Call ended')}
   onError={(error) => console.error('Error:', error)}
