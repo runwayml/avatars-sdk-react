@@ -46,7 +46,7 @@ export class RunwayRealtime {
     sessionId: string,
     options: { timeoutMs?: number; pollIntervalMs?: number } = {},
   ): Promise<{ sessionKey: string }> {
-    const { timeoutMs = 30000, pollIntervalMs = 1000 } = options;
+    const { timeoutMs = 60 * 60 * 1000, pollIntervalMs = 1000 } = options;
     const startTime = Date.now();
 
     while (true) {
