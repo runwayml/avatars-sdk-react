@@ -178,7 +178,7 @@ export default function Home() {
             type="password"
             value={apiKeyInput}
             onChange={(e) => setApiKeyInput(e.target.value)}
-            placeholder="rw_xxxxxxxxxxxx"
+            placeholder="key_xxxxxxxxxxxx"
             className="api-key-input"
             autoComplete="off"
           />
