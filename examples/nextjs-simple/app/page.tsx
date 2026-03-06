@@ -9,8 +9,6 @@ import '@runwayml/avatars-react/styles.css';
 const MY_AVATAR = {
   id: 'music-superstar',
   name: 'Mina',
-  cardImageUrl:
-    'https://runway-static-assets.s3.us-east-1.amazonaws.com/calliope-demo/presets-3-3/InApp_Thumb_Avatar_2.png',
   imageUrl:
     'https://runway-static-assets.s3.us-east-1.amazonaws.com/calliope-demo/presets-3-3/InApp_Avatar_2.png',
 };
@@ -66,7 +64,7 @@ export default function Home() {
         <button className="preset" onClick={startCall}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={MY_AVATAR.cardImageUrl}
+            src={MY_AVATAR.imageUrl}
             alt={MY_AVATAR.name}
             width={240}
             height={320}
