@@ -1,9 +1,7 @@
 import Runway from '@runwayml/sdk';
-import { RunwayRealtime } from '../runway-realtime';
 import { AvatarPicker } from './avatar-picker';
 
 const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
-const realtime = new RunwayRealtime(client);
 
 async function createAvatarSession(
   avatarId: string,
@@ -12,17 +10,33 @@ async function createAvatarSession(
   'use server';
 
   const avatar = options?.isCustom
-    ? { type: 'custom' as const, customId: avatarId }
+    ? { type: 'custom' as const, avatarId }
     : { type: 'runway-preset' as const, presetId: avatarId };
 
-  const { id: sessionId } = await realtime.create({
+  const { id: sessionId } = await client.realtimeSessions.create({
     model: 'gwm1_avatars',
-    avatar,
+    avatar: avatar as Runway.RealtimeSessionCreateParams['avatar'],
   });
 
-  const { sessionKey } = await realtime.waitForReady(sessionId);
+  const TIMEOUT_MS = 30_000;
+  const POLL_INTERVAL_MS = 1_000;
+  const deadline = Date.now() + TIMEOUT_MS;
 
-  return { sessionId, sessionKey };
+  while (Date.now() < deadline) {
+    const session = await client.realtimeSessions.retrieve(sessionId);
+
+    if (session.status === 'READY') {
+      return { sessionId, sessionKey: session.sessionKey };
+    }
+
+    if (session.status === 'COMPLETED' || session.status === 'FAILED' || session.status === 'CANCELLED') {
+      throw new Error(`Session ${session.status.toLowerCase()} before becoming ready`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+  }
+
+  throw new Error('Session creation timed out');
 }
 
 export default function Page() {

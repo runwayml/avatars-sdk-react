@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@runwayml/avatars-react": "latest",
-    "@runwayml/sdk": "^1.0.0",
+    "@runwayml/sdk": "^3.15.0",
     "express": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

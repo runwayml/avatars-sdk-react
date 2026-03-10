@@ -79,28 +79,33 @@ This flow keeps your API secret secure on the server while enabling low-latency 
 
 ## Server Setup
 
-Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create the session:
+Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create and poll the session:
 
 ```ts
 // /api/avatar/connect (Next.js App Router example)
 import Runway from '@runwayml/sdk';
 
-const runway = new Runway(); // Uses RUNWAYML_API_SECRET env var
+const client = new Runway(); // Uses RUNWAYML_API_SECRET env var
 
 export async function POST(req: Request) {
   const { avatarId } = await req.json();
 
-  const session = await runway.realtime.sessions.create({
+  const { id: sessionId } = await client.realtimeSessions.create({
     model: 'gwm1_avatars',
-    options: { avatar: avatarId },
+    avatar: { type: 'runway-preset', presetId: avatarId },
   });
 
-  return Response.json({
-    sessionId: session.id,
-    serverUrl: session.url,
-    token: session.token,
-    roomName: session.room_name,
-  });
+  // Poll until the session is ready
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    const session = await client.realtimeSessions.retrieve(sessionId);
+    if (session.status === 'READY') {
+      return Response.json({ sessionId, sessionKey: session.sessionKey });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+
+  return Response.json({ error: 'Session creation timed out' }, { status: 504 });
 }
 ```
 
