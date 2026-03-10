@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, Suspense } from 'react';
+import Image from 'next/image';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
@@ -213,11 +214,11 @@ export default function Home() {
             disabled={!hasApiKey}
             title={hasApiKey ? `Start call with ${preset.name}` : 'Enter your API key first'}
           >
-            <img
+            <Image
               src={preset.imageUrl}
               alt={preset.name}
-              width={240}
-              height={320}
+              fill
+              sizes="(max-width: 480px) 50vw, (max-width: 800px) 200px, 240px"
               className="preset-avatar"
             />
             <div className="preset-info">
