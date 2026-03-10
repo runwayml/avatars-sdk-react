@@ -71,8 +71,8 @@ npm install
 ## How It Works
 
 1. **Client** calls your server endpoint with the `avatarId`
-2. **Server** uses your Runway API secret to create a session via `@runwayml/sdk`
-3. **Server** returns connection credentials (token, URL) to the client
+2. **Server** uses your Runway API secret to create a realtime session via `@runwayml/sdk`
+3. **Server** polls until the session is ready, then returns `sessionId` and `sessionKey` to the client
 4. **Client** establishes a WebRTC connection for real-time video/audio
 
 This flow keeps your API secret secure on the server while enabling low-latency communication.
