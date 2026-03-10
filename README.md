@@ -71,36 +71,41 @@ npm install
 ## How It Works
 
 1. **Client** calls your server endpoint with the `avatarId`
-2. **Server** uses your Runway API secret to create a session via `@runwayml/sdk`
-3. **Server** returns connection credentials (token, URL) to the client
+2. **Server** uses your Runway API secret to create a realtime session via `@runwayml/sdk`
+3. **Server** polls until the session is ready, then returns `sessionId` and `sessionKey` to the client
 4. **Client** establishes a WebRTC connection for real-time video/audio
 
 This flow keeps your API secret secure on the server while enabling low-latency communication.
 
 ## Server Setup
 
-Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create the session:
+Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create and poll the session:
 
 ```ts
 // /api/avatar/connect (Next.js App Router example)
 import Runway from '@runwayml/sdk';
 
-const runway = new Runway(); // Uses RUNWAYML_API_SECRET env var
+const client = new Runway(); // Uses RUNWAYML_API_SECRET env var
 
 export async function POST(req: Request) {
   const { avatarId } = await req.json();
 
-  const session = await runway.realtime.sessions.create({
+  const { id: sessionId } = await client.realtimeSessions.create({
     model: 'gwm1_avatars',
-    options: { avatar: avatarId },
+    avatar: { type: 'runway-preset', presetId: avatarId },
   });
 
-  return Response.json({
-    sessionId: session.id,
-    serverUrl: session.url,
-    token: session.token,
-    roomName: session.room_name,
-  });
+  // Poll until the session is ready
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    const session = await client.realtimeSessions.retrieve(sessionId);
+    if (session.status === 'READY') {
+      return Response.json({ sessionId, sessionKey: session.sessionKey });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+
+  return Response.json({ error: 'Session creation timed out' }, { status: 504 });
 }
 ```
 

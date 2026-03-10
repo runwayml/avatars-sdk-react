@@ -46,7 +46,7 @@ export default function AvatarPage() {
 
 ### API Route
 
-The API route creates a session with the Runway API and returns credentials:
+The API route creates a realtime session with the Runway SDK and polls until it's ready:
 
 ```ts
 // app/api/avatar/connect/route.ts
@@ -57,25 +57,22 @@ const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 export async function POST(req: Request) {
   const { avatarId } = await req.json();
 
-  // Create session
-  const { id } = await client.post('/v1/realtime_sessions', {
-    body: {
-      model: 'gwm1_avatars',
-      avatar: { type: 'runway-preset', presetId: avatarId },
-    },
+  const { id: sessionId } = await client.realtimeSessions.create({
+    model: 'gwm1_avatars',
+    avatar: { type: 'runway-preset', presetId: avatarId },
   });
 
-  // Poll until ready
-  let status = 'NOT_READY';
-  let sessionKey = '';
-  while (status === 'NOT_READY') {
-    await new Promise((r) => setTimeout(r, 1000));
-    const session = await client.get(`/v1/realtime_sessions/${id}`);
-    status = session.status;
-    if (status === 'READY') sessionKey = session.sessionKey;
+  // Poll until the session is ready
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    const session = await client.realtimeSessions.retrieve(sessionId);
+    if (session.status === 'READY') {
+      return Response.json({ sessionId, sessionKey: session.sessionKey });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
 
-  return Response.json({ sessionId: id, sessionKey });
+  return Response.json({ error: 'Session creation timed out' }, { status: 504 });
 }
 ```
 
