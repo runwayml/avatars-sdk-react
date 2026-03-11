@@ -84,6 +84,11 @@ export interface AvatarSessionProps {
   /** Callback when an error occurs */
   onError?: (error: Error) => void;
   /**
+   * Pre-captured screen share stream (from getDisplayMedia).
+   * When provided, screen sharing activates automatically once the session connects.
+   */
+  initialScreenStream?: MediaStream;
+  /**
    * Advanced LiveKit room options. Not part of the public API.
    * @internal
    */
@@ -115,12 +120,21 @@ export interface AvatarCallProps
   video?: boolean;
   /** Avatar image URL for placeholder/loading states */
   avatarImageUrl?: string;
+  /** Enable audio on connect (default: true) */
+  audio?: boolean;
+  /** Enable video (camera) on connect (default: true) */
+  video?: boolean;
   /** Callback when session ends */
   onEnd?: () => void;
   /** Callback when an error occurs */
   onError?: (error: Error) => void;
   /** Custom children - defaults to AvatarVideo + ControlBar if not provided */
   children?: React.ReactNode;
+  /**
+   * Pre-captured screen share stream (from getDisplayMedia).
+   * When provided, screen sharing activates automatically once the session connects.
+   */
+  initialScreenStream?: MediaStream;
   /**
    * Advanced LiveKit room options. Not part of the public API.
    * @internal

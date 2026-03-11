@@ -22,7 +22,7 @@ import {
   useRoomContext,
 } from '@livekit/components-react';
 import type { RoomOptions } from 'livekit-client';
-import { ConnectionState } from 'livekit-client';
+import { ConnectionState, Track } from 'livekit-client';
 import {
   createContext,
   type ReactNode,
@@ -151,6 +151,7 @@ export function AvatarSession({
   video: requestVideo = true,
   onEnd,
   onError,
+  initialScreenStream,
   __unstable_roomOptions,
 }: AvatarSessionProps) {
   const errorRef = useRef<Error | null>(null);
@@ -187,6 +188,7 @@ export function AvatarSession({
         sessionId={credentials.sessionId}
         onEnd={onEnd}
         errorRef={errorRef}
+        initialScreenStream={initialScreenStream}
       >
         {children}
       </AvatarSessionContextInner>
@@ -202,17 +204,44 @@ function AvatarSessionContextInner({
   sessionId,
   onEnd,
   errorRef,
+  initialScreenStream,
   children,
 }: {
   sessionId: string;
   onEnd?: () => void;
   errorRef: React.RefObject<Error | null>;
+  initialScreenStream?: MediaStream;
   children: ReactNode;
 }) {
   const room = useRoomContext();
   const connectionState = useConnectionState();
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
+
+  const publishedRef = useRef(false);
+
+  useEffect(() => {
+    if (connectionState !== ConnectionState.Connected) return;
+    if (!initialScreenStream || publishedRef.current) return;
+    publishedRef.current = true;
+
+    const videoTrack = initialScreenStream.getVideoTracks()[0];
+    if (videoTrack) {
+      room.localParticipant.publishTrack(videoTrack, {
+        source: Track.Source.ScreenShare,
+      });
+    }
+    const audioTrack = initialScreenStream.getAudioTracks()[0];
+    if (audioTrack) {
+      room.localParticipant.publishTrack(audioTrack, {
+        source: Track.Source.ScreenShareAudio,
+      });
+    }
+
+    return () => {
+      initialScreenStream.getTracks().forEach(t => t.stop());
+    };
+  }, [connectionState, initialScreenStream, room]);
 
   const end = useCallback(async () => {
     try {

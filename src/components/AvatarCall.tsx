@@ -44,9 +44,12 @@ export function AvatarCall({
   audio,
   video,
   avatarImageUrl,
+  audio,
+  video,
   onEnd,
   onError,
   children,
+  initialScreenStream,
   __unstable_roomOptions,
   ...props
 }: AvatarCallProps) {
@@ -112,6 +115,7 @@ export function AvatarCall({
         video={video}
         onEnd={onEnd}
         onError={handleSessionError}
+        initialScreenStream={initialScreenStream}
         __unstable_roomOptions={__unstable_roomOptions}
       >
         {children ?? defaultChildren}
