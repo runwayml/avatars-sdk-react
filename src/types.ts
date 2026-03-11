@@ -109,6 +109,10 @@ export interface AvatarCallProps
   connect?: (avatarId: string) => Promise<SessionCredentials>;
   /** Base URL for the Runway API (defaults to https://api.dev.runwayml.com) */
   baseUrl?: string;
+  /** Enable audio on connect (default: true) */
+  audio?: boolean;
+  /** Enable video on connect (default: true) — camera permission is requested but denying it won't block the call */
+  video?: boolean;
   /** Avatar image URL for placeholder/loading states */
   avatarImageUrl?: string;
   /** Callback when session ends */

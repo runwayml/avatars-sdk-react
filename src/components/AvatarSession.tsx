@@ -100,6 +100,17 @@ function useDeviceAvailability(
   return state;
 }
 
+const MEDIA_DEVICE_ERROR_NAMES = new Set([
+  'NotAllowedError',
+  'NotFoundError',
+  'NotReadableError',
+  'OverconstrainedError',
+]);
+
+function isMediaDeviceError(error: Error): boolean {
+  return MEDIA_DEVICE_ERROR_NAMES.has(error.name);
+}
+
 const DEFAULT_ROOM_OPTIONS: RoomOptions = {
   adaptiveStream: false,
   dynacast: false,
@@ -147,8 +158,10 @@ export function AvatarSession({
   const deviceAvailability = useDeviceAvailability(requestAudio, requestVideo);
 
   const handleError = (error: Error) => {
-    errorRef.current = error;
     onError?.(error);
+    if (!isMediaDeviceError(error)) {
+      errorRef.current = error;
+    }
   };
 
   const roomOptions = {

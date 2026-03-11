@@ -41,6 +41,8 @@ export function AvatarCall({
   connectUrl,
   connect,
   baseUrl,
+  audio,
+  video,
   avatarImageUrl,
   onEnd,
   onError,
@@ -106,6 +108,8 @@ export function AvatarCall({
     >
       <AvatarSession
         credentials={credentialsState.credentials}
+        audio={audio}
+        video={video}
         onEnd={onEnd}
         onError={handleSessionError}
         __unstable_roomOptions={__unstable_roomOptions}

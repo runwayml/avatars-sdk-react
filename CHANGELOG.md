@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `audio` and `video` props on `AvatarCall` to control whether mic/camera are requested on connect
+
+### Fixed
+
+- Denying camera permission no longer surfaces as a session error — the call continues with audio only
+
 ## [0.7.2] - 2026-02-20
 
 ### Fixed
