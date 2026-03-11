@@ -120,10 +120,6 @@ export interface AvatarCallProps
   video?: boolean;
   /** Avatar image URL for placeholder/loading states */
   avatarImageUrl?: string;
-  /** Enable audio on connect (default: true) */
-  audio?: boolean;
-  /** Enable video (camera) on connect (default: true) */
-  video?: boolean;
   /** Callback when session ends */
   onEnd?: () => void;
   /** Callback when an error occurs */

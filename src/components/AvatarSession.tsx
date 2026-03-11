@@ -239,7 +239,7 @@ function AvatarSessionContextInner({
     }
 
     return () => {
-      initialScreenStream.getTracks().forEach(t => t.stop());
+      initialScreenStream.getTracks().forEach(t => { t.stop(); });
     };
   }, [connectionState, initialScreenStream, room]);
 

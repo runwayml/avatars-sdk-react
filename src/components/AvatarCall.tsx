@@ -44,8 +44,6 @@ export function AvatarCall({
   audio,
   video,
   avatarImageUrl,
-  audio,
-  video,
   onEnd,
   onError,
   children,
