@@ -102,3 +102,5 @@ bun test           # Run tests
 - `consumeSession` API converts `sessionId + sessionKey` → WebRTC credentials (`serverUrl`, `token`, `roomName`); this step is handled client-side by the SDK
 - Primary quickstart reference is `examples/nextjs/` (API routes, more universally understood than server actions)
 - Documentation lives on an external docs website — `docs/` and `skills/` folders were intentionally removed from the repo
+- Dev scripts auto-detect portless (`command -v portless`) and use it when available; there are no separate `dev:portless` scripts
+- VS Code launch configs (`.vscode/launch.json`) are the primary way to start example dev servers, with `preLaunchTask` linking the package first
