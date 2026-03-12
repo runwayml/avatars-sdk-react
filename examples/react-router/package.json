@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "react-router dev",
+    "dev": "if command -v portless >/dev/null 2>&1; then portless avatar-react-router react-router dev; else react-router dev; fi",
     "build": "react-router build",
     "start": "react-router-serve ./build/server/index.js"
   },

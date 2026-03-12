@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "if command -v portless >/dev/null 2>&1; then portless avatar-playground next dev; else next dev --port 3001; fi",
     "build": "next build",
     "start": "next start"
   },
