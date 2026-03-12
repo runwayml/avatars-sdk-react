@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"tsx watch --env-file=.env server.ts\"",
+    "dev": "concurrently \"$(if command -v portless >/dev/null 2>&1; then echo 'portless avatar-express vite'; else echo 'vite'; fi)\" \"tsx watch --env-file=.env server.ts\"",
     "build": "vite build",
     "start": "tsx server.ts"
   },

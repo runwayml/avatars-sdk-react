@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "if command -v portless >/dev/null 2>&1; then portless avatar-nextjs-simple next dev; else next dev; fi",
     "build": "next build",
     "start": "next start"
   },

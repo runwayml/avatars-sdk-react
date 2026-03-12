@@ -33,6 +33,17 @@ bun run format     # Format code
 bun test           # Run tests
 ```
 
+## Portless (optional)
+
+All `dev` scripts auto-detect [Portless](https://port1355.dev/) and use it when available. This gives you stable named URLs (e.g. `avatar-playground.localhost:1355`) instead of port numbers — especially useful for WebRTC apps since browsers remember camera/microphone permissions per origin.
+
+```bash
+npm i -g portless
+bun run dev  # automatically uses portless if installed
+```
+
+To disable portless temporarily, set `PORTLESS=0`.
+
 ## Code Style
 
 - We use [Biome](https://biomejs.dev/) for linting and formatting
