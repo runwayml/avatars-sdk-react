@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-03-13
+
+### Added
+
+- `initialScreenStream` prop on `AvatarCall` and `AvatarSession` — pass a pre-captured `getDisplayMedia` stream to start screen sharing automatically once the session connects
+
 ## [0.8.0] - 2026-03-11
 
 ### Added
