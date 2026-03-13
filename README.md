@@ -196,6 +196,93 @@ Style connection states with CSS:
 />
 ```
 
+## Webcam & Screen Sharing
+
+The avatar can see your webcam feed and screen share, enabling visual interactions — show a plant for identification, [hold up a Pokémon card for trivia](https://x.com/technofantasyy/status/2031124673552097412), get [real-time coaching while you play a game](https://x.com/iamneubert/status/2031160102452081046), walk through a presentation, or ask for feedback on a design you're working on.
+
+**Compatibility:** Webcam and screen sharing are supported by all preset avatars and custom avatars that use a preset voice. Custom avatars with a custom voice do not support webcam or screen sharing.
+
+### Webcam
+
+The webcam is enabled by default. The `video` prop controls whether the camera activates on connect, and the `<UserVideo>` component renders the local camera feed:
+
+```tsx
+<AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect">
+  <AvatarVideo />
+  <UserVideo />
+  <ControlBar />
+</AvatarCall>
+```
+
+To disable the webcam, set `video={false}`:
+
+```tsx
+<AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect" video={false} />
+```
+
+### Screen Sharing
+
+Enable the screen share button by passing `showScreenShare` to `ControlBar`, and use `<ScreenShareVideo>` to display the shared content:
+
+```tsx
+<AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect">
+  <AvatarVideo />
+  <ScreenShareVideo />
+  <ControlBar showScreenShare />
+</AvatarCall>
+```
+
+You can also start screen sharing automatically by passing a pre-captured stream via `initialScreenStream`. This is useful when you want to prompt the user for screen share permission before the session connects:
+
+```tsx
+function ScreenShareCall() {
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  async function startWithScreenShare() {
+    const mediaStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    setStream(mediaStream);
+  }
+
+  if (!stream) {
+    return <button onClick={startWithScreenShare}>Share Screen & Start Call</button>;
+  }
+
+  return (
+    <AvatarCall
+      avatarId="music-superstar"
+      connectUrl="/api/avatar/connect"
+      initialScreenStream={stream}
+    >
+      <AvatarVideo />
+      <ScreenShareVideo />
+      <ControlBar showScreenShare />
+    </AvatarCall>
+  );
+}
+```
+
+### Programmatic Control
+
+Use the `useLocalMedia` hook for full programmatic control over camera and screen sharing:
+
+```tsx
+function MediaControls() {
+  const {
+    isCameraEnabled,
+    isScreenShareEnabled,
+    toggleCamera,
+    toggleScreenShare,
+  } = useLocalMedia();
+
+  return (
+    <div>
+      <button onClick={toggleCamera}>{isCameraEnabled ? 'Hide Camera' : 'Show Camera'}</button>
+      <button onClick={toggleScreenShare}>{isScreenShareEnabled ? 'Stop Sharing' : 'Share Screen'}</button>
+    </div>
+  );
+}
+```
+
 ## Hooks
 
 Use hooks for custom components within an `AvatarCall` or `AvatarSession`:
@@ -233,13 +320,14 @@ function CustomAvatar() {
 
 ### useLocalMedia
 
-Control local camera and microphone:
+Control local camera, microphone, and screen sharing:
 
 ```tsx
 function MediaControls() {
   const {
     isMicEnabled,
     isCameraEnabled,
+    isScreenShareEnabled,
     toggleMic,
     toggleCamera,
     toggleScreenShare,
@@ -249,6 +337,7 @@ function MediaControls() {
     <div>
       <button onClick={toggleMic}>{isMicEnabled ? 'Mute' : 'Unmute'}</button>
       <button onClick={toggleCamera}>{isCameraEnabled ? 'Hide' : 'Show'}</button>
+      <button onClick={toggleScreenShare}>{isScreenShareEnabled ? 'Stop Sharing' : 'Share Screen'}</button>
     </div>
   );
 }
@@ -285,7 +374,7 @@ function AdvancedUsage({ credentials }) {
 | `AvatarSession` | Low-level wrapper that requires credentials |
 | `AvatarVideo` | Renders the remote avatar video |
 | `UserVideo` | Renders the local user's camera |
-| `ControlBar` | Media control buttons (mic, camera, end call) |
+| `ControlBar` | Media control buttons (mic, camera, screen share, end call) |
 | `ScreenShareVideo` | Renders screen share content |
 | `AudioRenderer` | Handles avatar audio playback |
 
