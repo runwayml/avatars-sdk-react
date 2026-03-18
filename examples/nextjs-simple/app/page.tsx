@@ -4,14 +4,19 @@ import { useCallback, useEffect, useState, Suspense } from 'react';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
-
 // To use a custom avatar, update the id to your custom avatar ID.
-const MY_AVATAR = {
+// The name and imageUrl are optional — they will be fetched from the API if not provided.
+const MY_AVATAR: AvatarConfig = {
   id: 'music-superstar',
-  name: 'Mina',
-  imageUrl:
-    'https://runway-static-assets.s3.us-east-1.amazonaws.com/calliope-demo/presets-3-3/InApp_Avatar_2.png',
+  // name: 'Mina',
+  // imageUrl: 'https://...',
 };
+
+interface AvatarConfig {
+  id: string;
+  name?: string;
+  imageUrl?: string;
+}
 
 interface SessionInfo {
   sessionId: string;
@@ -19,9 +24,27 @@ interface SessionInfo {
 }
 
 export default function Home() {
+  const [avatar, setAvatar] = useState<AvatarConfig>(MY_AVATAR);
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    if (MY_AVATAR.name && MY_AVATAR.imageUrl) {
+      return;
+    }
+    fetch(`/api/avatar/${MY_AVATAR.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) return;
+        setAvatar((prev) => ({
+          ...prev,
+          name: prev.name ?? data.name,
+          imageUrl: prev.imageUrl ?? data.imageUrl,
+        }));
+      })
+      .catch(console.error);
+  }, []);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -36,7 +59,7 @@ export default function Home() {
       const res = await fetch('/api/avatar/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avatarId: MY_AVATAR.id }),
+        body: JSON.stringify({ avatarId: avatar.id }),
       });
       setSession(await res.json());
     } catch (err) {
@@ -62,16 +85,20 @@ export default function Home() {
 
       <div className="presets">
         <button className="preset" onClick={startCall}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={MY_AVATAR.imageUrl}
-            alt={MY_AVATAR.name}
-            width={240}
-            height={320}
-            className="preset-avatar"
-          />
+          {avatar.imageUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={avatar.imageUrl}
+              alt={avatar.name ?? 'Avatar'}
+              width={240}
+              height={320}
+              className="preset-avatar"
+            />
+          ) : (
+            <div className="preset-avatar preset-avatar-placeholder" />
+          )}
           <div className="preset-info">
-            <span className="preset-name">{MY_AVATAR.name}</span>
+            <span className="preset-name">{avatar.name ?? 'Loading...'}</span>
           </div>
         </button>
       </div>
@@ -81,7 +108,7 @@ export default function Home() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <span className="modal-title">
-                {MY_AVATAR.name}
+                {avatar.name ?? 'Avatar'}
               </span>
               <button
                 className="modal-close"
@@ -94,10 +121,10 @@ export default function Home() {
             {session ? (
               <Suspense fallback={<div className="modal-loading">Connecting...</div>}>
                 <AvatarCall
-                  avatarId={MY_AVATAR.id}
+                  avatarId={avatar.id}
                   sessionId={session.sessionId}
                   sessionKey={session.sessionKey}
-                  avatarImageUrl={MY_AVATAR.imageUrl}
+                  avatarImageUrl={avatar.imageUrl}
                   onEnd={closeModal}
                   onError={console.error}
                 />
