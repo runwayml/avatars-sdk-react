@@ -124,6 +124,16 @@ body {
   transition: transform 0.3s ease;
 }
 
+.preset-avatar-placeholder {
+  background: linear-gradient(135deg, var(--border) 0%, var(--background) 100%);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .preset-info {
   position: relative;
   display: flex;
