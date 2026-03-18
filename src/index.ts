@@ -11,9 +11,13 @@ export { useAvatar } from './hooks/useAvatar';
 export { useAvatarSession } from './hooks/useAvatarSession';
 export type { AvatarStatus } from './hooks/useAvatarStatus';
 export { useAvatarStatus } from './hooks/useAvatarStatus';
+export { useClientEvents } from './hooks/useClientEvents';
 export { useLocalMedia } from './hooks/useLocalMedia';
 export type {
   AvatarCallProps,
+  ClientEvent,
+  ClientEventHandler,
+  ClientEventsFromTools,
   SessionCredentials,
   SessionState,
 } from './types';

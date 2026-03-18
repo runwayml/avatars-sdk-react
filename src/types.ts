@@ -70,7 +70,7 @@ export interface AvatarSessionContextValue {
 /**
  * Props for the AvatarSession component
  */
-export interface AvatarSessionProps {
+export interface AvatarSessionProps<E extends ClientEvent = ClientEvent> {
   /** Connection credentials from Runway API */
   credentials: SessionCredentials;
   /** Children to render inside the session */
@@ -83,6 +83,8 @@ export interface AvatarSessionProps {
   onEnd?: () => void;
   /** Callback when an error occurs */
   onError?: (error: Error) => void;
+  /** Callback when a client event is received from the avatar */
+  onClientEvent?: ClientEventHandler<E>;
   /**
    * Pre-captured screen share stream (from getDisplayMedia).
    * When provided, screen sharing activates automatically once the session connects.
@@ -98,7 +100,7 @@ export interface AvatarSessionProps {
 /**
  * Props for the AvatarCall component
  */
-export interface AvatarCallProps
+export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
   extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {
   /** The avatar ID to connect to */
   avatarId: string;
@@ -124,6 +126,8 @@ export interface AvatarCallProps
   onEnd?: () => void;
   /** Callback when an error occurs */
   onError?: (error: Error) => void;
+  /** Callback when a client event is received from the avatar */
+  onClientEvent?: ClientEventHandler<E>;
   /** Custom children - defaults to AvatarVideo + ControlBar if not provided */
   children?: React.ReactNode;
   /**
@@ -177,3 +181,55 @@ export interface UseLocalMediaReturn {
     | import('@livekit/components-react').TrackReferenceOrPlaceholder
     | null;
 }
+
+/**
+ * Client event received from the avatar via the data channel.
+ * These are fire-and-forget events triggered by the avatar model.
+ *
+ * @typeParam T - The tool name (defaults to string for untyped usage)
+ * @typeParam A - The args type (defaults to Record<string, unknown>)
+ *
+ * @example
+ * ```typescript
+ * // Untyped usage
+ * const event: ClientEvent = { type: 'client_event', tool: 'show_caption', args: { text: 'Hello' } };
+ *
+ * // Typed usage with discriminated union
+ * type MyEvent = ClientEvent<'show_caption', { text: string }>;
+ * ```
+ */
+export interface ClientEvent<
+  T extends string = string,
+  A = Record<string, unknown>,
+> {
+  type: 'client_event';
+  tool: T;
+  args: A;
+}
+
+/**
+ * Handler function for client events
+ */
+export type ClientEventHandler<E extends ClientEvent = ClientEvent> = (
+  event: E,
+) => void;
+
+/**
+ * Helper type to derive a union of ClientEvent types from a tools configuration object.
+ * Useful for sharing tool definitions between server and client.
+ *
+ * @example
+ * ```typescript
+ * const TOOLS = {
+ *   show_caption: { args: {} as { text: string; position?: 'top' | 'bottom' } },
+ *   play_sound: { args: {} as { url: string } },
+ * };
+ *
+ * type MyEvents = ClientEventsFromTools<typeof TOOLS>;
+ * // Equivalent to: ClientEvent<'show_caption', { text: string; position?: 'top' | 'bottom' }> | ClientEvent<'play_sound', { url: string }>
+ * ```
+ */
+export type ClientEventsFromTools<T extends Record<string, { args: unknown }>> =
+  {
+    [K in keyof T]: ClientEvent<K & string, T[K]['args']>;
+  }[keyof T];

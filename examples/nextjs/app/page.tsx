@@ -203,6 +203,9 @@ export default function Home() {
                   avatarImageUrl={selectedPreset?.imageUrl}
                   onEnd={closeModal}
                   onError={console.error}
+                  onClientEvent={(event) => {
+                    console.log('Client event:', event.tool, event.args);
+                  }}
                 />
               </Suspense>
             ) : isCreating ? (

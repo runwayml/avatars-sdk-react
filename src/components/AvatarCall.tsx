@@ -27,13 +27,13 @@
 
 import { useCredentials } from '../hooks/useCredentials';
 import { useLatest } from '../hooks/useLatest';
-import type { AvatarCallProps } from '../types';
+import type { AvatarCallProps, ClientEvent } from '../types';
 import { AvatarSession } from './AvatarSession';
 import { AvatarVideo } from './AvatarVideo';
 import { ControlBar } from './ControlBar';
 import { UserVideo } from './UserVideo';
 
-export function AvatarCall({
+export function AvatarCall<E extends ClientEvent = ClientEvent>({
   avatarId,
   sessionId,
   sessionKey,
@@ -46,11 +46,12 @@ export function AvatarCall({
   avatarImageUrl,
   onEnd,
   onError,
+  onClientEvent,
   children,
   initialScreenStream,
   __unstable_roomOptions,
   ...props
-}: AvatarCallProps) {
+}: AvatarCallProps<E>) {
   const onErrorRef = useLatest(onError);
 
   const credentialsState = useCredentials({
@@ -113,6 +114,7 @@ export function AvatarCall({
         video={video}
         onEnd={onEnd}
         onError={handleSessionError}
+        onClientEvent={onClientEvent}
         initialScreenStream={initialScreenStream}
         __unstable_roomOptions={__unstable_roomOptions}
       >
