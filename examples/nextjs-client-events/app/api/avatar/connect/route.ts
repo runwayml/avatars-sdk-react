@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     avatar: { type: 'custom' as const, avatarId },
     // These fields require the client_event tools API feature.
     // They're typed as `any` until the SDK ships the updated types.
-    tools: triviaTools.toServerTools(),
+    tools: triviaTools,
   } as any);
 
   const session = await pollSessionUntilReady(sessionId);
