@@ -1,4 +1,4 @@
-export { VideoTrack } from '@livekit/components-react';
+export { isTrackReference, VideoTrack } from '@livekit/components-react';
 export { AudioRenderer } from './components/AudioRenderer';
 export { AvatarCall } from './components/AvatarCall';
 export { AvatarSession } from './components/AvatarSession';
@@ -11,13 +11,18 @@ export { useAvatar } from './hooks/useAvatar';
 export { useAvatarSession } from './hooks/useAvatarSession';
 export type { AvatarStatus } from './hooks/useAvatarStatus';
 export { useAvatarStatus } from './hooks/useAvatarStatus';
+export { useClientEvent } from './hooks/useClientEvent';
 export { useClientEvents } from './hooks/useClientEvents';
 export { useLocalMedia } from './hooks/useLocalMedia';
+export { useTranscription } from './hooks/useTranscription';
+export type { ClientEventsFrom, ClientToolDef } from './tools';
+export { clientTool } from './tools';
 export type {
   AvatarCallProps,
   ClientEvent,
   ClientEventHandler,
-  ClientEventsFromTools,
   SessionCredentials,
   SessionState,
+  TranscriptionEntry,
+  TranscriptionHandler,
 } from './types';

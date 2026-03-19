@@ -56,6 +56,7 @@ The styles use CSS custom properties for easy customization:
 
 See [`examples/`](./examples) for complete working examples:
 - [`nextjs`](./examples/nextjs) - Next.js App Router
+- [`nextjs-client-events`](./examples/nextjs-client-events) - Client event tools (trivia game)
 - [`nextjs-server-actions`](./examples/nextjs-server-actions) - Next.js with Server Actions
 - [`react-router`](./examples/react-router) - React Router v7 framework mode
 - [`express`](./examples/express) - Express + Vite
@@ -285,7 +286,7 @@ function MediaControls() {
 
 ## Hooks
 
-Use hooks for custom components within an `AvatarCall` or `AvatarSession`:
+Use hooks for custom components within an `AvatarCall` or `AvatarSession`. Also available: `useClientEvent` and `useClientEvents` for [client events](#client-events), and `useTranscription` for real-time transcription.
 
 ### useAvatarSession
 
@@ -342,6 +343,45 @@ function MediaControls() {
   );
 }
 ```
+
+## Client Events
+
+Avatars can trigger UI events via tool calls sent over the data channel. Define tools, pass them when creating a session, and subscribe on the client:
+
+```ts
+// lib/tools.ts — shared between server and client
+import { clientTool, type ClientEventsFrom } from '@runwayml/avatars-react/api';
+
+export const showCaption = clientTool('show_caption', {
+  description: 'Display a caption overlay',
+  args: {} as { text: string },
+});
+
+export const tools = [showCaption];
+export type MyEvent = ClientEventsFrom<typeof tools>;
+```
+
+```ts
+// Server — pass tools when creating the session
+const { id } = await client.realtimeSessions.create({
+  model: 'gwm1_avatars',
+  avatar: { type: 'custom', avatarId: '...' },
+  tools,
+});
+```
+
+```tsx
+// Client — subscribe to events inside AvatarCall
+import { useClientEvent } from '@runwayml/avatars-react';
+import type { MyEvent } from '@/lib/tools';
+
+function CaptionOverlay() {
+  const caption = useClientEvent<MyEvent, 'show_caption'>('show_caption');
+  return caption ? <p>{caption.text}</p> : null;
+}
+```
+
+See the [`nextjs-client-events`](./examples/nextjs-client-events) example for a full working demo.
 
 ## Advanced: AvatarSession
 

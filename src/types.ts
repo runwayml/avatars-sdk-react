@@ -215,21 +215,21 @@ export type ClientEventHandler<E extends ClientEvent = ClientEvent> = (
 ) => void;
 
 /**
- * Helper type to derive a union of ClientEvent types from a tools configuration object.
- * Useful for sharing tool definitions between server and client.
- *
- * @example
- * ```typescript
- * const TOOLS = {
- *   show_caption: { args: {} as { text: string; position?: 'top' | 'bottom' } },
- *   play_sound: { args: {} as { url: string } },
- * };
- *
- * type MyEvents = ClientEventsFromTools<typeof TOOLS>;
- * // Equivalent to: ClientEvent<'show_caption', { text: string; position?: 'top' | 'bottom' }> | ClientEvent<'play_sound', { url: string }>
- * ```
+ * A transcription segment received from the session.
+ * SDK-owned type wrapping the underlying transport's transcription data.
  */
-export type ClientEventsFromTools<T extends Record<string, { args: unknown }>> =
-  {
-    [K in keyof T]: ClientEvent<K & string, T[K]['args']>;
-  }[keyof T];
+export interface TranscriptionEntry {
+  /** Unique segment identifier */
+  id: string;
+  /** Transcribed text */
+  text: string;
+  /** Whether this is a final (non-streaming) segment */
+  final: boolean;
+  /** Identity of the participant who spoke */
+  participantIdentity: string;
+}
+
+/**
+ * Handler function for transcription events
+ */
+export type TranscriptionHandler = (entry: TranscriptionEntry) => void;

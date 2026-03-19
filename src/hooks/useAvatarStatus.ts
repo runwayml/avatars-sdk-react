@@ -30,14 +30,14 @@
  * ```
  */
 
-import type { TrackReferenceOrPlaceholder } from '@livekit/components-react';
+import type { TrackReference } from '@livekit/components-react';
 import { useAvatar } from './useAvatar';
 import { useAvatarSession } from './useAvatarSession';
 
 export type AvatarStatus =
   | { status: 'connecting' }
   | { status: 'waiting' }
-  | { status: 'ready'; videoTrackRef: TrackReferenceOrPlaceholder }
+  | { status: 'ready'; videoTrackRef: TrackReference }
   | { status: 'ending' }
   | { status: 'ended' }
   | { status: 'error'; error: Error };
@@ -53,7 +53,11 @@ export function useAvatarStatus(): AvatarStatus {
 
     case 'active':
       if (hasVideo && videoTrackRef) {
-        return { status: 'ready', videoTrackRef };
+        // hasVideo guarantees this is a real TrackReference (checked via isTrackReference in useAvatar)
+        return {
+          status: 'ready',
+          videoTrackRef: videoTrackRef as TrackReference,
+        };
       }
       return { status: 'waiting' };
 

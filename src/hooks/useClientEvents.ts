@@ -4,9 +4,10 @@ import { useRoomContext } from '@livekit/components-react';
 import { RoomEvent } from 'livekit-client';
 import { useEffect, useRef } from 'react';
 import type { ClientEvent, ClientEventHandler } from '../types';
+import { parseClientEvent } from '../utils/parseClientEvent';
 
 /**
- * Hook to listen for client events from the avatar.
+ * Hook to listen for all client events from the avatar.
  *
  * Use this hook in child components to handle client events without prop drilling.
  * Must be used within an AvatarSession or AvatarCall component.
@@ -46,13 +47,9 @@ export function useClientEvents<E extends ClientEvent = ClientEvent>(
 
   useEffect(() => {
     function handleDataReceived(payload: Uint8Array) {
-      try {
-        const message = JSON.parse(new TextDecoder().decode(payload));
-        if (message.type === 'client_event') {
-          handlerRef.current(message as E);
-        }
-      } catch {
-        // Ignore malformed messages
+      const event = parseClientEvent(payload);
+      if (event) {
+        handlerRef.current(event as E);
       }
     }
 

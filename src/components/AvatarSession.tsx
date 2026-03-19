@@ -39,6 +39,7 @@ import type {
   ClientEventHandler,
   SessionState,
 } from '../types';
+import { parseClientEvent } from '../utils/parseClientEvent';
 
 /**
  * Check if a media device of the given kind is available
@@ -253,13 +254,9 @@ function AvatarSessionContextInner({
 
   useEffect(() => {
     function handleDataReceived(payload: Uint8Array) {
-      try {
-        const message = JSON.parse(new TextDecoder().decode(payload));
-        if (message.type === 'client_event') {
-          onClientEventRef.current?.(message as ClientEvent);
-        }
-      } catch {
-        // Ignore malformed messages
+      const event = parseClientEvent(payload);
+      if (event) {
+        onClientEventRef.current?.(event);
       }
     }
 
