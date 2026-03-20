@@ -1,10 +1,14 @@
 import Runway from '@runwayml/sdk';
 import { triviaTools } from '@/lib/avatar-tools';
+import {
+  DEFAULT_TRIVIA_PERSONALITY,
+  DEFAULT_TRIVIA_START_SCRIPT,
+} from '@/lib/trivia-personality';
 
 const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 
 export async function POST(req: Request) {
-  const { avatarId } = await req.json();
+  const { avatarId } = await req.json() as { avatarId: string };
 
   const { id: sessionId } = await client.realtimeSessions.create({
     model: 'gwm1_avatars',
@@ -12,6 +16,8 @@ export async function POST(req: Request) {
     // These fields require the client_event tools API feature.
     // They're typed as `any` until the SDK ships the updated types.
     tools: triviaTools,
+    personality: DEFAULT_TRIVIA_PERSONALITY,
+    startScript: DEFAULT_TRIVIA_START_SCRIPT,
   } as any);
 
   const session = await pollSessionUntilReady(sessionId);
