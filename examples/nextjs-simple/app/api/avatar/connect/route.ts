@@ -1,13 +1,18 @@
 import Runway from '@runwayml/sdk';
+import { getPresetAvatarMetadata } from '../../../../lib/preset-avatars';
 
 const client = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
 
 export async function POST(req: Request) {
   const { avatarId } = await req.json();
 
+  const avatar = getPresetAvatarMetadata(avatarId)
+    ? { type: 'runway-preset' as const, presetId: avatarId }
+    : { type: 'custom' as const, avatarId };
+
   const { id: sessionId } = await client.realtimeSessions.create({
     model: 'gwm1_avatars',
-    avatar: { type: 'runway-preset', presetId: avatarId },
+    avatar,
   });
 
   const session = await pollSessionUntilReady(sessionId);
