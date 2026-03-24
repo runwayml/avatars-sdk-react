@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0-beta.0] - 2026-03-18
+
+### Added
+
+- **Client events** — fire-and-forget events from the avatar model via the LiveKit data channel
+- `useClientEvent` hook — subscribe to a single event type by tool name, returns latest args as state with optional callback for side effects
+- `useClientEvents` hook — subscribe to all client events (for event logs, debugging, catch-all routing)
+- `clientTool` helper — define a single client tool, compose into arrays, derive event types with `ClientEventsFrom`
+- `ClientEvent`, `ClientEventsFrom`, `ClientToolDef` types exported from `@runwayml/avatars-react/api` for server-safe imports
+- `onClientEvent` prop on `AvatarCall` and `AvatarSession` for prop-based event handling
+- Trivia game example (`examples/nextjs-client-events/`) demonstrating client events in action
+
 ## [0.9.0] - 2026-03-13
 
 ### Added

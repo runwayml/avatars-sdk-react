@@ -200,6 +200,7 @@ export default function Home() {
                   avatarId={avatarId}
                   sessionId={session.sessionId}
                   sessionKey={session.sessionKey}
+                  baseUrl={process.env.NEXT_PUBLIC_RUNWAYML_BASE_URL}
                   avatarImageUrl={selectedPreset?.imageUrl}
                   onEnd={closeModal}
                   onError={console.error}

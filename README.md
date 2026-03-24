@@ -346,6 +346,8 @@ function MediaControls() {
 
 ## Client Events
 
+> **Compatibility:** Client events (tool calling) are supported on avatars that use a **preset voice**. Custom voice avatars do not currently support client events.
+
 Avatars can trigger UI events via tool calls sent over the data channel. Define tools, pass them when creating a session, and subscribe on the client:
 
 ```ts
