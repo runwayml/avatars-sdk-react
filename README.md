@@ -57,6 +57,8 @@ The styles use CSS custom properties for easy customization:
 See [`examples/`](./examples) for complete working examples:
 - [`nextjs`](./examples/nextjs) - Next.js App Router
 - [`nextjs-client-events`](./examples/nextjs-client-events) - Client event tools (trivia game)
+- [`nextjs-rpc`](./examples/nextjs-rpc) - Backend RPC + client events (trivia with server-side questions)
+- [`nextjs-rpc-weather`](./examples/nextjs-rpc-weather) - Backend RPC only (weather assistant)
 - [`nextjs-server-actions`](./examples/nextjs-server-actions) - Next.js with Server Actions
 - [`react-router`](./examples/react-router) - React Router v7 framework mode
 - [`express`](./examples/express) - Express + Vite
@@ -151,38 +153,41 @@ import { AvatarCall, AvatarVideo, ControlBar, UserVideo } from '@runwayml/avatar
 
 ### Render Props
 
-All components support render props for complete control:
+All display components support render props for complete control. `AvatarVideo` receives a discriminated union with `status`:
 
 ```tsx
 <AvatarVideo>
-  {({ hasVideo, isConnecting, trackRef }) => (
-    <div>
-      {isConnecting && <Spinner />}
-      {hasVideo && <VideoTrack trackRef={trackRef} />}
-    </div>
-  )}
+  {(avatar) => {
+    switch (avatar.status) {
+      case 'connecting': return <Spinner />;
+      case 'waiting': return <Placeholder />;
+      case 'ready': return <VideoTrack trackRef={avatar.videoTrackRef} />;
+    }
+  }}
 </AvatarVideo>
 ```
 
 ### CSS Styling with Data Attributes
 
-Style connection states with CSS:
+Style components with the namespaced `data-avatar-*` attributes:
 
 ```tsx
 <AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect" className="my-avatar" />
 ```
 
 ```css
-.my-avatar[data-state="connecting"] {
+/* Style avatar video by connection status */
+[data-avatar-video][data-avatar-status="connecting"] {
   opacity: 0.5;
 }
 
-.my-avatar[data-state="error"] {
-  border: 2px solid red;
+[data-avatar-video][data-avatar-status="ready"] {
+  opacity: 1;
 }
 
-.my-avatar[data-state="connected"] {
-  border: 2px solid green;
+/* Style control buttons */
+[data-avatar-control][data-avatar-enabled="false"] {
+  opacity: 0.5;
 }
 ```
 
@@ -345,6 +350,8 @@ function MediaControls() {
 ```
 
 ## Client Events
+
+> **Compatibility:** Client events (tool calling) are supported on avatars that use a **preset voice**. Custom voice avatars do not currently support client events.
 
 Avatars can trigger UI events via tool calls sent over the data channel. Define tools, pass them when creating a session, and subscribe on the client:
 

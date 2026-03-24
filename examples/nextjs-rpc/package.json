@@ -1,0 +1,25 @@
+{
+  "name": "avatar-rpc-trivia-example",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "if command -v portless >/dev/null 2>&1; then portless avatar-rpc-trivia next dev; else next dev; fi",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@runwayml/avatars-node-rpc": "github:runwayml/avatars-node-rpc",
+    "@runwayml/avatars-react": "latest",
+    "@runwayml/sdk": "^3.16.0",
+    "canvas-confetti": "^1.9.4",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}

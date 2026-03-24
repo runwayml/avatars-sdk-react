@@ -26,6 +26,14 @@ jobs:
         run: bun run build
 
       - name: Publish to NPM
-        run: bun publish --access public
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if echo "$VERSION" | grep -q "-"; then
+            TAG=$(echo "$VERSION" | sed 's/.*-\([a-zA-Z]*\).*/\1/')
+            echo "Publishing prerelease with --tag $TAG"
+            bun publish --access public --tag "$TAG"
+          else
+            bun publish --access public
+          fi
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
