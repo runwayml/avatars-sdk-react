@@ -5,24 +5,20 @@ An AI avatar hosts a trivia game. Questions, answers, scores, and sound effects 
 ## What it demonstrates
 
 - **Shared tool types** (`lib/avatar-tools.ts`) — define tools once, use on both server and client
-- **`useClientEvents<T>` hook** — type-safe event handling in a child component
-- **Visual feedback** — question cards, correct/incorrect overlays, score + streak tracking
-- **Sound effects** — plays audio on correct/incorrect answers via `play_sound` events
+- **`useClientEvent` hook** — type-safe event handling in a child component
+- **Single-event model** — one `next_step` tool call per turn carries question, result, score, and sound
 
 ## Tools
 
 | Tool | What it does |
 |------|-------------|
-| `show_question` | Displays a multiple-choice question in the sidebar |
-| `reveal_answer` | Shows correct/incorrect overlay on the video |
-| `update_score` | Updates the scoreboard |
-| `play_sound` | Plays a sound effect (`correct`, `incorrect`, `drumroll`, etc.) |
+| `next_step` | Advances the game — delivers the next question plus the previous answer result, updated score, and sound cue |
 
 ## Setup
 
 ```bash
 cp .env.example .env.local
-# Add your RUNWAYML_API_SECRET
+# Add your RUNWAYML_API_SECRET and NEXT_PUBLIC_AVATAR_ID
 
 npm install
 npm run dev
@@ -34,5 +30,5 @@ npm run dev
 lib/avatar-tools.ts          (shared types — used by both)
       │
       ├── app/api/.../route.ts   (server: passes tools to session create)
-      └── app/page.tsx           (client: useClientEvents<TriviaEvent>)
+      └── app/page.tsx           (client: useClientEvent + useClientEvents)
 ```
