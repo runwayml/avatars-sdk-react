@@ -7,8 +7,11 @@ import {
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { useCallback } from 'react';
+import { useMediaDeviceErrorContext } from '../components/AvatarSession';
 import type { UseLocalMediaReturn } from '../types';
 import { useLatest } from './useLatest';
+
+const NOOP_ASYNC = async () => {};
 
 /**
  * Hook for local media controls (mic, camera, screen share).
@@ -19,6 +22,12 @@ import { useLatest } from './useLatest';
  */
 export function useLocalMedia(): UseLocalMediaReturn {
   const { localParticipant } = useLocalParticipant();
+  const {
+    micError = null,
+    cameraError = null,
+    retryMic = NOOP_ASYNC,
+    retryCamera = NOOP_ASYNC,
+  } = useMediaDeviceErrorContext() ?? {};
 
   const audioDevices = useMediaDevices({ kind: 'audioinput' });
   const videoDevices = useMediaDevices({ kind: 'videoinput' });
@@ -83,5 +92,9 @@ export function useLocalMedia(): UseLocalMediaReturn {
     toggleCamera,
     toggleScreenShare,
     localVideoTrackRef,
+    micError,
+    cameraError,
+    retryMic,
+    retryCamera,
   };
 }

@@ -21,6 +21,7 @@ export type {
   AvatarCallProps,
   ClientEvent,
   ClientEventHandler,
+  MediaDeviceErrors,
   SessionCredentials,
   SessionState,
   TranscriptionEntry,

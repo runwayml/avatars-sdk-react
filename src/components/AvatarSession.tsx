@@ -29,6 +29,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -37,82 +38,10 @@ import type {
   AvatarSessionProps,
   ClientEvent,
   ClientEventHandler,
+  MediaDeviceErrors,
   SessionState,
 } from '../types';
 import { parseClientEvent } from '../utils/parseClientEvent';
-
-/**
- * Check if a media device of the given kind is available
- * Returns within timeout to avoid blocking the connection
- */
-async function hasMediaDevice(
-  kind: 'audioinput' | 'videoinput',
-  timeoutMs = 1000,
-): Promise<boolean> {
-  try {
-    const timeoutPromise = new Promise<boolean>((resolve) =>
-      setTimeout(() => resolve(false), timeoutMs),
-    );
-    const checkPromise = navigator.mediaDevices
-      .enumerateDevices()
-      .then((devices) => devices.some((device) => device.kind === kind));
-
-    return await Promise.race([checkPromise, timeoutPromise]);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Hook to check device availability before connecting.
- * Completes quickly to avoid blocking the connection.
- */
-function useDeviceAvailability(
-  requestAudio: boolean,
-  requestVideo: boolean,
-): { audio: boolean; video: boolean } {
-  const [state, setState] = useState({
-    audio: requestAudio, // Optimistically assume devices exist
-    video: requestVideo,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function checkDevices() {
-      const [hasAudio, hasVideo] = await Promise.all([
-        requestAudio ? hasMediaDevice('audioinput') : Promise.resolve(false),
-        requestVideo ? hasMediaDevice('videoinput') : Promise.resolve(false),
-      ]);
-
-      if (!cancelled) {
-        setState({
-          audio: requestAudio && hasAudio,
-          video: requestVideo && hasVideo,
-        });
-      }
-    }
-
-    checkDevices();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [requestAudio, requestVideo]);
-
-  return state;
-}
-
-const MEDIA_DEVICE_ERROR_NAMES = new Set([
-  'NotAllowedError',
-  'NotFoundError',
-  'NotReadableError',
-  'OverconstrainedError',
-]);
-
-function isMediaDeviceError(error: Error): boolean {
-  return MEDIA_DEVICE_ERROR_NAMES.has(error.name);
-}
 
 const DEFAULT_ROOM_OPTIONS: RoomOptions = {
   adaptiveStream: false,
@@ -141,6 +70,8 @@ const AvatarSessionContext = createContext<AvatarSessionContextValue | null>(
   null,
 );
 
+const MediaDeviceErrorContext = createContext<MediaDeviceErrors | null>(null);
+
 /**
  * AvatarSession component - the main entry point for avatar sessions
  *
@@ -160,13 +91,9 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
 }: AvatarSessionProps<E>) {
   const errorRef = useRef<Error | null>(null);
 
-  const deviceAvailability = useDeviceAvailability(requestAudio, requestVideo);
-
   const handleError = (error: Error) => {
     onError?.(error);
-    if (!isMediaDeviceError(error)) {
-      errorRef.current = error;
-    }
+    errorRef.current = error;
   };
 
   const roomOptions = {
@@ -179,8 +106,8 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
       serverUrl={credentials.serverUrl}
       token={credentials.token}
       connect={true}
-      audio={deviceAvailability.audio}
-      video={deviceAvailability.video}
+      audio={false}
+      video={false}
       onDisconnected={() => onEnd?.()}
       onError={handleError}
       options={roomOptions}
@@ -190,6 +117,8 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
     >
       <AvatarSessionContextInner
         sessionId={credentials.sessionId}
+        requestAudio={requestAudio}
+        requestVideo={requestVideo}
         onEnd={onEnd}
         onClientEvent={onClientEvent as ClientEventHandler | undefined}
         errorRef={errorRef}
@@ -207,6 +136,8 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
  */
 function AvatarSessionContextInner({
   sessionId,
+  requestAudio,
+  requestVideo,
   onEnd,
   onClientEvent,
   errorRef,
@@ -214,6 +145,8 @@ function AvatarSessionContextInner({
   children,
 }: {
   sessionId: string;
+  requestAudio: boolean;
+  requestVideo: boolean;
   onEnd?: () => void;
   onClientEvent?: ClientEventHandler;
   errorRef: React.RefObject<Error | null>;
@@ -248,9 +181,80 @@ function AvatarSessionContextInner({
     }
 
     return () => {
-      initialScreenStream.getTracks().forEach(t => { t.stop(); });
+      initialScreenStream.getTracks().forEach((t) => {
+        t.stop();
+      });
     };
   }, [connectionState, initialScreenStream, room]);
+
+  const [micError, setMicError] = useState<Error | null>(null);
+  const [cameraError, setCameraError] = useState<Error | null>(null);
+  const mediaEnabledRef = useRef(false);
+
+  // Enable audio/video AFTER the room connects — decoupled from the
+  // signaling connection so a locked device (e.g. Zoom) can't block it.
+  useEffect(() => {
+    if (connectionState !== ConnectionState.Connected) return;
+    if (mediaEnabledRef.current) return;
+    mediaEnabledRef.current = true;
+
+    async function enableMedia() {
+      if (requestAudio) {
+        try {
+          await room.localParticipant.setMicrophoneEnabled(true);
+        } catch (err) {
+          if (err instanceof Error) setMicError(err);
+        }
+      }
+      if (requestVideo) {
+        try {
+          await room.localParticipant.setCameraEnabled(true);
+        } catch (err) {
+          if (err instanceof Error) setCameraError(err);
+        }
+      }
+    }
+
+    enableMedia();
+  }, [connectionState, room, requestAudio, requestVideo]);
+
+  useEffect(() => {
+    function handleMediaDevicesError(error: Error, kind?: MediaDeviceKind) {
+      if (kind === 'audioinput') {
+        setMicError(error);
+      } else if (kind === 'videoinput') {
+        setCameraError(error);
+      }
+    }
+
+    room.on(RoomEvent.MediaDevicesError, handleMediaDevicesError);
+    return () => {
+      room.off(RoomEvent.MediaDevicesError, handleMediaDevicesError);
+    };
+  }, [room]);
+
+  const retryMic = useCallback(async () => {
+    try {
+      await room.localParticipant.setMicrophoneEnabled(true);
+      setMicError(null);
+    } catch (err) {
+      if (err instanceof Error) setMicError(err);
+    }
+  }, [room]);
+
+  const retryCamera = useCallback(async () => {
+    try {
+      await room.localParticipant.setCameraEnabled(true);
+      setCameraError(null);
+    } catch (err) {
+      if (err instanceof Error) setCameraError(err);
+    }
+  }, [room]);
+
+  const mediaDeviceErrors = useMemo<MediaDeviceErrors>(
+    () => ({ micError, cameraError, retryMic, retryCamera }),
+    [micError, cameraError, retryMic, retryCamera],
+  );
 
   useEffect(() => {
     function handleDataReceived(payload: Uint8Array) {
@@ -289,7 +293,9 @@ function AvatarSessionContextInner({
 
   return (
     <AvatarSessionContext.Provider value={contextValue}>
-      {children}
+      <MediaDeviceErrorContext.Provider value={mediaDeviceErrors}>
+        {children}
+      </MediaDeviceErrorContext.Provider>
     </AvatarSessionContext.Provider>
   );
 }
@@ -314,4 +320,8 @@ export function useAvatarSessionContext(): AvatarSessionContextValue {
  */
 export function useMaybeAvatarSessionContext(): AvatarSessionContextValue | null {
   return useContext(AvatarSessionContext);
+}
+
+export function useMediaDeviceErrorContext(): MediaDeviceErrors | null {
+  return useContext(MediaDeviceErrorContext);
 }

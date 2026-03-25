@@ -157,9 +157,24 @@ export interface UseAvatarReturn {
 }
 
 /**
+ * Media device error state exposed to consumers.
+ * Populated when getUserMedia fails (e.g. device held by Zoom).
+ */
+export interface MediaDeviceErrors {
+  /** Error from acquiring the microphone, if any */
+  micError: Error | null;
+  /** Error from acquiring the camera, if any */
+  cameraError: Error | null;
+  /** Re-attempt microphone acquisition (e.g. after closing Zoom) */
+  retryMic: () => Promise<void>;
+  /** Re-attempt camera acquisition */
+  retryCamera: () => Promise<void>;
+}
+
+/**
  * Return type for useLocalMedia hook
  */
-export interface UseLocalMediaReturn {
+export interface UseLocalMediaReturn extends MediaDeviceErrors {
   /** Whether a microphone device is available */
   hasMic: boolean;
   /** Whether a camera device is available */

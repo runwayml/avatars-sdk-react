@@ -15,6 +15,10 @@ export interface ControlBarState {
   toggleScreenShare: () => void;
   endCall: () => Promise<void>;
   isActive: boolean;
+  micError: Error | null;
+  cameraError: Error | null;
+  retryMic: () => Promise<void>;
+  retryCamera: () => Promise<void>;
 }
 
 export interface ControlBarProps
@@ -42,6 +46,10 @@ export function ControlBar({
     toggleMic,
     toggleCamera,
     toggleScreenShare,
+    micError,
+    cameraError,
+    retryMic,
+    retryCamera,
   } = useLocalMedia();
 
   const isActive = session.state === 'active';
@@ -55,6 +63,10 @@ export function ControlBar({
     toggleScreenShare,
     endCall: session.end,
     isActive,
+    micError,
+    cameraError,
+    retryMic,
+    retryCamera,
   };
 
   if (children) {
