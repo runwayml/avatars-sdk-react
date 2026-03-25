@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0-beta.1] - 2026-03-25
+
+### Fixed
+
+- Fixed sessions failing to connect when another app (e.g. Zoom) holds the mic/camera — media acquisition is now decoupled from the WebRTC connection so the session always starts
+
+### Added
+
+- `micError` / `cameraError` on `useLocalMedia` and `ControlBarState` — exposes the device error when `getUserMedia` fails
+- `retryMic()` / `retryCamera()` on `useLocalMedia` and `ControlBarState` — re-attempt device acquisition after freeing the device
+- `MediaDeviceErrors` type export
+
 ## [0.10.0-beta.0] - 2026-03-18
 
 ### Added
