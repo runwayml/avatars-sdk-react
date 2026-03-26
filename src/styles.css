@@ -21,6 +21,8 @@
   --avatar-radius: 16px;
   --avatar-control-bg: rgba(255, 255, 255, 0.1);
   --avatar-control-bg-hover: rgba(255, 255, 255, 0.2);
+  --avatar-control-bg-off: rgba(255, 255, 255, 0.05);
+  --avatar-control-color-off: rgba(255, 255, 255, 0.5);
   --avatar-control-size: 48px;
   --avatar-end-call-bg: #ef4444;
   --avatar-end-call-bg-hover: #dc2626;
@@ -141,10 +143,20 @@
   outline-offset: 2px;
 }
 
-/* Disabled state (muted) */
+/* Toggled-off state (muted mic, camera off, not sharing) */
 [data-avatar-control][data-avatar-enabled="false"] {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: var(--avatar-control-bg-off);
+  color: var(--avatar-control-color-off);
+}
+
+[data-avatar-control][data-avatar-enabled="false"]:hover {
+  background: var(--avatar-control-bg);
+}
+
+/* Screen share active */
+[data-avatar-control="screen-share"][data-avatar-enabled="true"] {
+  background: rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
 }
 
 /* End call button */
