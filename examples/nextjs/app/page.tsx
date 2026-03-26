@@ -5,7 +5,6 @@ import {
   AvatarCall,
   AvatarVideo,
   ControlBar,
-  ScreenShareVideo,
   UserVideo,
 } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
@@ -215,7 +214,6 @@ export default function Home() {
                   }}
                 >
                   <AvatarVideo />
-                  <ScreenShareVideo />
                   <UserVideo />
                   <ControlBar showScreenShare />
                 </AvatarCall>
