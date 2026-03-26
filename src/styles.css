@@ -228,10 +228,11 @@
 
 /* ScreenShareVideo */
 [data-avatar-screen-share] {
-  position: absolute;
-  inset: 0;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
   background: #000;
-  z-index: 1;
+  z-index: 0;
 }
 
 [data-avatar-screen-share] video {

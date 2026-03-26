@@ -13,6 +13,16 @@ import { useLatest } from './useLatest';
 
 const NOOP_ASYNC = async () => {};
 
+function createCaptureController(): unknown {
+  if (typeof window === 'undefined' || !('CaptureController' in window)) {
+    return undefined;
+  }
+  // biome-ignore lint/suspicious/noExplicitAny: CaptureController not yet in TypeScript's lib
+  const controller = new (window as any).CaptureController();
+  controller.setFocusBehavior('no-focus-change');
+  return controller;
+}
+
 /**
  * Hook for local media controls (mic, camera, screen share).
  *
@@ -62,7 +72,16 @@ export function useLocalMedia(): UseLocalMediaReturn {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleScreenShare = useCallback(() => {
-    localParticipant?.setScreenShareEnabled(!isScreenShareEnabledRef.current);
+    const next = !isScreenShareEnabledRef.current;
+    if (next) {
+      const controller = createCaptureController();
+      localParticipant?.setScreenShareEnabled(true, {
+        controller,
+        surfaceSwitching: 'include',
+      });
+    } else {
+      localParticipant?.setScreenShareEnabled(false);
+    }
   }, [localParticipant]);
 
   const tracks = useTracks(
