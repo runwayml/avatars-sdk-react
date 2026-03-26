@@ -1,7 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState, Suspense } from 'react';
-import { AvatarCall } from '@runwayml/avatars-react';
+import {
+  AvatarCall,
+  AvatarVideo,
+  ControlBar,
+  ScreenShareVideo,
+  UserVideo,
+} from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
 const PRESETS = [
@@ -207,7 +213,12 @@ export default function Home() {
                   onClientEvent={(event) => {
                     console.log('Client event:', event.tool, event.args);
                   }}
-                />
+                >
+                  <AvatarVideo />
+                  <ScreenShareVideo />
+                  <UserVideo />
+                  <ControlBar showScreenShare />
+                </AvatarCall>
               </Suspense>
             ) : isCreating ? (
               <div className="modal-loading">Creating avatar session...</div>

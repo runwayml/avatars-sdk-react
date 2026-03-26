@@ -1,7 +1,5 @@
 'use client';
 
-import { TrackToggle } from '@livekit/components-react';
-import { Track } from 'livekit-client';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { useAvatarSession } from '../hooks/useAvatarSession';
 import { useLocalMedia } from '../hooks/useLocalMedia';
@@ -102,15 +100,17 @@ export function ControlBar({
         </button>
       )}
       {showScreenShare && (
-        <TrackToggle
-          source={Track.Source.ScreenShare}
-          showIcon={false}
+        <button
+          type="button"
+          onClick={toggleScreenShare}
           data-avatar-control="screen-share"
           data-avatar-enabled={isScreenShareEnabled}
-          aria-label="Toggle screen share"
+          aria-label={
+            isScreenShareEnabled ? 'Stop sharing screen' : 'Share screen'
+          }
         >
           {screenShareIcon}
-        </TrackToggle>
+        </button>
       )}
       {showEndCall && (
         <button
