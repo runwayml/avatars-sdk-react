@@ -15,8 +15,14 @@ export { useClientEvent } from './hooks/useClientEvent';
 export { useClientEvents } from './hooks/useClientEvents';
 export { useLocalMedia } from './hooks/useLocalMedia';
 export { useTranscription } from './hooks/useTranscription';
-export type { ClientEventsFrom, ClientToolDef } from './tools';
-export { clientTool } from './tools';
+export type {
+  ClientEventFromTool,
+  ClientEventsFrom,
+  ClientToolArgs,
+  ClientToolDef,
+  ClientToolParam,
+} from './tools';
+export { clientTool, clientToolParam, isClientToolEvent } from './tools';
 export type {
   AvatarCallProps,
   ClientEvent,

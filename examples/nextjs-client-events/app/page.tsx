@@ -12,7 +12,7 @@ import {
   useTranscription,
 } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
-import type { TriviaEvent } from '@/lib/avatar-tools';
+import { nextStep, type TriviaEvent } from '@/lib/avatar-tools';
 import { ScoreHud, QuestionCard, ResultBanner, EventLog, type EventLogEntry } from './trivia-overlay';
 
 const AVATAR_ID = '9db8d1ba-b173-428b-afd6-7b6178913596';
@@ -157,7 +157,7 @@ function TriviaEventHandlers(props: {
   onEvent: (tool: string, args: Record<string, unknown>) => void;
   onTranscript: (entry: { participantIdentity: string; text: string }) => void;
 }) {
-  useClientEvent<TriviaEvent, 'next_step'>('next_step', props.onNextStep);
+  useClientEvent(nextStep, props.onNextStep);
   useClientEvents<TriviaEvent>((event) => {
     props.onEvent(event.tool, event.args as Record<string, unknown>);
   });

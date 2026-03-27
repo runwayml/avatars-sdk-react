@@ -42,5 +42,5 @@ lib/avatar-tools.ts            (tool definitions — shared by server & client)
 lib/trivia-personality.ts      (model personality — server only)
       │
       ├── app/api/.../route.ts     (creates session + starts RPC handler)
-      └── app/page.tsx             (client: useClientEvents for UI)
+      └── app/page.tsx             (client: useClientEvent + useClientEvents for UI)
 ```

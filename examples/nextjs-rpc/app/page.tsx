@@ -7,11 +7,12 @@ import {
   AvatarVideo,
   ControlBar,
   UserVideo,
+  useClientEvent,
   useClientEvents,
   useTranscription,
 } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
-import type { TriviaEvent } from '@/lib/avatar-tools';
+import { nextStep, type TriviaEvent } from '@/lib/avatar-tools';
 import { ScoreHud, QuestionCard, ResultBanner, EventLog, type EventLogEntry } from './trivia-overlay';
 
 const AVATAR_ID = process.env.NEXT_PUBLIC_AVATAR_ID!;
@@ -168,9 +169,9 @@ function TriviaEventHandlers(props: {
   onEvent: (tool: string, args: Record<string, unknown>) => void;
   onTranscript: (entry: { participantIdentity: string; text: string }) => void;
 }) {
+  useClientEvent(nextStep, props.onNextStep);
   useClientEvents<TriviaEvent>((event) => {
     props.onEvent(event.tool, event.args as Record<string, unknown>);
-    if (event.tool === 'next_step') props.onNextStep(event.args);
   });
 
   useTranscription(props.onTranscript);
