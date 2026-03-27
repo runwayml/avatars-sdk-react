@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 
 describe('package exports', () => {
   it('exports components', async () => {
@@ -26,6 +26,8 @@ describe('package exports', () => {
     expect(exports.useClientEvent).toBeDefined();
     expect(exports.useClientEvents).toBeDefined();
     expect(exports.clientTool).toBeDefined();
+    expect(exports.clientToolParam).toBeDefined();
+    expect(exports.isClientToolEvent).toBeDefined();
     expect(typeof exports.clientTool).toBe('function');
   });
 
@@ -40,6 +42,8 @@ describe('api subpath exports', () => {
   it('exports server-safe client event utilities', async () => {
     const api = await import('./api/index');
     expect(api.clientTool).toBeDefined();
+    expect(api.clientToolParam).toBeDefined();
+    expect(api.isClientToolEvent).toBeDefined();
     expect(api.consumeSession).toBeDefined();
     expect(typeof api.clientTool).toBe('function');
   });

@@ -357,14 +357,20 @@ Avatars can trigger UI events via tool calls sent over the data channel. Define 
 
 ```ts
 // lib/tools.ts — shared between server and client
-import { clientTool, type ClientEventsFrom } from '@runwayml/avatars-react/api';
+import {
+  clientTool,
+  clientToolParam,
+  type ClientEventsFrom,
+} from '@runwayml/avatars-react/api';
 
 export const showCaption = clientTool('show_caption', {
   description: 'Display a caption overlay',
-  args: {} as { text: string },
+  parameters: {
+    text: clientToolParam.string('Caption text to render in the overlay'),
+  },
 });
 
-export const tools = [showCaption];
+export const tools = [showCaption] as const;
 export type MyEvent = ClientEventsFrom<typeof tools>;
 ```
 
@@ -380,10 +386,10 @@ const { id } = await client.realtimeSessions.create({
 ```tsx
 // Client — subscribe to events inside AvatarCall
 import { useClientEvent } from '@runwayml/avatars-react';
-import type { MyEvent } from '@/lib/tools';
+import { showCaption } from '@/lib/tools';
 
 function CaptionOverlay() {
-  const caption = useClientEvent<MyEvent, 'show_caption'>('show_caption');
+  const caption = useClientEvent(showCaption);
   return caption ? <p>{caption.text}</p> : null;
 }
 ```

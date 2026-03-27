@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `clientToolParam` schema helpers for generating `client_event` parameter arrays directly from `clientTool()`
+- `useClientEvent(toolDef)` and `isClientToolEvent()` for tool-definition-driven, runtime-validated client event handling
+
 ## [0.10.0-beta.1] - 2026-03-25
 
 ### Fixed
