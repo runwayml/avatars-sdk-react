@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-04-02
+
 ### Added
 
 - **Page actions** — let the avatar click buttons, scroll to sections, and highlight elements on your page
