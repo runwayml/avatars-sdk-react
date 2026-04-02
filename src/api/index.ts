@@ -6,3 +6,5 @@ export type {
   ConsumeSessionResponse,
 } from '../types';
 export { consumeSession } from './consume';
+export type { PageActionEvent } from './page-actions';
+export { pageActionTools } from './page-actions';

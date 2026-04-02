@@ -393,6 +393,109 @@ function CaptionOverlay() {
 
 See the [`nextjs-client-events`](./examples/nextjs-client-events) example for a full working demo.
 
+## Page Actions
+
+Let the avatar click buttons, scroll to sections, and highlight elements on your page. The SDK provides pre-built tool definitions and a component that handles the DOM interactions automatically.
+
+### Server — add `pageActionTools` to the session
+
+```ts
+import { pageActionTools } from '@runwayml/avatars-react/api';
+
+const { id } = await client.realtimeSessions.create({
+  model: 'gwm1_avatars',
+  avatar: { type: 'runway-preset', presetId: 'music-superstar' },
+  tools: pageActionTools,
+});
+```
+
+Combine with your own tools by spreading both arrays:
+
+```ts
+import { pageActionTools } from '@runwayml/avatars-react/api';
+import { clientEventTools } from '@/lib/tools';
+
+tools: [...pageActionTools, ...clientEventTools],
+```
+
+### Client — drop in the `<PageActions />` component
+
+```tsx
+import { AvatarCall, AvatarVideo, ControlBar, PageActions } from '@runwayml/avatars-react';
+
+function App() {
+  return (
+    <AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect">
+      <AvatarVideo />
+      <ControlBar />
+      <PageActions />
+    </AvatarCall>
+  );
+}
+```
+
+The avatar can now reference elements by `id` or by a `data-avatar-target` attribute:
+
+```html
+<button id="signup">Sign Up</button>
+<section data-avatar-target="pricing">...</section>
+```
+
+### Available actions
+
+| Action | What it does |
+|--------|-------------|
+| `click` | Calls `.click()` on the target element |
+| `scroll_to` | Scrolls the target into view with smooth scrolling |
+| `highlight` | Pulses an outline around the target, then removes it |
+
+### Highlight styling
+
+Import the default stylesheet for a ready-made highlight animation:
+
+```tsx
+import '@runwayml/avatars-react/styles.css';
+```
+
+Elements are highlighted via the `data-avatar-highlighted="true"` attribute. Override the defaults with CSS:
+
+```css
+[data-avatar-highlighted="true"] {
+  outline-color: hotpink;
+}
+```
+
+The animation respects `prefers-reduced-motion`.
+
+### Configuration
+
+```tsx
+<PageActions
+  highlightDuration={3000}
+  scrollBehavior="instant"
+  scrollBlock="center"
+  resolveElement={(target) => document.querySelector(`[data-custom="${target}"]`)}
+/>
+```
+
+| Prop | Default | Description |
+|------|---------|-------------|
+| `highlightDuration` | `2000` | Milliseconds before the highlight clears |
+| `scrollBehavior` | `'smooth'` | `'smooth'` or `'instant'` |
+| `scrollBlock` | `'start'` | `'start'`, `'center'`, `'end'`, or `'nearest'` |
+| `resolveElement` | by `id` then `data-avatar-target` | Custom function to find the target DOM element |
+
+For advanced use cases, the underlying `usePageActions` hook accepts the same options:
+
+```tsx
+import { usePageActions } from '@runwayml/avatars-react';
+
+function MyCustomPageActions() {
+  usePageActions({ highlightDuration: 5000 });
+  return null;
+}
+```
+
 ## Advanced: AvatarSession
 
 For full control over session management, use `AvatarSession` directly with pre-fetched credentials:
@@ -426,6 +529,7 @@ function AdvancedUsage({ credentials }) {
 | `UserVideo` | Renders the local user's camera |
 | `ControlBar` | Media control buttons (mic, camera, screen share, end call) |
 | `ScreenShareVideo` | Renders screen share content |
+| `PageActions` | Handles click, scroll, and highlight events from the avatar |
 | `AudioRenderer` | Handles avatar audio playback |
 
 ## TypeScript

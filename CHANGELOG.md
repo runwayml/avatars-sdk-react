@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Page actions** — let the avatar click buttons, scroll to sections, and highlight elements on your page
+- `PageActions` component — drop-in component that subscribes to page-action client events and executes them against the DOM
+- `usePageActions` hook — lower-level hook for custom composition
+- `pageActionTools` — pre-built tool definitions for `click`, `scroll_to`, and `highlight`, ready to spread into `realtimeSessions.create({ tools })`
+- `PageActionEvent` type exported from `@runwayml/avatars-react/api`
+- Default highlight animation in `styles.css` via `[data-avatar-highlighted]` with `prefers-reduced-motion` support
+
+### Changed
+
+- Example dependencies now use the published `@runwayml/avatars-node-rpc` npm package instead of the GitHub source
+
 ## [0.11.0] - 2026-03-30
 
 ### Added

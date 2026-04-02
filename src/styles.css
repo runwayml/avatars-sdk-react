@@ -410,3 +410,28 @@
     animation: none;
   }
 }
+
+/* ─── Page Actions: highlight effect ─── */
+
+[data-avatar-highlighted="true"] {
+  outline: 2px solid oklch(0.65 0.19 250);
+  outline-offset: 2px;
+  border-radius: 4px;
+  animation: avatar-highlight-pulse 1s ease-in-out infinite;
+}
+
+@keyframes avatar-highlight-pulse {
+  0%,
+  100% {
+    outline-color: oklch(0.65 0.19 250 / 0.4);
+  }
+  50% {
+    outline-color: oklch(0.65 0.19 250);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-avatar-highlighted="true"] {
+    animation: none;
+  }
+}

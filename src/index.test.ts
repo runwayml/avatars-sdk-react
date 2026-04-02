@@ -29,6 +29,14 @@ describe('package exports', () => {
     expect(typeof exports.clientTool).toBe('function');
   });
 
+  it('exports page-actions component and hook', async () => {
+    const exports = await import('./index');
+    expect(exports.PageActions).toBeDefined();
+    expect(exports.usePageActions).toBeDefined();
+    expect(typeof exports.PageActions).toBe('function');
+    expect(typeof exports.usePageActions).toBe('function');
+  });
+
   it('exports LiveKit re-exports', async () => {
     const exports = await import('./index');
     expect(exports.VideoTrack).toBeDefined();
@@ -42,5 +50,12 @@ describe('api subpath exports', () => {
     expect(api.clientTool).toBeDefined();
     expect(api.consumeSession).toBeDefined();
     expect(typeof api.clientTool).toBe('function');
+  });
+
+  it('exports pageActionTools from api subpath', async () => {
+    const api = await import('./api/index');
+    expect(api.pageActionTools).toBeDefined();
+    expect(Array.isArray(api.pageActionTools)).toBe(true);
+    expect(api.pageActionTools).toHaveLength(3);
   });
 });
