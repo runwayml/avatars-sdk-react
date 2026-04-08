@@ -1,0 +1,8 @@
+.next/
+node_modules/
+.env
+.env.local
+package-lock.json
+bun.lock
+tsconfig.tsbuildinfo
+next-env.d.ts
