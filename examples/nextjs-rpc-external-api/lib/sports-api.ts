@@ -1,19 +1,34 @@
 const ESPN_BASE = 'https://site.api.espn.com/apis';
 
-type Sport = 'football' | 'basketball' | 'baseball' | 'hockey' | 'soccer';
+type Sport = 'football' | 'american-football' | 'basketball' | 'baseball' | 'hockey';
 type League = 'nfl' | 'nba' | 'mlb' | 'nhl' | 'mls';
 
-const LEAGUE_MAP: Record<string, { sport: Sport; league: League }> = {
-  nfl: { sport: 'football', league: 'nfl' },
+const ESPN_SPORT_PATH: Record<Sport, string> = {
+  'football': 'soccer',
+  'american-football': 'football',
+  'basketball': 'basketball',
+  'baseball': 'baseball',
+  'hockey': 'hockey',
+};
+
+const LEAGUE_MAP: Record<string, { sport: Sport; league: League; espnLeague?: string }> = {
+  nfl: { sport: 'american-football', league: 'nfl' },
   nba: { sport: 'basketball', league: 'nba' },
   mlb: { sport: 'baseball', league: 'mlb' },
   nhl: { sport: 'hockey', league: 'nhl' },
-  mls: { sport: 'soccer', league: 'mls' },
+  mls: { sport: 'football', league: 'mls', espnLeague: 'usa.1' },
 };
 
-function resolveLeague(input: string): { sport: Sport; league: League } | null {
+function resolveLeague(input: string) {
   const key = input.toLowerCase().trim();
-  return LEAGUE_MAP[key] ?? null;
+  const entry = LEAGUE_MAP[key];
+  if (!entry) return null;
+
+  return {
+    ...entry,
+    espnSport: ESPN_SPORT_PATH[entry.sport],
+    espnLeague: entry.espnLeague ?? entry.league,
+  };
 }
 
 async function espnFetch(url: string) {
@@ -36,7 +51,7 @@ export async function getScores(league: string) {
 
   try {
     const data = await espnFetch(
-      `${ESPN_BASE}/site/v2/sports/${resolved.sport}/${resolved.league}/scoreboard`,
+      `${ESPN_BASE}/site/v2/sports/${resolved.espnSport}/${resolved.espnLeague}/scoreboard`,
     );
 
     const events = (data.events ?? []).slice(0, 5).map((event: any) => {
@@ -66,7 +81,7 @@ export async function getStandings(league: string) {
 
   try {
     const data = await espnFetch(
-      `${ESPN_BASE}/v2/sports/${resolved.sport}/${resolved.league}/standings`,
+      `${ESPN_BASE}/v2/sports/${resolved.espnSport}/${resolved.espnLeague}/standings`,
     );
 
     const groups = (data.children ?? []).slice(0, 2).map((group: any) => ({
@@ -90,7 +105,7 @@ export async function getNews(league: string) {
 
   try {
     const data = await espnFetch(
-      `${ESPN_BASE}/site/v2/sports/${resolved.sport}/${resolved.league}/news?limit=3`,
+      `${ESPN_BASE}/site/v2/sports/${resolved.espnSport}/${resolved.espnLeague}/news?limit=3`,
     );
 
     const articles = (data.articles ?? []).map((article: any) => ({
@@ -113,7 +128,7 @@ export async function getLeaders(league: string, season?: string) {
 
   try {
     const data = await espnFetch(
-      `https://sports.core.api.espn.com/v2/sports/${resolved.sport}/leagues/${resolved.league}/seasons/${effectiveSeason}/types/2/leaders?limit=5`,
+      `https://sports.core.api.espn.com/v2/sports/${resolved.espnSport}/leagues/${resolved.espnLeague}/seasons/${effectiveSeason}/types/2/leaders?limit=5`,
     );
 
     const categories = (data.categories ?? []).slice(0, 3).map((cat: any) => ({
