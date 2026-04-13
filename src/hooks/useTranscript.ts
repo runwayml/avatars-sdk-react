@@ -43,10 +43,12 @@ export function useTranscript(
   options?: UseTranscriptOptions,
 ): Array<TranscriptionEntry> {
   const room = useRoomContext();
-  const bufferSize = options?.bufferSize ?? DEFAULT_BUFFER_SIZE;
 
   const interimRef = useRef(options?.interim ?? false);
   interimRef.current = options?.interim ?? false;
+
+  const bufferSizeRef = useRef(options?.bufferSize ?? DEFAULT_BUFFER_SIZE);
+  bufferSizeRef.current = options?.bufferSize ?? DEFAULT_BUFFER_SIZE;
 
   const [entries, setEntries] = useState<Array<TranscriptionEntry>>([]);
   const mapRef = useRef(new Map<string, TranscriptionEntry>());
@@ -75,10 +77,9 @@ export function useTranscript(
       }
 
       if (changed) {
+        const cap = bufferSizeRef.current;
         const values = Array.from(mapRef.current.values());
-        setEntries(
-          values.length > bufferSize ? values.slice(-bufferSize) : values,
-        );
+        setEntries(values.length > cap ? values.slice(-cap) : values);
       }
     }
 
@@ -86,7 +87,7 @@ export function useTranscript(
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, bufferSize]);
+  }, [room]);
 
   return entries;
 }
