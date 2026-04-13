@@ -17,6 +17,8 @@ export { useClientEvents } from './hooks/useClientEvents';
 export { useLocalMedia } from './hooks/useLocalMedia';
 export type { PageActionsOptions } from './hooks/usePageActions';
 export { usePageActions } from './hooks/usePageActions';
+export type { UseTranscriptOptions } from './hooks/useTranscript';
+export { useTranscript } from './hooks/useTranscript';
 export { useTranscription } from './hooks/useTranscription';
 export type { ClientEventsFrom, ClientToolDef } from './tools';
 export { clientTool } from './tools';
