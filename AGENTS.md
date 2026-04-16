@@ -147,3 +147,4 @@ The VM update script installs Bun (via `npm install -g bun`) and runs `bun insta
 - Bun is not pre-installed on the base VM image — the update script handles this via `npm install -g bun`.
 - The `bun run dev` (watch mode) script pre-copies `src/styles.css` to `dist/` because tsup's CSS-only entry silently fails in watch mode. For a clean full build, use `bun run build` instead.
 - No Docker, databases, or external services are required for SDK development. The only external dependency is the `RUNWAYML_API_SECRET` for running examples against the Runway API.
+- **Network restriction:** The Cloud VM blocks outbound HTTPS to `api.dev.runwayml.com`. This means live avatar sessions cannot be created from the example apps. SDK build, lint, typecheck, and tests all work without network access. To allow examples to connect, add `api.dev.runwayml.com` to the cloud agent's Network Access allowlist.
