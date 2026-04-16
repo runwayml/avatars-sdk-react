@@ -19,6 +19,7 @@ describe('package exports', () => {
     expect(exports.useAvatarStatus).toBeDefined();
     expect(exports.useLocalMedia).toBeDefined();
     expect(exports.useTranscription).toBeDefined();
+    expect(exports.useTranscript).toBeDefined();
   });
 
   it('exports client event hooks and helpers', async () => {
