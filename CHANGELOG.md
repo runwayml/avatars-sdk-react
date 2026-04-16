@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `useTranscription` now listens to `RoomEvent.DataReceived` in addition to `RoomEvent.TranscriptionReceived`, so the callback fires regardless of which transport the backend uses ([#13](https://github.com/runwayml/avatars-sdk-react/issues/13))
 - `useTranscript` merges data-channel transcript JSON from `RoomEvent.DataReceived` when `{ mergeDataChannelSegments: true }` (default): LiveKit-style `{ segments: [...] }` and Runway worker `{ type: "transcription", role, turn, text }` streaming deltas (concatenated per role+turn). Set `{ mergeDataChannelSegments: false }` to use only `RoomEvent.TranscriptionReceived`.
 
 ## [0.12.0] - 2026-04-02
