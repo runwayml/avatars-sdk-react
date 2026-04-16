@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-04-15
+
 ### Added
 
 - `AvatarProvider` — headless component that handles credential fetching and session context without rendering a styled container. Use when you need session hooks (`useTranscript`, `useAvatarStatus`, etc.) in components rendered outside the video area (e.g. transcript panels, status indicators). Accepts the same credential props as `AvatarCall` plus a `fallback` prop for the loading state.
