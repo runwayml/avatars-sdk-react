@@ -1,6 +1,7 @@
 export { isTrackReference, VideoTrack } from '@livekit/components-react';
 export { AudioRenderer } from './components/AudioRenderer';
 export { AvatarCall } from './components/AvatarCall';
+export { AvatarProvider } from './components/AvatarProvider';
 export { AvatarSession } from './components/AvatarSession';
 export type { AvatarVideoStatus } from './components/AvatarVideo';
 export { AvatarVideo } from './components/AvatarVideo';
@@ -24,6 +25,7 @@ export type { ClientEventsFrom, ClientToolDef } from './tools';
 export { clientTool } from './tools';
 export type {
   AvatarCallProps,
+  AvatarProviderProps,
   ClientEvent,
   ClientEventHandler,
   MediaDeviceErrors,
