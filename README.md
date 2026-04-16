@@ -62,6 +62,7 @@ See [`examples/`](./examples) for complete working examples:
 - [`nextjs-rpc`](./examples/nextjs-rpc) - Backend RPC + client events (trivia with server-side questions)
 - [`nextjs-rpc-weather`](./examples/nextjs-rpc-weather) - Backend RPC only (weather assistant)
 - [`nextjs-server-actions`](./examples/nextjs-server-actions) - Next.js with Server Actions
+- [`subtitles`](./examples/subtitles) - Live transcription overlay (`useTranscript`)
 - [`react-router`](./examples/react-router) - React Router v7 framework mode
 - [`express`](./examples/express) - Express + Vite
 
@@ -295,7 +296,7 @@ function MediaControls() {
 
 ## Hooks
 
-Use hooks for custom components within an `AvatarCall` or `AvatarSession`. Also available: `useClientEvent` and `useClientEvents` for [client events](#client-events), and `useTranscription` for real-time transcription.
+Use hooks for custom components within an `AvatarCall`, `AvatarProvider`, or `AvatarSession`. Also available: `useClientEvent` and `useClientEvents` for [client events](#client-events), and `useTranscription` for real-time transcription.
 
 ### useAvatarSession
 
@@ -497,6 +498,55 @@ function MyCustomPageActions() {
 }
 ```
 
+## Headless: AvatarProvider
+
+`AvatarProvider` handles credential fetching and session context like `AvatarCall`, but renders **no container element**. This gives you full layout control — place session-aware components (transcripts, status indicators, chat panels) anywhere in the tree without being constrained by the video container's `overflow: hidden`.
+
+```tsx
+import { AvatarProvider, AvatarVideo, ControlBar, useTranscript } from '@runwayml/avatars-react';
+
+function App({ sessionId, sessionKey }) {
+  return (
+    <AvatarProvider
+      avatarId="fashion-designer"
+      sessionId={sessionId}
+      sessionKey={sessionKey}
+      fallback={<div>Connecting...</div>}
+      onEnd={() => console.log('Ended')}
+    >
+      <div className="video-container">
+        <AvatarVideo />
+        <ControlBar />
+      </div>
+      <TranscriptPanel />
+    </AvatarProvider>
+  );
+}
+
+function TranscriptPanel() {
+  const transcript = useTranscript({ interim: true });
+  return (
+    <div className="transcript">
+      {transcript.map((entry) => (
+        <p key={entry.id}>{entry.text}</p>
+      ))}
+    </div>
+  );
+}
+```
+
+Since there's no wrapper element, you'll need to style the video area yourself (aspect ratio, border radius, overflow). See [`examples/subtitles`](./examples/subtitles) for a complete example.
+
+| Prop | Default | Description |
+|------|---------|-------------|
+| `avatarId` | — | The avatar ID to connect to |
+| `sessionId` / `sessionKey` | — | Session credentials (calls consumeSession internally) |
+| `connectUrl` | — | URL to POST `{ avatarId }` to get credentials |
+| `connect` | — | Custom async function to fetch credentials |
+| `fallback` | `null` | Rendered while credentials are loading |
+| `onEnd` | — | Called when the session ends |
+| `onError` | — | Called on error |
+
 ## Advanced: AvatarSession
 
 For full control over session management, use `AvatarSession` directly with pre-fetched credentials:
@@ -524,8 +574,9 @@ function AdvancedUsage({ credentials }) {
 
 | Component | Description |
 |-----------|-------------|
-| `AvatarCall` | High-level component that handles session creation |
-| `AvatarSession` | Low-level wrapper that requires credentials |
+| `AvatarCall` | High-level component that handles session creation and renders a styled container |
+| `AvatarProvider` | Headless provider — same credential handling as `AvatarCall`, no container element |
+| `AvatarSession` | Low-level wrapper that requires pre-fetched credentials |
 | `AvatarVideo` | Renders the remote avatar video |
 | `UserVideo` | Renders the local user's camera |
 | `ControlBar` | Media control buttons (mic, camera, screen share, end call) |
@@ -599,11 +650,11 @@ Drop this into `.cursor/rules/runway-avatars.mdc` (or your project's `AGENTS.md`
 When building with `@runwayml/avatars-react`:
 
 - Session creation requires a server endpoint — never expose `RUNWAYML_API_SECRET` to the client
-- Use `AvatarCall` for quick setup (handles session creation) or `AvatarSession` for full control with pre-fetched credentials
+- Use `AvatarCall` for quick setup (handles session creation), `AvatarProvider` for headless layout control, or `AvatarSession` for full control with pre-fetched credentials
 - Preset avatars use `{ type: 'runway-preset', presetId }`, custom avatars use `{ type: 'custom', avatarId }`
 - Client events require a custom avatar with a **preset voice**; backend RPC tools work with any voice type
 - Import `clientTool` and `pageActionTools` from `@runwayml/avatars-react/api` (server-safe, no React)
-- All hooks (`useAvatarSession`, `useAvatar`, `useLocalMedia`, `useClientEvent`) must be used inside `<AvatarCall>` or `<AvatarSession>`
+- All hooks (`useAvatarSession`, `useAvatar`, `useLocalMedia`, `useClientEvent`) must be used inside `<AvatarCall>`, `<AvatarProvider>`, or `<AvatarSession>`
 - Session states flow: `idle` → `connecting` → `active` → `ending` → `ended` (or `error`)
 - See https://github.com/runwayml/avatars-sdk-react for full documentation and examples
 ````

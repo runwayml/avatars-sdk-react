@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `AvatarProvider` — headless component that handles credential fetching and session context without rendering a styled container. Use when you need session hooks (`useTranscript`, `useAvatarStatus`, etc.) in components rendered outside the video area (e.g. transcript panels, status indicators). Accepts the same credential props as `AvatarCall` plus a `fallback` prop for the loading state.
+
+### Fixed
+
+- `useTranscript` merges data-channel transcript JSON from `RoomEvent.DataReceived` when `{ mergeDataChannelSegments: true }` (default): LiveKit-style `{ segments: [...] }` and Runway worker `{ type: "transcription", role, turn, text }` streaming deltas (concatenated per role+turn). Set `{ mergeDataChannelSegments: false }` to use only `RoomEvent.TranscriptionReceived`.
+
 ## [0.12.0] - 2026-04-02
 
 ### Added

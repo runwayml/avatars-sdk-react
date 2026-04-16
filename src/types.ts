@@ -98,10 +98,9 @@ export interface AvatarSessionProps<E extends ClientEvent = ClientEvent> {
 }
 
 /**
- * Props for the AvatarCall component
+ * Props for the AvatarProvider component (headless, no DOM container)
  */
-export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
-  extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'> {
+export interface AvatarProviderProps<E extends ClientEvent = ClientEvent> {
   /** The avatar ID to connect to */
   avatarId: string;
   /** Session ID (use with sessionKey - package will call consumeSession) */
@@ -120,16 +119,16 @@ export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
   audio?: boolean;
   /** Enable video on connect (default: true) — camera permission is requested but denying it won't block the call */
   video?: boolean;
-  /** Avatar image URL for placeholder/loading states */
-  avatarImageUrl?: string;
   /** Callback when session ends */
   onEnd?: () => void;
   /** Callback when an error occurs */
   onError?: (error: Error) => void;
   /** Callback when a client event is received from the avatar */
   onClientEvent?: ClientEventHandler<E>;
-  /** Custom children - defaults to AvatarVideo + ControlBar if not provided */
+  /** Children rendered once the session is ready */
   children?: React.ReactNode;
+  /** Rendered while credentials are loading (defaults to null) */
+  fallback?: React.ReactNode;
   /**
    * Pre-captured screen share stream (from getDisplayMedia).
    * When provided, screen sharing activates automatically once the session connects.
@@ -140,6 +139,16 @@ export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
    * @internal
    */
   __unstable_roomOptions?: import('livekit-client').RoomOptions;
+}
+
+/**
+ * Props for the AvatarCall component
+ */
+export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
+  extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'>,
+    Omit<AvatarProviderProps<E>, 'fallback'> {
+  /** Avatar image URL for placeholder/loading states */
+  avatarImageUrl?: string;
 }
 
 /**
