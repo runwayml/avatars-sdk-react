@@ -251,6 +251,11 @@ export interface TranscriptionEntry {
   final: boolean;
   /** Identity of the participant who spoke */
   participantIdentity: string;
+  /**
+   * Transport for this segment: LiveKit `TranscriptionReceived` (native), or
+   * transcript JSON over `DataReceived` (custom data channel).
+   */
+  channel?: 'native' | 'custom';
 }
 
 /**

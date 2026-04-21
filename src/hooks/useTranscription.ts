@@ -5,6 +5,7 @@ import type { Participant, TranscriptionSegment } from 'livekit-client';
 import { RoomEvent } from 'livekit-client';
 import { useEffect, useRef } from 'react';
 import type { TranscriptionHandler } from '../types';
+import { FlatDeltaAccumulator } from '../utils/flatDeltaAccumulator';
 import {
   tryDecodeJSON,
   tryParseFlatDelta,
@@ -20,7 +21,12 @@ import {
  *
  * Listens to both native `RoomEvent.TranscriptionReceived` and data-channel
  * JSON (`RoomEvent.DataReceived`) so transcripts work regardless of which
- * transport the backend uses.
+ * transport the backend uses. Each callback entry includes `channel`: `native`
+ * or `custom` accordingly.
+ *
+ * For Runway flat-delta transcripts (custom channel), the active turn is
+ * always interim and only delivered when `interim: true`. A prior turn is
+ * delivered once as `final: true` when a new turn on the same role begins.
  *
  * Must be used within an AvatarSession, AvatarProvider, or AvatarCall component.
  *
@@ -46,10 +52,10 @@ export function useTranscription(
   const interimRef = useRef(options?.interim ?? false);
   interimRef.current = options?.interim ?? false;
 
-  const flatAccRef = useRef(new Map<string, string>());
+  const flatAccRef = useRef(new FlatDeltaAccumulator());
 
   useEffect(() => {
-    flatAccRef.current.clear();
+    flatAccRef.current.reset();
 
     function handleTranscription(
       segments: Array<TranscriptionSegment>,
@@ -63,6 +69,7 @@ export function useTranscription(
           text: segment.text,
           final: segment.final,
           participantIdentity: identity,
+          channel: 'native',
         });
       }
     }
@@ -78,24 +85,24 @@ export function useTranscription(
       if (segments) {
         for (const entry of segments) {
           if (!interimRef.current && !entry.final) continue;
-          handlerRef.current(entry);
+          handlerRef.current({ ...entry, channel: 'custom' });
         }
         return;
       }
 
       const delta = tryParseFlatDelta(json);
-      if (delta) {
-        const identity = participant?.identity ?? 'unknown';
-        const accKey = `runway-transcription-${delta.role}-${delta.turn}`;
-        const prev = flatAccRef.current.get(accKey) ?? '';
-        const nextText = prev + delta.textDelta;
-        flatAccRef.current.set(accKey, nextText);
-        handlerRef.current({
-          id: accKey,
-          text: nextText,
-          final: false,
-          participantIdentity: identity,
-        });
+      if (!delta) return;
+
+      const identity = participant?.identity ?? 'unknown';
+      const { finalized, active } = flatAccRef.current.ingest(delta, identity);
+
+      for (const turn of finalized) {
+        handlerRef.current({ ...turn, final: true, channel: 'custom' });
+      }
+
+      // Active turn is still streaming — only emit when caller opted in.
+      if (interimRef.current) {
+        handlerRef.current({ ...active, final: false, channel: 'custom' });
       }
     }
 
