@@ -21,8 +21,24 @@ export { usePageActions } from './hooks/usePageActions';
 export type { UseTranscriptOptions } from './hooks/useTranscript';
 export { useTranscript } from './hooks/useTranscript';
 export { useTranscription } from './hooks/useTranscription';
-export type { ClientEventsFrom, ClientToolDef } from './tools';
-export { clientTool } from './tools';
+export type {
+  InferSchemaInput,
+  InferSchemaOutput,
+  StandardSchemaIssue,
+  StandardSchemaResult,
+  StandardSchemaV1,
+} from './standard-schema';
+export type {
+  ClientEventFromTool,
+  ClientEventsFrom,
+  ClientToolArgs,
+  ClientToolDef,
+} from './tools';
+export {
+  clientTool,
+  getClientToolSchema,
+  validateClientToolArgs,
+} from './tools';
 export type {
   AvatarCallProps,
   AvatarProviderProps,

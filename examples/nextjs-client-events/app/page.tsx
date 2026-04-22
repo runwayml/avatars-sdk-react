@@ -12,7 +12,8 @@ import {
   useTranscription,
 } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
-import type { TriviaEvent } from '@/lib/avatar-tools';
+import type { ClientToolArgs } from '@runwayml/avatars-react/api';
+import { nextStep, type TriviaEvent } from '@/lib/avatar-tools';
 import { ScoreHud, QuestionCard, ResultBanner, EventLog, type EventLogEntry } from './trivia-overlay';
 
 const AVATAR_ID = process.env.NEXT_PUBLIC_AVATAR_ID!;
@@ -87,7 +88,7 @@ function fireConfetti(canvas: HTMLCanvasElement) {
 
 let nextEventId = 0;
 
-type NextStepArgs = Extract<TriviaEvent, { tool: 'next_step' }>['args'];
+type NextStepArgs = ClientToolArgs<typeof nextStep>;
 
 function TriviaGame(props: {
   session: { sessionId: string; sessionKey: string };
@@ -159,7 +160,7 @@ function TriviaEventHandlers(props: {
   onEvent: (tool: string, args: Record<string, unknown>) => void;
   onTranscript: (entry: { participantIdentity: string; text: string }) => void;
 }) {
-  useClientEvent<TriviaEvent, 'next_step'>('next_step', props.onNextStep);
+  useClientEvent(nextStep, props.onNextStep);
   useClientEvents<TriviaEvent>((event) => {
     props.onEvent(event.tool, event.args as Record<string, unknown>);
   });

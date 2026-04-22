@@ -1,5 +1,21 @@
-export type { ClientEventsFrom, ClientToolDef } from '../tools';
-export { clientTool } from '../tools';
+export type {
+  InferSchemaInput,
+  InferSchemaOutput,
+  StandardSchemaIssue,
+  StandardSchemaResult,
+  StandardSchemaV1,
+} from '../standard-schema';
+export type {
+  ClientEventFromTool,
+  ClientEventsFrom,
+  ClientToolArgs,
+  ClientToolDef,
+} from '../tools';
+export {
+  clientTool,
+  getClientToolSchema,
+  validateClientToolArgs,
+} from '../tools';
 export type {
   ClientEvent,
   ConsumeSessionOptions,

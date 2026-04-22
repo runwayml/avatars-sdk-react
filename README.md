@@ -358,15 +358,16 @@ function MediaControls() {
 
 > **Compatibility:** Client events (tool calling) are supported on avatars that use a **preset voice**. Custom voice avatars do not currently support client events.
 
-Avatars can trigger UI events via tool calls sent over the data channel. Define tools, pass them when creating a session, and subscribe on the client:
+Avatars can trigger UI events via tool calls sent over the data channel. Define tools with a [Standard Schema](https://standardschema.dev/) (Zod, Valibot, ArkType, …), pass them when creating a session, and subscribe on the client:
 
 ```ts
 // lib/tools.ts — shared between server and client
 import { clientTool, type ClientEventsFrom } from '@runwayml/avatars-react/api';
+import { z } from 'zod';
 
 export const showCaption = clientTool('show_caption', {
   description: 'Display a caption overlay',
-  args: {} as { text: string },
+  schema: z.object({ text: z.string() }),
 });
 
 export const tools = [showCaption];
@@ -385,12 +386,22 @@ const { id } = await client.realtimeSessions.create({
 ```tsx
 // Client — subscribe to events inside AvatarCall
 import { useClientEvent } from '@runwayml/avatars-react';
-import type { MyEvent } from '@/lib/tools';
+import { showCaption } from '@/lib/tools';
 
 function CaptionOverlay() {
-  const caption = useClientEvent<MyEvent, 'show_caption'>('show_caption');
+  // args is inferred as { text: string } and validated at runtime
+  const caption = useClientEvent(showCaption);
   return caption ? <p>{caption.text}</p> : null;
 }
+```
+
+Passing a tool definition to `useClientEvent()` runs incoming args through the schema before updating state — malformed events are dropped instead of crashing your UI. If you don't need runtime validation, the legacy `args: {} as { ... }` cast still works:
+
+```ts
+export const showCaption = clientTool('show_caption', {
+  description: 'Display a caption overlay',
+  args: {} as { text: string },
+});
 ```
 
 See the [`nextjs-client-events`](./examples/nextjs-client-events) example for a full working demo.
