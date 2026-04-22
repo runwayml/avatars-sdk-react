@@ -152,7 +152,13 @@ function Subtitles() {
   const avatar = useAvatarStatus();
   const transcript = useTranscript({ interim: true });
 
-  if (avatar.status !== 'ready' || transcript.length === 0) return null;
+  if (
+    avatar.status === 'ended' ||
+    avatar.status === 'error' ||
+    transcript.length === 0
+  ) {
+    return null;
+  }
 
   return (
     <div className="subtitles">

@@ -5,6 +5,7 @@ import type { Participant, TranscriptionSegment } from 'livekit-client';
 import { RoomEvent } from 'livekit-client';
 import { useEffect, useRef, useState } from 'react';
 import type { TranscriptionEntry } from '../types';
+import { FlatDeltaAccumulator } from '../utils/flatDeltaAccumulator';
 import {
   tryDecodeJSON,
   tryParseFlatDelta,
@@ -19,8 +20,11 @@ export interface UseTranscriptOptions {
   /**
    * Also merge transcript JSON from `RoomEvent.DataReceived` (data channel).
    * Covers LiveKit-style `{ segments: [{ id, text, … }] }` and Runway worker
-   * `{ type: "transcription", role, turn, text }` streaming deltas (concatenated
-   * per role+turn). Default: `true`.
+   * `{ type: "transcription", role, turn, text }` streaming deltas
+   * (concatenated per role+turn). When a new turn starts on the same role,
+   * the prior turn is promoted to `final: true`. The active (streaming) turn
+   * is always interim and only surfaced when `interim: true`.
+   * Default: `true`.
    */
   mergeDataChannelSegments?: boolean;
 }
@@ -34,6 +38,9 @@ const DEFAULT_BUFFER_SIZE = 100;
  * final), the existing entry is updated in-place rather than duplicated.
  * The returned array is capped at `bufferSize` (default 100) most-recent
  * entries to prevent unbounded growth in long sessions.
+ *
+ * Each entry includes `channel`: `native` for LiveKit `TranscriptionReceived`,
+ * or `custom` for transcript JSON on `DataReceived`.
  *
  * Must be used within an AvatarSession or AvatarCall component.
  *
@@ -67,12 +74,12 @@ export function useTranscript(
 
   const [entries, setEntries] = useState<Array<TranscriptionEntry>>([]);
   const mapRef = useRef(new Map<string, TranscriptionEntry>());
-  const runwayFlatAccRef = useRef(new Map<string, string>());
+  const flatAccRef = useRef(new FlatDeltaAccumulator());
 
   useEffect(() => {
     mapRef.current = new Map();
     setEntries([]);
-    runwayFlatAccRef.current.clear();
+    flatAccRef.current.reset();
 
     function flushMap() {
       const cap = bufferSizeRef.current;
@@ -95,6 +102,7 @@ export function useTranscript(
           text: segment.text,
           final: segment.final,
           participantIdentity: identity,
+          channel: 'native',
         });
         changed = true;
       }
@@ -113,7 +121,7 @@ export function useTranscript(
         let changed = false;
         for (const entry of segments) {
           if (!interimRef.current && !entry.final) continue;
-          mapRef.current.set(entry.id, entry);
+          mapRef.current.set(entry.id, { ...entry, channel: 'custom' });
           changed = true;
         }
         if (changed) flushMap();
@@ -121,20 +129,29 @@ export function useTranscript(
       }
 
       const delta = tryParseFlatDelta(json);
-      if (delta) {
-        const identity = participant?.identity ?? 'unknown';
-        const accKey = `runway-transcription-${delta.role}-${delta.turn}`;
-        const prev = runwayFlatAccRef.current.get(accKey) ?? '';
-        const nextText = prev + delta.textDelta;
-        runwayFlatAccRef.current.set(accKey, nextText);
-        mapRef.current.set(accKey, {
-          id: accKey,
-          text: nextText,
-          final: false,
-          participantIdentity: identity,
-        });
-        flushMap();
+      if (!delta) return;
+
+      const identity = participant?.identity ?? 'unknown';
+      const { finalized, active } = flatAccRef.current.ingest(delta, identity);
+
+      let changed = false;
+      for (const turn of finalized) {
+        mapRef.current.set(turn.id, { ...turn, final: true, channel: 'custom' });
+        changed = true;
       }
+
+      // The active turn is still streaming, so it's always interim — only
+      // surface it when the caller opted in with `interim: true`.
+      if (interimRef.current) {
+        mapRef.current.set(active.id, {
+          ...active,
+          final: false,
+          channel: 'custom',
+        });
+        changed = true;
+      }
+
+      if (changed) flushMap();
     }
 
     room.on(RoomEvent.TranscriptionReceived, handleTranscription);
