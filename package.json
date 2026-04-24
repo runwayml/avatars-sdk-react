@@ -47,8 +47,8 @@
     "dev": "mkdir -p dist && cp src/styles.css dist/styles.css && tsup --watch",
     "build": "bun run clean && tsup",
     "clean": "rm -rf dist",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "lint": "biome lint src/",
     "lint:fix": "biome lint --write src/",
     "format": "biome format --write src/",
@@ -98,7 +98,6 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.4.0",
-    "vitest": "^4.0.0"
+    "typescript": "^5.4.0"
   }
 }
