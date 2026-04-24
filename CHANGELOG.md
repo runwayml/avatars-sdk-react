@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-04-24
+
 ### Added
 
 - **Standard Schema support for client tools** — `clientTool()` now accepts a `schema` option implementing [Standard Schema v1](https://standardschema.dev/) (Zod, Valibot, ArkType, etc.). The schema drives both the inferred `args` type and runtime validation of incoming client events — no more `args: {} as { ... }` cast
