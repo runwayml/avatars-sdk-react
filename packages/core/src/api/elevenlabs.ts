@@ -7,6 +7,7 @@ const API_VERSION = '2024-11-06';
 
 const POLL_INTERVAL_MS = 1_000;
 const POLL_TIMEOUT_MS = 30_000;
+const TERMINAL_STATUSES = new Set(['COMPLETED', 'FAILED', 'CANCELLED']);
 
 export interface CreateElevenLabsSessionOptions {
   /** Runway API secret (Bearer token). */
@@ -101,7 +102,7 @@ export async function createElevenLabsSession(
       return { sessionId, sessionKey: session.sessionKey };
     }
 
-    if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(session.status)) {
+    if (TERMINAL_STATUSES.has(session.status)) {
       throw new Error(
         `Session ${session.status.toLowerCase()} before becoming ready`,
       );

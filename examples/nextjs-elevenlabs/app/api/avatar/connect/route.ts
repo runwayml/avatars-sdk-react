@@ -6,7 +6,6 @@ export async function POST() {
     avatarId: process.env.RUNWAY_AVATAR_ID!,
     elevenLabsApiKey: process.env.ELEVENLABS_API_KEY!,
     agentId: process.env.ELEVENLABS_AGENT_ID!,
-    baseUrl: process.env.RUNWAYML_BASE_URL,
   });
 
   return Response.json({ sessionId, sessionKey });

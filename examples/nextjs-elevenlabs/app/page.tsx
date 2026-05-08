@@ -74,7 +74,6 @@ export default function Home() {
                 <AvatarCall
                   sessionId={session.sessionId}
                   sessionKey={session.sessionKey}
-                  baseUrl={process.env.NEXT_PUBLIC_RUNWAYML_BASE_URL}
                   onEnd={closeModal}
                   onError={console.error}
                 />
