@@ -1,7 +1,4 @@
-import {
-  createElevenLabsSession,
-  consumeSession,
-} from '@runwayml/avatars-react/api';
+import { createElevenLabsSession } from '@runwayml/avatars-react/api';
 
 export async function POST() {
   const { sessionId, sessionKey } = await createElevenLabsSession({
@@ -9,9 +6,8 @@ export async function POST() {
     avatarId: process.env.RUNWAY_AVATAR_ID!,
     elevenLabsApiKey: process.env.ELEVENLABS_API_KEY!,
     agentId: process.env.ELEVENLABS_AGENT_ID!,
+    baseUrl: process.env.RUNWAYML_BASE_URL,
   });
 
-  const credentials = await consumeSession({ sessionId, sessionKey });
-
-  return Response.json(credentials);
+  return Response.json({ sessionId, sessionKey });
 }

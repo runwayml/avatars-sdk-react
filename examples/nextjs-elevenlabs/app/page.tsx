@@ -4,20 +4,19 @@ import { useCallback, useEffect, useState, Suspense } from 'react';
 import { AvatarCall } from '@runwayml/avatars-react';
 import '@runwayml/avatars-react/styles.css';
 
-interface Credentials {
-  url: string;
-  token: string;
-  roomName: string;
+interface SessionInfo {
+  sessionId: string;
+  sessionKey: string;
 }
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
-  const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const [session, setSession] = useState<SessionInfo | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
-    setCredentials(null);
+    setSession(null);
     setIsCreating(false);
   }, []);
 
@@ -27,7 +26,7 @@ export default function Home() {
     try {
       const res = await fetch('/api/avatar/connect', { method: 'POST' });
       if (!res.ok) throw new Error(`Failed: ${res.status}`);
-      setCredentials(await res.json());
+      setSession(await res.json());
     } catch (err) {
       console.error(err);
       setIsCreating(false);
@@ -70,10 +69,12 @@ export default function Home() {
                 <CloseIcon aria-hidden="true" />
               </button>
             </div>
-            {credentials ? (
+            {session ? (
               <Suspense fallback={<div className="modal-loading">Connecting...</div>}>
                 <AvatarCall
-                  credentials={credentials}
+                  sessionId={session.sessionId}
+                  sessionKey={session.sessionKey}
+                  baseUrl={process.env.NEXT_PUBLIC_RUNWAYML_BASE_URL}
                   onEnd={closeModal}
                   onError={console.error}
                 />
