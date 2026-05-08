@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-05-08
+
+### Fixed
+
+- `connectUrl` and `connect` now work when the server returns `{ sessionId, sessionKey }` — the SDK automatically calls the consume endpoint to get WebRTC credentials instead of passing undefined values to LiveKit (which caused silent disconnects with no error)
+
+### Added
+
+- `ConnectResponse` and `SessionKeyResponse` types — `connectUrl` and `connect` now formally accept either `{ sessionId, serverUrl, token, roomName }` (pre-consumed) or `{ sessionId, sessionKey }` (SDK consumes automatically)
+
 ## [0.14.0] - 2026-04-24
 
 ### Added
