@@ -85,7 +85,14 @@ This flow keeps your API secret secure on the server while enabling low-latency 
 
 ## Server Setup
 
-Your server endpoint receives the `avatarId` and returns session credentials. Use `@runwayml/sdk` to create and poll the session:
+Your server endpoint receives the `avatarId` and returns session credentials. The SDK accepts two response shapes:
+
+| Shape | What you return | What happens |
+|-------|----------------|--------------|
+| `{ sessionId, sessionKey }` | Simple — just forward the session key | SDK calls the consume endpoint for you (extra client-side request) |
+| `{ sessionId, serverUrl, token, roomName }` | Optimal — call `/v1/realtime_sessions/{id}/consume` server-side | SDK connects directly (no extra round trip) |
+
+The simplest approach — return `sessionId` and `sessionKey`:
 
 ```ts
 // /api/avatar/connect (Next.js App Router example)

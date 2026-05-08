@@ -42,6 +42,30 @@ export interface SessionCredentials {
 }
 
 /**
+ * Session key response from a server endpoint.
+ *
+ * When a `connectUrl` or `connect` function returns this shape instead of
+ * full {@link SessionCredentials}, the SDK automatically calls the consume
+ * endpoint to exchange the key for WebRTC credentials.
+ */
+export interface SessionKeyResponse {
+  /** Unique session identifier */
+  sessionId: string;
+  /** Session key (from the Runway API when the session reaches READY) */
+  sessionKey: string;
+}
+
+/**
+ * Valid return types from a `connectUrl` endpoint or `connect` function.
+ *
+ * - {@link SessionCredentials} — pre-consumed WebRTC credentials (optimal,
+ *   avoids an extra client-side round trip).
+ * - {@link SessionKeyResponse} — the SDK calls the consume endpoint
+ *   automatically (simpler server code, extra client-side request).
+ */
+export type ConnectResponse = SessionCredentials | SessionKeyResponse;
+
+/**
  * Options for consuming a session from the Runway API
  */
 export interface ConsumeSessionOptions {
@@ -109,10 +133,10 @@ export interface AvatarProviderProps<E extends ClientEvent = ClientEvent> {
   sessionKey?: string;
   /** Pre-fetched credentials (for advanced users who called consumeSession themselves) */
   credentials?: SessionCredentials;
-  /** URL to POST { avatarId } to get SessionCredentials */
+  /** URL to POST { avatarId } to get a {@link ConnectResponse} */
   connectUrl?: string;
-  /** Custom function to fetch SessionCredentials */
-  connect?: (avatarId: string) => Promise<SessionCredentials>;
+  /** Custom function returning {@link ConnectResponse} (either full credentials or { sessionId, sessionKey }) */
+  connect?: (avatarId: string) => Promise<ConnectResponse>;
   /** Base URL for the Runway API (defaults to https://api.dev.runwayml.com) */
   baseUrl?: string;
   /** Enable audio on connect (default: true) */
