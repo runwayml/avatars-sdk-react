@@ -1,0 +1,63 @@
+{
+  "name": "@runwayml/avatars",
+  "version": "0.1.0",
+  "description": "Framework-agnostic SDK for real-time AI avatar interactions",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./api": {
+      "import": {
+        "types": "./dist/api.d.ts",
+        "default": "./dist/api.js"
+      },
+      "require": {
+        "types": "./dist/api.d.cts",
+        "default": "./dist/api.cjs"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "api": ["./dist/api.d.ts"]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint src/",
+    "test": "bun test"
+  },
+  "keywords": [
+    "runwayml",
+    "avatar",
+    "ai",
+    "realtime",
+    "gwm-1",
+    "video",
+    "webrtc",
+    "streaming"
+  ],
+  "author": "RunwayML",
+  "license": "MIT",
+  "dependencies": {
+    "livekit-client": "^2.17.0"
+  }
+}

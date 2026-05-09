@@ -4,17 +4,33 @@
   "workspaces": {
     "": {
       "name": "@runwayml/avatars-react",
-      "dependencies": {
-        "@livekit/components-react": "^2.9.19",
-        "livekit-client": "^2.17.0",
-      },
       "devDependencies": {
         "@biomejs/biome": "^2.3.13",
         "@types/bun": "^1.3.7",
         "@types/jsdom": "^28.0.1",
+        "jsdom": "^29.0.1",
+        "tsup": "^8.0.0",
+        "typescript": "^5.4.0",
+      },
+    },
+    "packages/core": {
+      "name": "@runwayml/avatars",
+      "version": "0.1.0",
+      "dependencies": {
+        "livekit-client": "^2.17.0",
+      },
+    },
+    "packages/react": {
+      "name": "@runwayml/avatars-react",
+      "version": "0.15.0",
+      "dependencies": {
+        "@livekit/components-react": "^2.9.19",
+        "@runwayml/avatars": "workspace:*",
+        "livekit-client": "^2.17.0",
+      },
+      "devDependencies": {
         "@types/react": "^18.3.0",
         "@types/react-dom": "^18.3.0",
-        "jsdom": "^29.0.1",
         "react": "^18.3.0",
         "react-dom": "^18.3.0",
         "tsup": "^8.0.0",
@@ -192,6 +208,10 @@
     "@rollup/rollup-win32-x64-gnu": ["@rollup/rollup-win32-x64-gnu@4.59.0", "", { "os": "win32", "cpu": "x64" }, "sha512-laBkYlSS1n2L8fSo1thDNGrCTQMmxjYY5G0WFWjFFYZkKPjsMBsgJfGf4TLxXrF6RyhI60L8TMOjBMvXiTcxeA=="],
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.59.0", "", { "os": "win32", "cpu": "x64" }, "sha512-2HRCml6OztYXyJXAvdDXPKcawukWY2GpR5/nxKp4iBgiO3wcoEGkAaqctIbZcNB6KlUQBIqt8VYkNSj2397EfA=="],
+
+    "@runwayml/avatars": ["@runwayml/avatars@workspace:packages/core"],
+
+    "@runwayml/avatars-react": ["@runwayml/avatars-react@workspace:packages/react"],
 
     "@types/bun": ["@types/bun@1.3.10", "", { "dependencies": { "bun-types": "1.3.10" } }, "sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ=="],
 

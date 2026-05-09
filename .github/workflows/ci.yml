@@ -36,8 +36,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Check types
-        run: bun run typecheck
+      - name: Build core (needed for react typecheck)
+        run: cd packages/core && bun run build
+
+      - name: Check types (core)
+        run: cd packages/core && bun run typecheck
+
+      - name: Check types (react)
+        run: cd packages/react && bun run typecheck
 
   build:
     name: Build
@@ -52,8 +58,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build package
-        run: bun run build
+      - name: Build core
+        run: cd packages/core && bun run build
+
+      - name: Build react
+        run: cd packages/react && bun run build
 
   test:
     name: Test
@@ -68,5 +77,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Build core (needed for react tests)
+        run: cd packages/core && bun run build
+
       - name: Run tests
-        run: bun test
+        run: bun test packages/
