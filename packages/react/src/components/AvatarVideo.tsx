@@ -1,44 +1,51 @@
 'use client';
 
-import { isTrackReference, VideoTrack } from '@livekit/components-react';
-import type { ComponentPropsWithoutRef, ReactNode } from 'react';
-import { type AvatarStatus, useAvatarStatus } from '../hooks/useAvatarStatus';
+import { useEffect, useRef } from 'react';
+import { useAvatar } from '../hooks/useAvatar';
 
-/** Subset of AvatarStatus relevant to the video display */
-export type AvatarVideoStatus = Extract<
-  AvatarStatus,
-  { status: 'connecting' } | { status: 'waiting' } | { status: 'ready' }
->;
+export type AvatarVideoStatus = 'connecting' | 'waiting' | 'ready';
 
-export interface AvatarVideoProps
-  extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
-  children?: (status: AvatarVideoStatus) => ReactNode;
+interface RenderProps {
+  status: AvatarVideoStatus;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function AvatarVideo({ children, ...props }: AvatarVideoProps) {
-  const avatar = useAvatarStatus();
+export function AvatarVideo({
+  children,
+}: {
+  children?: (avatar: RenderProps) => React.ReactNode;
+}) {
+  const { videoTrack, hasVideo } = useAvatar();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const videoStatus: AvatarVideoStatus =
-    avatar.status === 'ready'
-      ? avatar
-      : avatar.status === 'connecting'
-        ? { status: 'connecting' }
-        : { status: 'waiting' };
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !videoTrack) return;
+
+    el.srcObject = new MediaStream([videoTrack]);
+    el.play().catch(() => {});
+
+    return () => {
+      el.srcObject = null;
+    };
+  }, [videoTrack]);
+
+  const status: AvatarVideoStatus = !videoTrack
+    ? 'connecting'
+    : !hasVideo
+      ? 'waiting'
+      : 'ready';
 
   if (children) {
-    return <>{children(videoStatus)}</>;
+    return <>{children({ status, videoRef })}</>;
   }
 
   return (
-    <div
-      {...props}
-      data-avatar-video=""
-      data-avatar-status={videoStatus.status}
-    >
-      {videoStatus.status === 'ready' &&
-        isTrackReference(videoStatus.videoTrackRef) && (
-          <VideoTrack trackRef={videoStatus.videoTrackRef} />
-        )}
-    </div>
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    />
   );
 }

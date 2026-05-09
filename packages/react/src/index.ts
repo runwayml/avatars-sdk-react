@@ -1,4 +1,3 @@
-export { isTrackReference, VideoTrack } from '@livekit/components-react';
 export { AudioRenderer } from './components/AudioRenderer';
 export { AvatarCall } from './components/AvatarCall';
 export { AvatarProvider } from './components/AvatarProvider';
@@ -22,34 +21,30 @@ export type { UseTranscriptOptions } from './hooks/useTranscript';
 export { useTranscript } from './hooks/useTranscript';
 export { useTranscription } from './hooks/useTranscription';
 
-// Re-export core types and utilities so React users don't need to install @runwayml/avatars separately
+// Re-export core types and utilities
 export type {
-  InferSchemaInput,
-  InferSchemaOutput,
-  StandardSchemaIssue,
-  StandardSchemaResult,
-  StandardSchemaV1,
-} from '@runwayml/avatars';
-export type {
+  ClientEvent,
   ClientEventFromTool,
+  ClientEventHandler,
   ClientEventsFrom,
   ClientToolArgs,
   ClientToolDef,
+  ConnectResponse,
+  InferSchemaInput,
+  InferSchemaOutput,
+  SessionCredentials,
+  SessionKeyResponse,
+  SessionState,
+  StandardSchemaIssue,
+  StandardSchemaResult,
+  StandardSchemaV1,
+  TranscriptionEntry,
+  TranscriptionHandler,
 } from '@runwayml/avatars';
 export {
   clientTool,
   getClientToolSchema,
   validateClientToolArgs,
-} from '@runwayml/avatars';
-export type {
-  ClientEvent,
-  ClientEventHandler,
-  ConnectResponse,
-  SessionCredentials,
-  SessionKeyResponse,
-  SessionState,
-  TranscriptionEntry,
-  TranscriptionHandler,
 } from '@runwayml/avatars';
 
 // React-specific types

@@ -38,10 +38,11 @@ describe('package exports', () => {
     expect(typeof exports.usePageActions).toBe('function');
   });
 
-  it('exports LiveKit re-exports', async () => {
+  it('exports core SDK utilities', async () => {
     const exports = await import('./index');
-    expect(exports.VideoTrack).toBeDefined();
-    expect(exports.isTrackReference).toBeDefined();
+    expect(exports.clientTool).toBeDefined();
+    expect(exports.validateClientToolArgs).toBeDefined();
+    expect(exports.getClientToolSchema).toBeDefined();
   });
 });
 

@@ -1,91 +1,56 @@
 'use client';
 
-import { useRoomContext } from '@livekit/components-react';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
 import {
-  type ClientToolArgs,
+  type ClientEvent,
   type ClientToolDef,
   validateClientToolArgs,
 } from '@runwayml/avatars';
-import { parseClientEvent, type ClientEvent } from '@runwayml/avatars';
+import { useEffect, useRef, useState } from 'react';
+import { useMaybeCoreSession } from '../components/AvatarSession';
 
 type EventArgs<E extends ClientEvent, T extends E['tool']> = Extract<
   E,
   { tool: T }
 >['args'];
 
-/**
- * Subscribe to a single client event type.
- *
- * Returns the latest args as React state (`null` before the first event),
- * and optionally fires a callback on each event for side effects.
- *
- * Must be used within an AvatarSession or AvatarCall component.
- *
- * Accepts either a tool name (legacy, with explicit event type param) or
- * a `clientTool()` definition — the definition form infers args from the
- * tool and runtime-validates them via the tool's Standard Schema when
- * present.
- *
- * @example Tool definition (recommended)
- * ```tsx
- * import { z } from 'zod';
- * const showCaption = clientTool('show_caption', {
- *   description: 'Display a caption',
- *   schema: z.object({ text: z.string() }),
- * });
- *
- * // args is inferred as { text: string } and validated at runtime
- * const caption = useClientEvent(showCaption, (args) => {
- *   console.log(args.text);
- * });
- * ```
- *
- * @example Tool name (legacy)
- * ```tsx
- * const score = useClientEvent<TriviaEvent, 'update_score'>('update_score');
- * ```
- */
-export function useClientEvent<Tool extends ClientToolDef>(
-  tool: Tool,
-  onEvent?: (args: ClientToolArgs<Tool>) => void,
-): ClientToolArgs<Tool> | null;
-export function useClientEvent<E extends ClientEvent, T extends E['tool']>(
-  toolName: T,
+export function useClientEvent<
+  E extends ClientEvent = ClientEvent,
+  T extends E['tool'] = E['tool'],
+>(
+  toolOrDef: T | ClientToolDef<T, EventArgs<E, T>>,
   onEvent?: (args: EventArgs<E, T>) => void,
-): EventArgs<E, T> | null;
-export function useClientEvent(
-  toolOrName: string | ClientToolDef,
-  onEvent?: (args: unknown) => void,
-): unknown {
-  const room = useRoomContext();
-  const [state, setState] = useState<unknown>(null);
+): EventArgs<E, T> | null {
+  const session = useMaybeCoreSession();
+  const [latestArgs, setLatestArgs] = useState<EventArgs<E, T> | null>(null);
   const onEventRef = useRef(onEvent);
   onEventRef.current = onEvent;
 
-  const tool = typeof toolOrName === 'string' ? null : toolOrName;
-  const toolName = typeof toolOrName === 'string' ? toolOrName : toolOrName.name;
+  const toolDef =
+    typeof toolOrDef === 'object' && toolOrDef !== null && 'name' in toolOrDef
+      ? (toolOrDef as ClientToolDef)
+      : null;
+  const toolName = toolDef ? toolDef.name : (toolOrDef as string);
 
   useEffect(() => {
-    function handleDataReceived(payload: Uint8Array) {
-      const event = parseClientEvent(payload);
-      if (!event || event.tool !== toolName) return;
+    if (!session) return;
 
-      const args = tool
-        ? validateClientToolArgs(tool, event.args)
-        : event.args;
-      if (args === null) return;
+    const unsub = session.onClientEvent<T, EventArgs<E, T>>(
+      toolName as T,
+      (args) => {
+        if (toolDef) {
+          const validated = validateClientToolArgs(toolDef, args);
+          if (validated === null) return;
+          setLatestArgs(validated as EventArgs<E, T>);
+          onEventRef.current?.(validated as EventArgs<E, T>);
+        } else {
+          setLatestArgs(args);
+          onEventRef.current?.(args);
+        }
+      },
+    );
 
-      setState(args);
-      onEventRef.current?.(args);
-    }
+    return unsub;
+  }, [session, toolName, toolDef]);
 
-    room.on(RoomEvent.DataReceived, handleDataReceived);
-    return () => {
-      room.off(RoomEvent.DataReceived, handleDataReceived);
-    };
-  }, [room, tool, toolName]);
-
-  return state;
+  return latestArgs;
 }

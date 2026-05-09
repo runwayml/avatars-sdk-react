@@ -1,33 +1,13 @@
 'use client';
 
-/**
- * AvatarProvider Component
- *
- * Headless provider that handles credential fetching and session context
- * without rendering any styled container. Use this when you need session
- * hooks (useAvatarStatus, useTranscript, etc.) in components rendered
- * outside the video area.
- *
- * For a ready-made UI container, use AvatarCall instead.
- *
- * @example
- * ```tsx
- * <AvatarProvider avatarId="fashion-designer" sessionId={id} sessionKey={key}>
- *   <div className="video-area">
- *     <AvatarVideo />
- *     <ControlBar />
- *   </div>
- *   <TranscriptPanel />  // hooks work here — no portal needed
- * </AvatarProvider>
- * ```
- */
-
+import type { ClientEvent } from '@runwayml/avatars';
+import type { AvatarProviderProps } from '../types';
 import { useCredentials } from '../hooks/useCredentials';
-import { useLatest } from '../hooks/useLatest';
-import type { AvatarProviderProps, ClientEvent } from '../types';
 import { AvatarSession } from './AvatarSession';
 
 export function AvatarProvider<E extends ClientEvent = ClientEvent>({
+  children,
+  fallback = null,
   avatarId,
   sessionId,
   sessionKey,
@@ -41,12 +21,7 @@ export function AvatarProvider<E extends ClientEvent = ClientEvent>({
   onError,
   onClientEvent,
   initialScreenStream,
-  __unstable_roomOptions,
-  fallback = null,
-  children,
 }: AvatarProviderProps<E>) {
-  const onErrorRef = useLatest(onError);
-
   const credentialsState = useCredentials({
     avatarId,
     sessionId,
@@ -55,11 +30,15 @@ export function AvatarProvider<E extends ClientEvent = ClientEvent>({
     connectUrl,
     connect,
     baseUrl,
-    onError: (err) => onErrorRef.current?.(err),
+    onError,
   });
 
-  if (credentialsState.status !== 'ready') {
+  if (credentialsState.status === 'loading') {
     return <>{fallback}</>;
+  }
+
+  if (credentialsState.status === 'error') {
+    return null;
   }
 
   return (
@@ -68,10 +47,9 @@ export function AvatarProvider<E extends ClientEvent = ClientEvent>({
       audio={audio}
       video={video}
       onEnd={onEnd}
-      onError={(err) => onErrorRef.current?.(err)}
+      onError={onError}
       onClientEvent={onClientEvent}
       initialScreenStream={initialScreenStream}
-      __unstable_roomOptions={__unstable_roomOptions}
     >
       {children}
     </AvatarSession>

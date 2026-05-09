@@ -1,9 +1,3 @@
-/**
- * @runwayml/avatars-react Types
- *
- * React-specific types. Core types are re-exported from @runwayml/avatars.
- */
-
 import type {
   ClientEvent,
   ClientEventHandler,
@@ -41,8 +35,6 @@ export interface AvatarSessionProps<E extends ClientEvent = ClientEvent> {
   onError?: (error: Error) => void;
   onClientEvent?: ClientEventHandler<E>;
   initialScreenStream?: MediaStream;
-  /** @internal */
-  __unstable_roomOptions?: import('livekit-client').RoomOptions;
 }
 
 export interface AvatarProviderProps<E extends ClientEvent = ClientEvent> {
@@ -61,8 +53,6 @@ export interface AvatarProviderProps<E extends ClientEvent = ClientEvent> {
   children?: React.ReactNode;
   fallback?: React.ReactNode;
   initialScreenStream?: MediaStream;
-  /** @internal */
-  __unstable_roomOptions?: import('livekit-client').RoomOptions;
 }
 
 export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
@@ -71,31 +61,9 @@ export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
   avatarImageUrl?: string;
 }
 
-export interface UseAvatarReturn {
-  participant: import('livekit-client').RemoteParticipant | null;
-  videoTrackRef:
-    | import('@livekit/components-react').TrackReferenceOrPlaceholder
-    | null;
-  hasVideo: boolean;
-}
-
 export interface MediaDeviceErrors {
   micError: Error | null;
   cameraError: Error | null;
   retryMic: () => Promise<void>;
   retryCamera: () => Promise<void>;
-}
-
-export interface UseLocalMediaReturn extends MediaDeviceErrors {
-  hasMic: boolean;
-  hasCamera: boolean;
-  isMicEnabled: boolean;
-  isCameraEnabled: boolean;
-  isScreenShareEnabled: boolean;
-  toggleMic: () => void;
-  toggleCamera: () => void;
-  toggleScreenShare: () => void;
-  localVideoTrackRef:
-    | import('@livekit/components-react').TrackReferenceOrPlaceholder
-    | null;
 }
