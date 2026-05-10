@@ -27,3 +27,5 @@ vanilla-js: build-core
     cd examples/vanilla-js && bun install && bun run dev
 sveltekit: build-core
     cd examples/sveltekit && bun install && bun run dev
+nextjs-core-only: build-core
+    cd examples/nextjs-core-only && bun install && bun run dev
