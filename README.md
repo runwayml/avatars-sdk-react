@@ -78,7 +78,6 @@ export async function POST(req: Request) {
 - [`nextjs-client-events`](./examples/nextjs-client-events) — Client event tools (trivia game)
 - [`nextjs-rpc`](./examples/nextjs-rpc) — Backend RPC + client events
 - [`subtitles`](./examples/subtitles) — Live transcription overlay
-- [`nextjs-core-only`](./examples/nextjs-core-only) — Next.js using only the core SDK (no React bindings)
 - [`sveltekit`](./examples/sveltekit) — SvelteKit using the core SDK
 - [`express`](./examples/express) — Express + Vite
 - [`react-router`](./examples/react-router) — React Router v7
