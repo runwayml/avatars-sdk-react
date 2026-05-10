@@ -1,8 +1,9 @@
 import Runway from '@runwayml/sdk';
-import { json, error } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+import { RUNWAYML_API_SECRET } from '$env/static/private';
 import type { RequestHandler } from './$types';
 
-const runway = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
+const runway = new Runway({ apiKey: RUNWAYML_API_SECRET });
 
 export const POST: RequestHandler = async ({ request }) => {
   const { avatarId } = await request.json();

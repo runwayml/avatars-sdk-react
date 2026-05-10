@@ -312,7 +312,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     room: Room,
     options: { audio?: boolean; video?: boolean },
   ): Promise<void> {
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices) {
+    if (
+      typeof navigator === 'undefined' ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
       console.warn(
         '[@runwayml/avatars] mediaDevices not available (requires secure context). Skipping mic/camera.',
       );
@@ -326,7 +329,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         await room.localParticipant.setMicrophoneEnabled(true);
         this._micEnabled = true;
       } catch (err) {
-        if (err instanceof Error) this.emit(AvatarEvent.Error, err);
+        this.emit(AvatarEvent.Error, err instanceof Error ? err : new Error(String(err)));
       }
     }
 
@@ -335,7 +338,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         await room.localParticipant.setCameraEnabled(true);
         this._cameraEnabled = true;
       } catch (err) {
-        if (err instanceof Error) this.emit(AvatarEvent.Error, err);
+        this.emit(AvatarEvent.Error, err instanceof Error ? err : new Error(String(err)));
       }
     }
 
@@ -343,21 +346,21 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   }
 
   private async setMic(enabled: boolean): Promise<void> {
-    if (!this.room) return;
+    if (!this.room || !navigator.mediaDevices?.getUserMedia) return;
     await this.room.localParticipant.setMicrophoneEnabled(enabled);
     this._micEnabled = enabled;
     this.emit(AvatarEvent.MediaChanged);
   }
 
   private async setCamera(enabled: boolean): Promise<void> {
-    if (!this.room) return;
+    if (!this.room || !navigator.mediaDevices?.getUserMedia) return;
     await this.room.localParticipant.setCameraEnabled(enabled);
     this._cameraEnabled = enabled;
     this.emit(AvatarEvent.MediaChanged);
   }
 
   private async setScreenShare(active: boolean): Promise<void> {
-    if (!this.room) return;
+    if (!this.room || !navigator.mediaDevices?.getDisplayMedia) return;
     await this.room.localParticipant.setScreenShareEnabled(active);
     this._screenShareActive = active;
     this.emit(AvatarEvent.MediaChanged);
