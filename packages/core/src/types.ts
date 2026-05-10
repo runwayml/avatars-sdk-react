@@ -68,6 +68,7 @@ export const AvatarEvent = {
   Error: 'error',
   AvatarVideoReady: 'avatarVideoReady',
   AvatarAudioReady: 'avatarAudioReady',
+  ScreenShareReady: 'screenShareReady',
   MediaChanged: 'mediaChanged',
 } as const;
 
@@ -78,6 +79,7 @@ export type AvatarEventMap = {
   [AvatarEvent.Error]: [error: Error];
   [AvatarEvent.AvatarVideoReady]: [track: MediaStreamTrack];
   [AvatarEvent.AvatarAudioReady]: [track: MediaStreamTrack];
+  [AvatarEvent.ScreenShareReady]: [track: MediaStreamTrack];
   [AvatarEvent.MediaChanged]: [];
 };
 

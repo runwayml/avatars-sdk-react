@@ -256,6 +256,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
             this.autoPlayAudio(mediaTrack);
           }
         }
+
+        if (track.kind === 'video' && publication.source === Track.Source.ScreenShare) {
+          this.emit(AvatarEvent.ScreenShareReady, track.mediaStreamTrack);
+        }
       },
     );
 
