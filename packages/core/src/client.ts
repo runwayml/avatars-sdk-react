@@ -24,6 +24,7 @@ import { Emitter } from './emitter';
 import { TranscriptAccumulator } from './transcript-accumulator';
 import {
   AvatarEvent,
+  type ActiveSpeaker,
   type AvatarEventMap,
   type ClientEvent,
   type ConnectionQuality,
@@ -56,7 +57,7 @@ function toSessionState(cs: ConnectionState): SessionState {
     case ConnectionState.Connected:
       return 'active';
     case ConnectionState.Reconnecting:
-      return 'connecting';
+      return 'reconnecting';
     case ConnectionState.Disconnected:
       return 'ended';
     default:
@@ -87,6 +88,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   private flatDeltaAcc = new FlatDeltaAccumulator();
   private _userSpeaking = false;
   private _avatarSpeaking = false;
+  private _connectedAt: number | null = null;
 
   readonly mic: MediaController;
   readonly camera: MediaController;
@@ -142,6 +144,19 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
 
   get localVideoTrack(): MediaStreamTrack | null {
     return this._localVideoTrack;
+  }
+
+  get duration(): number {
+    if (!this._connectedAt) return 0;
+    return Date.now() - this._connectedAt;
+  }
+
+  waitFor<K extends keyof AvatarEventMap>(event: K): Promise<AvatarEventMap[K][0]> {
+    return new Promise((resolve) => {
+      this.once(event, ((...args: AvatarEventMap[K]) => {
+        resolve(args[0] as AvatarEventMap[K][0]);
+      }) as (...args: AvatarEventMap[K]) => void);
+    });
   }
 
   streamTo(element: HTMLVideoElement): void {
@@ -402,6 +417,11 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         this._avatarSpeaking = false;
         this.emit(AvatarEvent.AvatarSpeechEnded);
       }
+
+      const active: Array<ActiveSpeaker> = [];
+      if (localSpeaking) active.push('user');
+      if (remoteSpeaking) active.push('avatar');
+      this.emit(AvatarEvent.ActiveSpeakersChanged, active);
     });
 
     room.on(
@@ -450,10 +470,13 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     const { audio = true, video = true } = options;
 
     if (audio) {
+      this.emit(AvatarEvent.MicPermissionChanged, 'pending');
       try {
         await room.localParticipant.setMicrophoneEnabled(true);
         this._micEnabled = true;
+        this.emit(AvatarEvent.MicPermissionChanged, 'granted');
       } catch (err) {
+        this.emit(AvatarEvent.MicPermissionChanged, 'denied');
         this.emit(AvatarEvent.Error, toAvatarError('MEDIA_PERMISSION_DENIED', 'Microphone access denied', err));
       }
     }
@@ -546,6 +569,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   private setState(state: SessionState): void {
     if (this._state === state) return;
     this._state = state;
+    if (state === 'active' && !this._connectedAt) {
+      this._connectedAt = Date.now();
+    }
     this.emit(AvatarEvent.StateChanged, state);
   }
 
@@ -570,6 +596,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     this._micEnabled = false;
     this._cameraEnabled = false;
     this._screenShareActive = false;
+    this._userSpeaking = false;
+    this._avatarSpeaking = false;
+    this._connectedAt = null;
     this.flatDeltaAcc.reset();
     this.setState('ended');
   }

@@ -6,6 +6,7 @@ export { consumeSession } from './api/consume';
 
 export { AvatarEvent } from './types';
 export type {
+  ActiveSpeaker,
   AvatarEventMap,
   ClientEvent,
   ClientEventHandler,
@@ -14,6 +15,7 @@ export type {
   ConsumeSessionResponse,
   ConnectResponse,
   MediaController,
+  MicPermissionState,
   ScreenShareController,
   SessionCredentials,
   SessionKeyResponse,

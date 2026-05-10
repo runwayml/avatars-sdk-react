@@ -7,6 +7,7 @@
 export type SessionState =
   | 'idle'
   | 'connecting'
+  | 'reconnecting'
   | 'active'
   | 'ending'
   | 'ended'
@@ -61,6 +62,12 @@ export interface TranscriptionEntry {
 
 export type TranscriptionHandler = (entry: TranscriptionEntry) => void;
 
+export type MicPermissionState = 'pending' | 'granted' | 'denied';
+
+export type ConnectionQuality = 'excellent' | 'good' | 'poor' | 'lost' | 'unknown';
+
+export type ActiveSpeaker = 'user' | 'avatar';
+
 export const AvatarEvent = {
   StateChanged: 'stateChanged',
   Transcript: 'transcript',
@@ -76,9 +83,9 @@ export const AvatarEvent = {
   AvatarSpeechStarted: 'avatarSpeechStarted',
   AvatarSpeechEnded: 'avatarSpeechEnded',
   ConnectionQualityChanged: 'connectionQualityChanged',
+  MicPermissionChanged: 'micPermissionChanged',
+  ActiveSpeakersChanged: 'activeSpeakersChanged',
 } as const;
-
-export type ConnectionQuality = 'excellent' | 'good' | 'poor' | 'lost' | 'unknown';
 
 export type AvatarEventMap = {
   [AvatarEvent.StateChanged]: [state: SessionState];
@@ -95,6 +102,8 @@ export type AvatarEventMap = {
   [AvatarEvent.AvatarSpeechStarted]: [];
   [AvatarEvent.AvatarSpeechEnded]: [];
   [AvatarEvent.ConnectionQualityChanged]: [quality: ConnectionQuality];
+  [AvatarEvent.MicPermissionChanged]: [state: MicPermissionState];
+  [AvatarEvent.ActiveSpeakersChanged]: [speakers: ReadonlyArray<ActiveSpeaker>];
 };
 
 export interface MediaController {
