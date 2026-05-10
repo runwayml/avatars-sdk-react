@@ -6,7 +6,13 @@ import type {
 } from 'livekit-client';
 
 import { consumeSession } from './api/consume';
+import { FlatDeltaAccumulator } from './utils/flatDeltaAccumulator';
 import { parseClientEvent } from './utils/parseClientEvent';
+import {
+  tryDecodeJSON,
+  tryParseFlatDelta,
+  tryParseSegmentArray,
+} from './utils/parseTranscription';
 import { Emitter } from './emitter';
 import { TranscriptAccumulator } from './transcript-accumulator';
 import {
@@ -53,7 +59,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   private attachedAudioElement: HTMLAudioElement | null = null;
   private avatarVideoTrack: MediaStreamTrack | null = null;
   private avatarAudioTrack: MediaStreamTrack | null = null;
+  private _localVideoTrack: MediaStreamTrack | null = null;
   private autoAudioElement: HTMLAudioElement | null = null;
+  private flatDeltaAcc = new FlatDeltaAccumulator();
 
   readonly mic: MediaController;
   readonly camera: MediaController;
@@ -103,6 +111,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
 
   get error(): Error | null {
     return this._error;
+  }
+
+  get localVideoTrack(): MediaStreamTrack | null {
+    return this._localVideoTrack;
   }
 
   streamTo(element: HTMLVideoElement): void {
@@ -263,12 +275,48 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       },
     );
 
-    room.on(RoomEvent.DataReceived, (payload: Uint8Array) => {
-      const event = parseClientEvent(payload);
-      if (event) {
-        this.emit(AvatarEvent.ClientEvent, event);
-      }
-    });
+    room.on(
+      RoomEvent.DataReceived,
+      (payload: Uint8Array, participant?: Participant) => {
+        const event = parseClientEvent(payload);
+        if (event) {
+          this.emit(AvatarEvent.ClientEvent, event);
+          return;
+        }
+
+        const identity = participant?.identity ?? 'unknown';
+        const json = tryDecodeJSON(payload);
+        if (!json) return;
+
+        const segments = tryParseSegmentArray(json, { identity });
+        if (segments) {
+          for (const entry of segments) {
+            this.emit(AvatarEvent.Transcript, { ...entry, channel: 'custom' });
+          }
+          return;
+        }
+
+        const delta = tryParseFlatDelta(json);
+        if (delta) {
+          const { finalized, active } = this.flatDeltaAcc.ingest(
+            delta,
+            identity,
+          );
+          for (const turn of finalized) {
+            this.emit(AvatarEvent.Transcript, {
+              ...turn,
+              final: true,
+              channel: 'custom',
+            });
+          }
+          this.emit(AvatarEvent.Transcript, {
+            ...active,
+            final: false,
+            channel: 'custom',
+          });
+        }
+      },
+    );
 
     room.on(
       RoomEvent.TranscriptionReceived,
@@ -341,6 +389,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       try {
         await room.localParticipant.setCameraEnabled(true);
         this._cameraEnabled = true;
+        this.emitLocalVideoTrack(room);
       } catch (err) {
         this.emit(AvatarEvent.Error, err instanceof Error ? err : new Error(String(err)));
       }
@@ -360,7 +409,17 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     if (!this.room || !navigator.mediaDevices?.getUserMedia) return;
     await this.room.localParticipant.setCameraEnabled(enabled);
     this._cameraEnabled = enabled;
+    if (enabled) this.emitLocalVideoTrack(this.room);
     this.emit(AvatarEvent.MediaChanged);
+  }
+
+  private emitLocalVideoTrack(room: Room): void {
+    const pub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+    const mediaTrack = pub?.track?.mediaStreamTrack;
+    if (mediaTrack) {
+      this._localVideoTrack = mediaTrack;
+      this.emit(AvatarEvent.LocalVideoReady, mediaTrack);
+    }
   }
 
   private async setScreenShare(active: boolean): Promise<void> {

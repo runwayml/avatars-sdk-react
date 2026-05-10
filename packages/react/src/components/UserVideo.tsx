@@ -1,6 +1,8 @@
 'use client';
 
+import { AvatarEvent } from '@runwayml/avatars';
 import { useEffect, useRef, useState } from 'react';
+import { useMaybeCoreSession } from './AvatarSession';
 
 export function UserVideo({
   children,
@@ -14,31 +16,26 @@ export function UserVideo({
   className?: string;
   style?: React.CSSProperties;
 }) {
+  const session = useMaybeCoreSession();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [hasVideo, setHasVideo] = useState(false);
 
   useEffect(() => {
-    let stream: MediaStream | null = null;
+    if (!session) return;
 
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
-          setHasVideo(true);
-        }
-      } catch {
-        setHasVideo(false);
+    const handleTrack = (track: MediaStreamTrack) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = new MediaStream([track]);
+        videoRef.current.play().catch(() => {});
       }
-    }
-
-    startCamera();
-
-    return () => {
-      stream?.getTracks().forEach((t) => t.stop());
+      setHasVideo(true);
     };
-  }, []);
+
+    session.on(AvatarEvent.LocalVideoReady, handleTrack);
+    return () => {
+      session.off(AvatarEvent.LocalVideoReady, handleTrack);
+    };
+  }, [session]);
 
   if (children) {
     return <>{children({ videoRef, hasVideo })}</>;
@@ -50,6 +47,7 @@ export function UserVideo({
       autoPlay
       playsInline
       muted
+      data-avatar-user-video=""
       className={className}
       style={{
         width: '100%',

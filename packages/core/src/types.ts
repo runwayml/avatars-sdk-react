@@ -69,6 +69,7 @@ export const AvatarEvent = {
   AvatarVideoReady: 'avatarVideoReady',
   AvatarAudioReady: 'avatarAudioReady',
   ScreenShareReady: 'screenShareReady',
+  LocalVideoReady: 'localVideoReady',
   MediaChanged: 'mediaChanged',
 } as const;
 
@@ -80,6 +81,7 @@ export type AvatarEventMap = {
   [AvatarEvent.AvatarVideoReady]: [track: MediaStreamTrack];
   [AvatarEvent.AvatarAudioReady]: [track: MediaStreamTrack];
   [AvatarEvent.ScreenShareReady]: [track: MediaStreamTrack];
+  [AvatarEvent.LocalVideoReady]: [track: MediaStreamTrack];
   [AvatarEvent.MediaChanged]: [];
 };
 

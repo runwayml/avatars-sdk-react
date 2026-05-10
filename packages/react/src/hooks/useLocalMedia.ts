@@ -10,6 +10,8 @@ import {
 const NOOP_ASYNC = async () => {};
 
 export interface UseLocalMediaReturn {
+  hasMic: boolean;
+  hasCamera: boolean;
   isMicEnabled: boolean;
   isCameraEnabled: boolean;
   isScreenShareEnabled: boolean;
@@ -31,9 +33,27 @@ export function useLocalMedia(): UseLocalMediaReturn {
     retryCamera = NOOP_ASYNC,
   } = useMediaDeviceErrorContext() ?? {};
 
+  const [hasMic, setHasMic] = useState(false);
+  const [hasCamera, setHasCamera] = useState(false);
   const [isMicEnabled, setMicEnabled] = useState(false);
   const [isCameraEnabled, setCameraEnabled] = useState(false);
   const [isScreenShareEnabled, setScreenShareEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+
+    async function checkDevices() {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      setHasMic(devices.some((d) => d.kind === 'audioinput'));
+      setHasCamera(devices.some((d) => d.kind === 'videoinput'));
+    }
+
+    checkDevices();
+    navigator.mediaDevices.addEventListener('devicechange', checkDevices);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', checkDevices);
+    };
+  }, []);
 
   useEffect(() => {
     if (!session) return;
@@ -64,6 +84,8 @@ export function useLocalMedia(): UseLocalMediaReturn {
   }, [session]);
 
   return {
+    hasMic,
+    hasCamera,
     isMicEnabled,
     isCameraEnabled,
     isScreenShareEnabled,
