@@ -58,6 +58,38 @@ session.on(AvatarEvent.AvatarAudioReady, (track) => {});
 session.on(AvatarEvent.MediaChanged, () => {});
 ```
 
+### Error handling
+
+All errors are instances of `AvatarError` with a typed `code` and optional `cause`:
+
+```javascript
+import { AvatarError } from '@runwayml/avatars';
+
+try {
+  const session = await streamTo({ credentials, target: el });
+} catch (err) {
+  if (err instanceof AvatarError) {
+    console.log(err.code, err.message, err.cause);
+  }
+}
+
+session.on(AvatarEvent.Error, (err) => {
+  if (err instanceof AvatarError && err.code === 'MEDIA_PERMISSION_DENIED') {
+    showPermissionPrompt();
+  }
+});
+```
+
+| Code | When |
+|------|------|
+| `CONSUME_FAILED` | Session consume HTTP request failed |
+| `CONNECTION_FAILED` | LiveKit room connection failed |
+| `MEDIA_PERMISSION_DENIED` | Mic or camera permission denied on connect |
+| `MEDIA_DEVICE_ERROR` | Mic or camera toggle failed |
+| `SCREEN_SHARE_FAILED` | Screen share toggle failed |
+| `PUBLISH_FAILED` | Track publish failed |
+| `UNKNOWN` | Unexpected error |
+
 ### Server subpath
 
 ```javascript
