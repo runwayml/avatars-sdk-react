@@ -1,17 +1,24 @@
-# @runwayml/avatars-react
+# Runway Avatar SDK
 
-React SDK for real-time AI avatar interactions with GWM-1.
+Two packages for real-time AI avatar interactions:
+
+- **`@runwayml/avatars`** — Framework-agnostic core SDK. Works with any JS/TS framework or none at all.
+- **`@runwayml/avatars-react`** — React components and hooks built on the core.
 
 ## Requirements
 
-- React 18+
 - A Runway API secret ([get one here](https://dev.runwayml.com/))
 - A server-side endpoint to create sessions (API secrets must not be exposed to the client)
+- React 18+ (for the React package)
 
 ## Installation
 
 ```bash
+# React (includes core automatically)
 npm install @runwayml/avatars-react
+
+# Framework-agnostic (vanilla JS, Vue, Svelte, etc.)
+npm install @runwayml/avatars
 ```
 
 ## Quick Start
@@ -56,6 +63,7 @@ The styles use CSS custom properties for easy customization:
 ```
 
 See [`examples/`](./examples) for complete working examples:
+- [`vanilla-js`](./examples/vanilla-js) - Pure JS, no framework — uses `@runwayml/avatars` directly
 - [`nextjs-simple`](./examples/nextjs-simple) - Minimal single-avatar demo (great starting point)
 - [`nextjs`](./examples/nextjs) - Next.js App Router with preset grid and custom avatars
 - [`nextjs-client-events`](./examples/nextjs-client-events) - Client event tools (trivia game)
@@ -171,7 +179,7 @@ All display components support render props for complete control. `AvatarVideo` 
     switch (avatar.status) {
       case 'connecting': return <Spinner />;
       case 'waiting': return <Placeholder />;
-      case 'ready': return <VideoTrack trackRef={avatar.videoTrackRef} />;
+      case 'ready': return <video ref={avatar.videoRef} autoPlay playsInline />;
     }
   }}
 </AvatarVideo>
@@ -322,17 +330,20 @@ function MyComponent() {
 
 ### useAvatar
 
-Access the remote avatar's video:
+Access the remote avatar's video track:
 
 ```tsx
 function CustomAvatar() {
-  const { videoTrackRef, hasVideo } = useAvatar();
+  const { videoTrack, hasVideo } = useAvatar();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  return (
-    <div>
-      {hasVideo && <VideoTrack trackRef={videoTrackRef} />}
-    </div>
-  );
+  useEffect(() => {
+    if (videoRef.current && videoTrack) {
+      videoRef.current.srcObject = new MediaStream([videoTrack]);
+    }
+  }, [videoTrack]);
+
+  return hasVideo ? <video ref={videoRef} autoPlay playsInline /> : null;
 }
 ```
 

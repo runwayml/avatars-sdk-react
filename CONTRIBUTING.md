@@ -1,5 +1,15 @@
 # Contributing
 
+## Repository Structure
+
+This is a monorepo with two packages:
+
+```
+packages/
+  core/    → @runwayml/avatars (framework-agnostic)
+  react/   → @runwayml/avatars-react (React components and hooks)
+```
+
 ## Development Setup
 
 1. Clone the repository:
@@ -15,22 +25,39 @@ cd avatars-sdk-react
 bun install
 ```
 
-3. Start development mode:
+3. Build the core (needed for react package to resolve types):
 
 ```bash
-bun run dev
+cd packages/core && bun run build
+```
+
+4. Start development mode (either package):
+
+```bash
+cd packages/core && bun run dev
+cd packages/react && bun run dev
 ```
 
 ## Commands
 
+From the repository root:
+
 ```bash
-bun run dev        # Watch mode for development
-bun run build      # Build the package
-bun run typecheck  # TypeScript type checking
+bun run build      # Build both packages
+bun run typecheck  # Type check both packages
 bun run lint       # Run linter (Biome)
-bun run lint:fix   # Fix linting issues
-bun run format     # Format code
-bun test           # Run tests
+bun test           # Run all tests
+bun run clean      # Remove dist/ from both packages
+```
+
+From an individual package:
+
+```bash
+cd packages/core   # or packages/react
+bun run build      # Build this package
+bun run typecheck  # Type check this package
+bun run dev        # Watch mode
+bun test           # Run this package's tests
 ```
 
 ## Portless (optional)
@@ -56,14 +83,14 @@ To disable portless temporarily, set `PORTLESS=0`.
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Make your changes
-4. Run `bun run check` to verify linting and formatting
+4. Run `bun run lint` to verify linting
 5. Run `bun test` to verify tests pass
 6. Commit your changes with a descriptive message
 7. Push to your fork and open a pull request
 
 ## Releasing
 
-This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/).
+This project follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/). Both packages are versioned together.
 
 1. Add your changes under `## [Unreleased]` in `CHANGELOG.md` as you go
 2. When ready to release, choose the appropriate version bump:
@@ -71,11 +98,11 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
    - **minor** (0.x.0) — new features, non-breaking changes
    - **major** (x.0.0) — breaking changes
 3. Move the Unreleased entries into a new version section with today's date
-4. Update the `version` field in `package.json`
+4. Update the `version` field in both `packages/core/package.json` and `packages/react/package.json`
 5. Commit and push:
 
 ```bash
-git add CHANGELOG.md package.json
+git add CHANGELOG.md packages/*/package.json
 git commit -m "chore: release vX.Y.Z"
 git push origin main
 ```
@@ -86,7 +113,7 @@ git push origin main
 gh release create vX.Y.Z --title "vX.Y.Z" --notes "<release notes>"
 ```
 
-The `Publish` workflow will automatically build and publish the package to NPM.
+The `Publish` workflow will automatically build and publish both packages to NPM.
 
 ## Reporting Issues
 
