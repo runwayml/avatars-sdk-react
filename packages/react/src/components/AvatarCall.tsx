@@ -1,8 +1,33 @@
 'use client';
 
-import type { ClientEvent } from '@runwayml/avatars';
-import type { AvatarCallProps } from '../types';
+/**
+ * AvatarCall Component
+ *
+ * High-level component that handles the complete session lifecycle.
+ * Manages credential fetching, connection, and video display internally
+ * with a seamless loading experience.
+ *
+ * During credential loading, shows a loading state with the avatar image.
+ * Once connected, renders children inside the session context.
+ *
+ * For more control over the loading UI, use AvatarSession directly.
+ *
+ * @example
+ * ```tsx
+ * // Simple usage - handles everything automatically
+ * <AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect" />
+ *
+ * // Custom children - rendered once connected
+ * <AvatarCall avatarId="music-superstar" connectUrl="/api/avatar/connect">
+ *   <AvatarVideo />
+ *   <ControlBar />
+ * </AvatarCall>
+ * ```
+ */
+
 import { useCredentials } from '../hooks/useCredentials';
+import { useLatest } from '../hooks/useLatest';
+import type { AvatarCallProps, ClientEvent } from '../types';
 import { AvatarSession } from './AvatarSession';
 import { AvatarVideo } from './AvatarVideo';
 import { ControlBar } from './ControlBar';
@@ -18,16 +43,17 @@ export function AvatarCall<E extends ClientEvent = ClientEvent>({
   baseUrl,
   audio,
   video,
+  avatarImageUrl,
   onEnd,
   onError,
   onClientEvent,
-  avatarImageUrl,
-  initialScreenStream,
   children,
-  className,
-  style,
-  ...divProps
+  initialScreenStream,
+  __unstable_roomOptions,
+  ...props
 }: AvatarCallProps<E>) {
+  const onErrorRef = useLatest(onError);
+
   const credentialsState = useCredentials({
     avatarId,
     sessionId,
@@ -36,47 +62,62 @@ export function AvatarCall<E extends ClientEvent = ClientEvent>({
     connectUrl,
     connect,
     baseUrl,
-    onError,
+    onError: (err) => onErrorRef.current?.(err),
   });
 
-  if (credentialsState.status === 'loading') {
+  const handleSessionError = (err: Error) => {
+    onErrorRef.current?.(err);
+  };
+
+  const backgroundStyle = avatarImageUrl
+    ? ({ '--avatar-image': `url(${avatarImageUrl})` } as React.CSSProperties)
+    : undefined;
+
+  const defaultChildren = (
+    <>
+      <AvatarVideo />
+      <UserVideo />
+      <ControlBar />
+    </>
+  );
+
+  // During credential loading/error, show a simple loading state
+  // Children are NOT rendered here because they may use hooks that require LiveKitRoom context
+  if (credentialsState.status !== 'ready') {
+    const status = credentialsState.status === 'error' ? 'error' : 'connecting';
+
     return (
-      <div data-avatar-call="" className={className} style={style} {...divProps}>
-        {avatarImageUrl && (
-          <img
-            src={avatarImageUrl}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        )}
+      <div
+        {...props}
+        data-avatar-call=""
+        data-avatar-id={avatarId}
+        style={{ ...props.style, ...backgroundStyle }}
+      >
+        <div data-avatar-video="" data-avatar-status={status} />
       </div>
     );
   }
 
-  if (credentialsState.status === 'error') {
-    return (
-      <div data-avatar-call="" className={className} style={style} {...divProps} />
-    );
-  }
-
+  // Once credentials are ready, render children inside the session context
+  // This ensures all hooks have access to the LiveKitRoom context
   return (
-    <div data-avatar-call="" className={className} style={style} {...divProps}>
+    <div
+      {...props}
+      data-avatar-call=""
+      data-avatar-id={avatarId}
+      style={{ ...props.style, ...backgroundStyle }}
+    >
       <AvatarSession
         credentials={credentialsState.credentials}
         audio={audio}
         video={video}
         onEnd={onEnd}
-        onError={onError}
+        onError={handleSessionError}
         onClientEvent={onClientEvent}
         initialScreenStream={initialScreenStream}
+        __unstable_roomOptions={__unstable_roomOptions}
       >
-        {children ?? (
-          <>
-            <AvatarVideo />
-            <UserVideo />
-            <ControlBar />
-          </>
-        )}
+        {children ?? defaultChildren}
       </AvatarSession>
     </div>
   );

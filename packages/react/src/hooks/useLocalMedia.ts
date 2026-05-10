@@ -1,31 +1,37 @@
 'use client';
 
-import { AvatarEvent } from '@runwayml/avatars';
-import { useCallback, useEffect, useState } from 'react';
 import {
-  useMaybeCoreSession,
-  useMediaDeviceErrorContext,
-} from '../components/AvatarSession';
+  useLocalParticipant,
+  useMediaDevices,
+  useTracks,
+} from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import { useCallback } from 'react';
+import { useMediaDeviceErrorContext } from '../components/AvatarSession';
+import type { UseLocalMediaReturn } from '../types';
+import { useLatest } from './useLatest';
 
 const NOOP_ASYNC = async () => {};
 
-export interface UseLocalMediaReturn {
-  hasMic: boolean;
-  hasCamera: boolean;
-  isMicEnabled: boolean;
-  isCameraEnabled: boolean;
-  isScreenShareEnabled: boolean;
-  toggleMic: () => void;
-  toggleCamera: () => void;
-  toggleScreenShare: () => void;
-  micError: Error | null;
-  cameraError: Error | null;
-  retryMic: () => Promise<void>;
-  retryCamera: () => Promise<void>;
+function createCaptureController(): unknown {
+  if (typeof window === 'undefined' || !('CaptureController' in window)) {
+    return undefined;
+  }
+  // biome-ignore lint/suspicious/noExplicitAny: CaptureController not yet in TypeScript's lib
+  const controller = new (window as any).CaptureController();
+  controller.setFocusBehavior('no-focus-change');
+  return controller;
 }
 
+/**
+ * Hook for local media controls (mic, camera, screen share).
+ *
+ * Must be used within an AvatarSession or AvatarCall component.
+ * For use outside the session context, use AvatarSession directly
+ * and manage your own loading states.
+ */
 export function useLocalMedia(): UseLocalMediaReturn {
-  const session = useMaybeCoreSession();
+  const { localParticipant } = useLocalParticipant();
   const {
     micError = null,
     cameraError = null,
@@ -33,55 +39,67 @@ export function useLocalMedia(): UseLocalMediaReturn {
     retryCamera = NOOP_ASYNC,
   } = useMediaDeviceErrorContext() ?? {};
 
-  const [hasMic, setHasMic] = useState(false);
-  const [hasCamera, setHasCamera] = useState(false);
-  const [isMicEnabled, setMicEnabled] = useState(false);
-  const [isCameraEnabled, setCameraEnabled] = useState(false);
-  const [isScreenShareEnabled, setScreenShareEnabled] = useState(false);
+  const audioDevices = useMediaDevices({ kind: 'audioinput' });
+  const videoDevices = useMediaDevices({ kind: 'videoinput' });
 
-  useEffect(() => {
-    if (!navigator.mediaDevices?.enumerateDevices) return;
+  const hasMic = audioDevices?.length > 0;
+  const hasCamera = videoDevices?.length > 0;
 
-    async function checkDevices() {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      setHasMic(devices.some((d) => d.kind === 'audioinput'));
-      setHasCamera(devices.some((d) => d.kind === 'videoinput'));
-    }
+  const isMicEnabled = localParticipant?.isMicrophoneEnabled ?? false;
+  const isCameraEnabled = localParticipant?.isCameraEnabled ?? false;
+  const isScreenShareEnabled = localParticipant?.isScreenShareEnabled ?? false;
 
-    checkDevices();
-    navigator.mediaDevices.addEventListener('devicechange', checkDevices);
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', checkDevices);
-    };
-  }, []);
+  const isMicEnabledRef = useLatest(isMicEnabled);
+  const isCameraEnabledRef = useLatest(isCameraEnabled);
+  const isScreenShareEnabledRef = useLatest(isScreenShareEnabled);
 
-  useEffect(() => {
-    if (!session) return;
+  const hasMicRef = useLatest(hasMic);
+  const hasCameraRef = useLatest(hasCamera);
 
-    const sync = () => {
-      setMicEnabled(session.mic.isEnabled);
-      setCameraEnabled(session.camera.isEnabled);
-      setScreenShareEnabled(session.screenShare.isActive);
-    };
-
-    sync();
-    session.on(AvatarEvent.MediaChanged, sync);
-    return () => {
-      session.off(AvatarEvent.MediaChanged, sync);
-    };
-  }, [session]);
-
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleMic = useCallback(() => {
-    session?.mic.toggle();
-  }, [session]);
+    if (hasMicRef.current || isMicEnabledRef.current) {
+      localParticipant?.setMicrophoneEnabled(!isMicEnabledRef.current);
+    }
+  }, [localParticipant]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleCamera = useCallback(() => {
-    session?.camera.toggle();
-  }, [session]);
+    if (hasCameraRef.current || isCameraEnabledRef.current) {
+      localParticipant?.setCameraEnabled(!isCameraEnabledRef.current);
+    }
+  }, [localParticipant]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refs from useLatest are stable
   const toggleScreenShare = useCallback(() => {
-    session?.screenShare.toggle();
-  }, [session]);
+    const next = !isScreenShareEnabledRef.current;
+    if (next) {
+      const controller = createCaptureController();
+      localParticipant?.setScreenShareEnabled(true, {
+        controller,
+        surfaceSwitching: 'include',
+      });
+    } else {
+      localParticipant?.setScreenShareEnabled(false);
+    }
+  }, [localParticipant]);
+
+  const tracks = useTracks(
+    [{ source: Track.Source.Camera, withPlaceholder: true }],
+    {
+      onlySubscribed: false,
+      updateOnlyOn: [],
+    },
+  );
+
+  const localIdentity = localParticipant?.identity;
+
+  const localVideoTrackRef =
+    tracks.find(
+      (trackRef) =>
+        trackRef.participant.identity === localIdentity &&
+        trackRef.source === Track.Source.Camera,
+    ) ?? null;
 
   return {
     hasMic,
@@ -92,6 +110,7 @@ export function useLocalMedia(): UseLocalMediaReturn {
     toggleMic,
     toggleCamera,
     toggleScreenShare,
+    localVideoTrackRef,
     micError,
     cameraError,
     retryMic,

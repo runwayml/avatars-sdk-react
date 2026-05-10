@@ -1,33 +1,83 @@
 'use client';
 
+/**
+ * AvatarSession Component
+ *
+ * Provides the session context for avatar interactions.
+ * Manages the WebRTC connection and exposes a clean API for child components.
+ *
+ * @example
+ * ```tsx
+ * <AvatarSession credentials={credentials} onEnd={handleEnd}>
+ *   <AvatarVideo />
+ *   <ControlBar />
+ * </AvatarSession>
+ * ```
+ */
+
 import {
-  AvatarSession as CoreSession,
-  AvatarEvent,
-  type ClientEvent,
-  type ClientEventHandler,
-  type SessionState,
-} from '@runwayml/avatars';
+  LiveKitRoom,
+  RoomAudioRenderer,
+  useConnectionState,
+  useRoomContext,
+} from '@livekit/components-react';
+import type { RoomOptions } from 'livekit-client';
+import { ConnectionState, RoomEvent, Track } from 'livekit-client';
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import type {
   AvatarSessionContextValue,
   AvatarSessionProps,
+  ClientEvent,
+  ClientEventHandler,
   MediaDeviceErrors,
+  SessionState,
 } from '../types';
+import { parseClientEvent } from '@runwayml/avatars';
+
+const DEFAULT_ROOM_OPTIONS: RoomOptions = {
+  adaptiveStream: false,
+  dynacast: false,
+};
+
+/**
+ * Maps WebRTC connection state to session state
+ */
+function mapConnectionState(connectionState: ConnectionState): SessionState {
+  switch (connectionState) {
+    case ConnectionState.Connecting:
+      return 'connecting';
+    case ConnectionState.Connected:
+      return 'active';
+    case ConnectionState.Reconnecting:
+      return 'connecting';
+    case ConnectionState.Disconnected:
+      return 'ended';
+    default:
+      return 'ended';
+  }
+}
 
 const AvatarSessionContext = createContext<AvatarSessionContextValue | null>(
   null,
 );
 
-const CoreSessionContext = createContext<CoreSession | null>(null);
-
 const MediaDeviceErrorContext = createContext<MediaDeviceErrors | null>(null);
 
+/**
+ * AvatarSession component - the main entry point for avatar sessions
+ *
+ * Establishes a WebRTC connection and provides session state to children.
+ * This is a headless component that renders minimal DOM.
+ */
 export function AvatarSession<E extends ClientEvent = ClientEvent>({
   credentials,
   children,
@@ -37,113 +87,223 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
   onError,
   onClientEvent,
   initialScreenStream,
+  __unstable_roomOptions,
 }: AvatarSessionProps<E>) {
-  const [state, setState] = useState<SessionState>('connecting');
-  const [error, setError] = useState<Error | null>(null);
-  const [micError, setMicError] = useState<Error | null>(null);
-  const [cameraError, setCameraError] = useState<Error | null>(null);
-  const [coreSession, setCoreSession] = useState<CoreSession | null>(null);
+  const errorRef = useRef<Error | null>(null);
+
+  const handleError = (error: Error) => {
+    onError?.(error);
+    errorRef.current = error;
+  };
+
+  const roomOptions = {
+    ...DEFAULT_ROOM_OPTIONS,
+    ...__unstable_roomOptions,
+  };
+
+  return (
+    <LiveKitRoom
+      serverUrl={credentials.serverUrl}
+      token={credentials.token}
+      connect={true}
+      audio={false}
+      video={false}
+      onDisconnected={() => onEnd?.()}
+      onError={handleError}
+      options={roomOptions}
+      connectOptions={{
+        autoSubscribe: true,
+      }}
+    >
+      <AvatarSessionContextInner
+        sessionId={credentials.sessionId}
+        requestAudio={requestAudio}
+        requestVideo={requestVideo}
+        onEnd={onEnd}
+        onClientEvent={onClientEvent as ClientEventHandler | undefined}
+        errorRef={errorRef}
+        initialScreenStream={initialScreenStream}
+      >
+        {children}
+      </AvatarSessionContextInner>
+      <RoomAudioRenderer />
+    </LiveKitRoom>
+  );
+}
+
+/**
+ * Inner context provider that has access to the room context
+ */
+function AvatarSessionContextInner({
+  sessionId,
+  requestAudio,
+  requestVideo,
+  onEnd,
+  onClientEvent,
+  errorRef,
+  initialScreenStream,
+  children,
+}: {
+  sessionId: string;
+  requestAudio: boolean;
+  requestVideo: boolean;
+  onEnd?: () => void;
+  onClientEvent?: ClientEventHandler;
+  errorRef: React.RefObject<Error | null>;
+  initialScreenStream?: MediaStream;
+  children: ReactNode;
+}) {
+  const room = useRoomContext();
+  const connectionState = useConnectionState();
   const onEndRef = useRef(onEnd);
   onEndRef.current = onEnd;
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
   const onClientEventRef = useRef(onClientEvent);
   onClientEventRef.current = onClientEvent;
 
+  const publishedRef = useRef(false);
+
   useEffect(() => {
-    let disposed = false;
-    const session = new CoreSession(credentials.sessionId);
+    if (connectionState !== ConnectionState.Connected) return;
+    if (!initialScreenStream || publishedRef.current) return;
+    publishedRef.current = true;
 
-    session.on(AvatarEvent.StateChanged, (s: SessionState) => {
-      if (disposed) return;
-      setState(s);
-      if (s === 'ended') onEndRef.current?.();
-    });
-
-    session.on(AvatarEvent.Error, (err: Error) => {
-      if (disposed) return;
-      setError(err);
-      onErrorRef.current?.(err);
-    });
-
-    session.on(AvatarEvent.ClientEvent, (event: ClientEvent) => {
-      (onClientEventRef.current as ClientEventHandler | undefined)?.(event);
-    });
-
-    session
-      ._connect(credentials.serverUrl, credentials.token, {
-        audio: requestAudio,
-        video: requestVideo,
-      })
-      .then(async () => {
-        if (disposed) return;
-        if (initialScreenStream) {
-          await session.publishScreenShare(initialScreenStream);
-        }
-        setCoreSession(session);
-      })
-      .catch((err) => {
-        if (disposed) return;
-        const sessionError =
-          err instanceof Error ? err : new Error(String(err));
-        setError(sessionError);
-        setState('error');
-        onErrorRef.current?.(sessionError);
+    const videoTrack = initialScreenStream.getVideoTracks()[0];
+    if (videoTrack) {
+      room.localParticipant.publishTrack(videoTrack, {
+        source: Track.Source.ScreenShare,
       });
+    }
+    const audioTrack = initialScreenStream.getAudioTracks()[0];
+    if (audioTrack) {
+      room.localParticipant.publishTrack(audioTrack, {
+        source: Track.Source.ScreenShareAudio,
+      });
+    }
 
     return () => {
-      disposed = true;
-      session.end();
+      initialScreenStream.getTracks().forEach((t) => {
+        t.stop();
+      });
     };
-  }, [credentials.sessionId, credentials.serverUrl, credentials.token]);
+  }, [connectionState, initialScreenStream, room]);
 
-  const end = async () => {
-    await coreSession?.end();
-  };
+  const [micError, setMicError] = useState<Error | null>(null);
+  const [cameraError, setCameraError] = useState<Error | null>(null);
+  const mediaEnabledRef = useRef(false);
 
-  const retryMic = async () => {
+  // Enable audio/video AFTER the room connects — decoupled from the
+  // signaling connection so a locked device (e.g. Zoom) can't block it.
+  useEffect(() => {
+    if (connectionState !== ConnectionState.Connected) return;
+    if (mediaEnabledRef.current) return;
+    mediaEnabledRef.current = true;
+
+    async function enableMedia() {
+      if (requestAudio) {
+        try {
+          await room.localParticipant.setMicrophoneEnabled(true);
+        } catch (err) {
+          if (err instanceof Error) setMicError(err);
+        }
+      }
+      if (requestVideo) {
+        try {
+          await room.localParticipant.setCameraEnabled(true);
+        } catch (err) {
+          if (err instanceof Error) setCameraError(err);
+        }
+      }
+    }
+
+    enableMedia();
+  }, [connectionState, room, requestAudio, requestVideo]);
+
+  useEffect(() => {
+    function handleMediaDevicesError(error: Error, kind?: MediaDeviceKind) {
+      if (kind === 'audioinput') {
+        setMicError(error);
+      } else if (kind === 'videoinput') {
+        setCameraError(error);
+      }
+    }
+
+    room.on(RoomEvent.MediaDevicesError, handleMediaDevicesError);
+    return () => {
+      room.off(RoomEvent.MediaDevicesError, handleMediaDevicesError);
+    };
+  }, [room]);
+
+  const retryMic = useCallback(async () => {
     try {
-      await coreSession?.mic.enable();
+      await room.localParticipant.setMicrophoneEnabled(true);
       setMicError(null);
     } catch (err) {
       if (err instanceof Error) setMicError(err);
     }
-  };
+  }, [room]);
 
-  const retryCamera = async () => {
+  const retryCamera = useCallback(async () => {
     try {
-      await coreSession?.camera.enable();
+      await room.localParticipant.setCameraEnabled(true);
       setCameraError(null);
     } catch (err) {
       if (err instanceof Error) setCameraError(err);
     }
-  };
+  }, [room]);
+
+  const mediaDeviceErrors = useMemo<MediaDeviceErrors>(
+    () => ({ micError, cameraError, retryMic, retryCamera }),
+    [micError, cameraError, retryMic, retryCamera],
+  );
+
+  useEffect(() => {
+    function handleDataReceived(payload: Uint8Array) {
+      const event = parseClientEvent(payload);
+      if (event) {
+        onClientEventRef.current?.(event);
+      }
+    }
+
+    room.on(RoomEvent.DataReceived, handleDataReceived);
+    return () => {
+      room.off(RoomEvent.DataReceived, handleDataReceived);
+    };
+  }, [room]);
+
+  const end = useCallback(async () => {
+    try {
+      // Send END_CALL message to the avatar
+      const encoder = new TextEncoder();
+      const data = encoder.encode(JSON.stringify({ type: 'END_CALL' }));
+      await room.localParticipant.publishData(data, { reliable: true });
+    } catch {
+      // Ignore errors when sending end message
+    }
+
+    await room.disconnect();
+    onEndRef.current?.();
+  }, [room]);
 
   const contextValue: AvatarSessionContextValue = {
-    state,
-    sessionId: credentials.sessionId,
-    error,
+    state: mapConnectionState(connectionState),
+    sessionId,
+    error: errorRef.current,
     end,
-  };
-
-  const mediaDeviceErrors: MediaDeviceErrors = {
-    micError,
-    cameraError,
-    retryMic,
-    retryCamera,
   };
 
   return (
     <AvatarSessionContext.Provider value={contextValue}>
-      <CoreSessionContext.Provider value={coreSession}>
-        <MediaDeviceErrorContext.Provider value={mediaDeviceErrors}>
-          {children}
-        </MediaDeviceErrorContext.Provider>
-      </CoreSessionContext.Provider>
+      <MediaDeviceErrorContext.Provider value={mediaDeviceErrors}>
+        {children}
+      </MediaDeviceErrorContext.Provider>
     </AvatarSessionContext.Provider>
   );
 }
 
+/**
+ * Hook to access the avatar session context
+ * Must be used within an AvatarSession component
+ */
 export function useAvatarSessionContext(): AvatarSessionContextValue {
   const context = useContext(AvatarSessionContext);
   if (!context) {
@@ -154,20 +314,12 @@ export function useAvatarSessionContext(): AvatarSessionContextValue {
   return context;
 }
 
+/**
+ * Hook to optionally access the avatar session context
+ * Returns null if not within an AvatarSession
+ */
 export function useMaybeAvatarSessionContext(): AvatarSessionContextValue | null {
   return useContext(AvatarSessionContext);
-}
-
-export function useCoreSession(): CoreSession {
-  const session = useContext(CoreSessionContext);
-  if (!session) {
-    throw new Error('useCoreSession must be used within an AvatarSession');
-  }
-  return session;
-}
-
-export function useMaybeCoreSession(): CoreSession | null {
-  return useContext(CoreSessionContext);
 }
 
 export function useMediaDeviceErrorContext(): MediaDeviceErrors | null {

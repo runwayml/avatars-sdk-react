@@ -1,51 +1,71 @@
 'use client';
 
-import { AvatarEvent } from '@runwayml/avatars';
-import { useEffect, useRef, useState } from 'react';
-import { useMaybeCoreSession } from './AvatarSession';
+import {
+  isTrackReference,
+  type TrackReferenceOrPlaceholder,
+  useLocalParticipant,
+  useTracks,
+  VideoTrack,
+} from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
+export interface ScreenShareVideoState {
+  isSharing: boolean;
+  trackRef: TrackReferenceOrPlaceholder | null;
+}
+
+export interface ScreenShareVideoProps
+  extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
+  children?: (state: ScreenShareVideoState) => ReactNode;
+}
+
+/**
+ * Component for displaying local screen share video.
+ *
+ * Must be used within an AvatarSession or AvatarCall component.
+ */
 export function ScreenShareVideo({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const session = useMaybeCoreSession();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [hasTrack, setHasTrack] = useState(false);
+  children,
+  ...props
+}: ScreenShareVideoProps) {
+  const { localParticipant } = useLocalParticipant();
 
-  useEffect(() => {
-    if (!session) return;
+  const tracks = useTracks(
+    [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
+    { onlySubscribed: false },
+  );
 
-    const handleTrack = (track: MediaStreamTrack) => {
-      if (videoRef.current) {
-        videoRef.current.srcObject = new MediaStream([track]);
-        videoRef.current.play().catch(() => {});
-      }
-      setHasTrack(true);
-    };
+  const localIdentity = localParticipant?.identity;
 
-    session.on(AvatarEvent.ScreenShareReady, handleTrack);
-    return () => {
-      session.off(AvatarEvent.ScreenShareReady, handleTrack);
-    };
-  }, [session]);
+  const screenShareTrackRef =
+    tracks.find(
+      (trackRef) =>
+        trackRef.participant.identity === localIdentity &&
+        trackRef.source === Track.Source.ScreenShare,
+    ) ?? null;
 
-  if (!hasTrack) return null;
+  const isSharing =
+    screenShareTrackRef !== null && isTrackReference(screenShareTrackRef);
+
+  const state: ScreenShareVideoState = {
+    isSharing,
+    trackRef: screenShareTrackRef,
+  };
+
+  if (children) {
+    return <>{children(state)}</>;
+  }
+
+  if (!isSharing) {
+    return null;
+  }
 
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      className={className}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        ...style,
-      }}
-    />
+    <div {...props} data-avatar-screen-share="" data-avatar-sharing={isSharing}>
+      {screenShareTrackRef && isTrackReference(screenShareTrackRef) && (
+        <VideoTrack trackRef={screenShareTrackRef} />
+      )}
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+export { isTrackReference, VideoTrack } from '@livekit/components-react';
 export { AudioRenderer } from './components/AudioRenderer';
 export { AvatarCall } from './components/AvatarCall';
 export { AvatarProvider } from './components/AvatarProvider';

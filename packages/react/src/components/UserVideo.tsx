@@ -1,61 +1,55 @@
 'use client';
 
-import { AvatarEvent } from '@runwayml/avatars';
-import { useEffect, useRef, useState } from 'react';
-import { useMaybeCoreSession } from './AvatarSession';
+import { isTrackReference, VideoTrack } from '@livekit/components-react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { useLocalMedia } from '../hooks/useLocalMedia';
+import type { UseLocalMediaReturn } from '../types';
+
+export interface UserVideoState {
+  hasVideo: boolean;
+  isCameraEnabled: boolean;
+  trackRef: UseLocalMediaReturn['localVideoTrackRef'];
+}
+
+export interface UserVideoProps
+  extends Omit<ComponentPropsWithoutRef<'div'>, 'children'> {
+  mirror?: boolean;
+  children?: (state: UserVideoState) => ReactNode;
+}
 
 export function UserVideo({
   children,
-  className,
-  style,
-}: {
-  children?: (props: {
-    videoRef: React.RefObject<HTMLVideoElement | null>;
-    hasVideo: boolean;
-  }) => React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const session = useMaybeCoreSession();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [hasVideo, setHasVideo] = useState(false);
+  mirror = true,
+  ...props
+}: UserVideoProps) {
+  const { localVideoTrackRef, isCameraEnabled } = useLocalMedia();
 
-  useEffect(() => {
-    if (!session) return;
+  const hasVideo =
+    localVideoTrackRef !== null && isTrackReference(localVideoTrackRef);
 
-    const handleTrack = (track: MediaStreamTrack) => {
-      if (videoRef.current) {
-        videoRef.current.srcObject = new MediaStream([track]);
-        videoRef.current.play().catch(() => {});
-      }
-      setHasVideo(true);
-    };
-
-    session.on(AvatarEvent.LocalVideoReady, handleTrack);
-    return () => {
-      session.off(AvatarEvent.LocalVideoReady, handleTrack);
-    };
-  }, [session]);
+  const state: UserVideoState = {
+    hasVideo,
+    isCameraEnabled,
+    trackRef: localVideoTrackRef,
+  };
 
   if (children) {
-    return <>{children({ videoRef, hasVideo })}</>;
+    return <>{children(state)}</>;
   }
 
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      muted
+    <div
+      {...props}
       data-avatar-user-video=""
-      className={className}
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        transform: 'scaleX(-1)',
-        ...style,
-      }}
-    />
+      data-avatar-has-video={hasVideo}
+      data-avatar-camera-enabled={isCameraEnabled}
+      data-avatar-mirror={mirror}
+    >
+      {hasVideo &&
+        localVideoTrackRef &&
+        isTrackReference(localVideoTrackRef) && (
+          <VideoTrack trackRef={localVideoTrackRef} />
+        )}
+    </div>
   );
 }

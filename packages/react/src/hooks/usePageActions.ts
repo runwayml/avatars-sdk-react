@@ -1,60 +1,115 @@
 'use client';
 
-import { AvatarEvent, type ClientEvent, type PageActionEvent } from '@runwayml/avatars';
+import { useRoomContext } from '@livekit/components-react';
+import { RoomEvent } from 'livekit-client';
 import { useEffect, useRef } from 'react';
-import { useMaybeCoreSession } from '../components/AvatarSession';
+import type { PageActionEvent } from '@runwayml/avatars';
+import { parseClientEvent } from '@runwayml/avatars';
+
+const HIGHLIGHT_ATTR = 'data-avatar-highlighted';
+const DEFAULT_HIGHLIGHT_DURATION = 2000;
 
 export interface PageActionsOptions {
-  enabled?: boolean;
+  /**
+   * Custom element resolver. Return `null` to skip the action.
+   * Defaults to `getElementById` then `querySelector([data-avatar-target="..."])`.
+   */
+  resolveElement?: (target: string) => Element | null;
+  /** Default highlight duration in milliseconds (default: 2000) */
   highlightDuration?: number;
+  /** Scroll behavior passed to `scrollIntoView` (default: 'smooth') */
+  scrollBehavior?: ScrollBehavior;
+  /** Scroll block alignment passed to `scrollIntoView` (default: 'start') */
+  scrollBlock?: ScrollLogicalPosition;
 }
 
-function resolveTarget(target: string): HTMLElement | null {
+function defaultResolveElement(target: string): Element | null {
   return (
     document.getElementById(target) ??
     document.querySelector(`[data-avatar-target="${target}"]`)
   );
 }
 
-export function usePageActions(options?: PageActionsOptions): void {
-  const session = useMaybeCoreSession();
-  const enabled = options?.enabled ?? true;
-  const highlightDuration = options?.highlightDuration ?? 3000;
-  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+/**
+ * Subscribe to built-in page-action client events (`click`, `scroll_to`,
+ * `highlight`) and execute them against the DOM.
+ *
+ * Must be rendered inside `<AvatarCall>` or `<AvatarSession>`.
+ *
+ * Prefer `<PageActions />` for the simplest integration — this hook is
+ * the lower-level escape hatch for custom composition.
+ */
+export function usePageActions(options: PageActionsOptions = {}): void {
+  const room = useRoomContext();
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const timersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
 
   useEffect(() => {
-    if (!session || !enabled) return;
+    function resolve(target: string): Element | null {
+      const resolver =
+        optionsRef.current.resolveElement ?? defaultResolveElement;
+      return resolver(target);
+    }
 
-    const handleEvent = (event: ClientEvent) => {
-      const { tool, args } = event as unknown as PageActionEvent;
-
-      if (tool === 'click') {
-        const el = resolveTarget((args as { target: string }).target);
-        if (el instanceof HTMLElement) el.click();
-      } else if (tool === 'scroll_to') {
-        const el = resolveTarget((args as { target: string }).target);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else if (tool === 'highlight') {
-        const { target, duration } = args as {
-          target: string;
-          duration?: number;
-        };
-        const el = resolveTarget(target);
-        if (!el) return;
-
-        el.setAttribute('data-avatar-highlight', 'true');
-        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
-        highlightTimerRef.current = setTimeout(
-          () => el.removeAttribute('data-avatar-highlight'),
-          duration ?? highlightDuration,
-        );
+    function handleClick(target: string) {
+      const element = resolve(target);
+      if (element instanceof HTMLElement) {
+        element.click();
       }
-    };
+    }
 
-    session.on(AvatarEvent.ClientEvent, handleEvent);
+    function handleScrollTo(target: string) {
+      const element = resolve(target);
+      if (!element) return;
+      element.scrollIntoView({
+        behavior: optionsRef.current.scrollBehavior ?? 'smooth',
+        block: optionsRef.current.scrollBlock ?? 'start',
+      });
+    }
+
+    function handleHighlight(target: string, duration?: number) {
+      const element = resolve(target);
+      if (!element) return;
+
+      element.setAttribute(HIGHLIGHT_ATTR, 'true');
+      const ms =
+        duration ??
+        optionsRef.current.highlightDuration ??
+        DEFAULT_HIGHLIGHT_DURATION;
+
+      const timer = setTimeout(() => {
+        element.removeAttribute(HIGHLIGHT_ATTR);
+        timersRef.current.delete(timer);
+      }, ms);
+      timersRef.current.add(timer);
+    }
+
+    function handleDataReceived(payload: Uint8Array) {
+      const event = parseClientEvent(payload);
+      if (!event) return;
+
+      const pageEvent = event as PageActionEvent;
+      switch (pageEvent.tool) {
+        case 'click':
+          handleClick(pageEvent.args.target);
+          break;
+        case 'scroll_to':
+          handleScrollTo(pageEvent.args.target);
+          break;
+        case 'highlight':
+          handleHighlight(pageEvent.args.target, pageEvent.args.duration);
+          break;
+      }
+    }
+
+    room.on(RoomEvent.DataReceived, handleDataReceived);
     return () => {
-      session.off(AvatarEvent.ClientEvent, handleEvent);
-      if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current);
+      room.off(RoomEvent.DataReceived, handleDataReceived);
+      for (const timer of timersRef.current) {
+        clearTimeout(timer);
+      }
+      timersRef.current.clear();
     };
-  }, [session, enabled, highlightDuration]);
+  }, [room]);
 }

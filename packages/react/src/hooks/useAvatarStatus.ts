@@ -1,24 +1,73 @@
 'use client';
 
+/**
+ * useAvatarStatus Hook
+ *
+ * Returns a single discriminated union representing the full avatar lifecycle
+ * inside an AvatarSession. Combines session connection state and video
+ * track availability into one status value.
+ *
+ * Must be used within <AvatarCall> or <AvatarSession>.
+ *
+ * @example
+ * ```tsx
+ * function MyAvatar() {
+ *   const avatar = useAvatarStatus();
+ *
+ *   switch (avatar.status) {
+ *     case 'connecting':
+ *       return <Spinner />;
+ *     case 'waiting':
+ *       return <p>Waiting for video...</p>;
+ *     case 'ready':
+ *       return <VideoTrack trackRef={avatar.videoTrackRef} />;
+ *     case 'error':
+ *       return <p>{avatar.error.message}</p>;
+ *     case 'ended':
+ *       return <p>Call ended</p>;
+ *   }
+ * }
+ * ```
+ */
+
+import type { TrackReference } from '@livekit/components-react';
 import { useAvatar } from './useAvatar';
 import { useAvatarSession } from './useAvatarSession';
 
 export type AvatarStatus =
-  | 'connecting'
-  | 'waiting'
-  | 'ready'
-  | 'ending'
-  | 'ended'
-  | 'error';
+  | { status: 'connecting' }
+  | { status: 'waiting' }
+  | { status: 'ready'; videoTrackRef: TrackReference }
+  | { status: 'ending' }
+  | { status: 'ended' }
+  | { status: 'error'; error: Error };
 
 export function useAvatarStatus(): AvatarStatus {
   const session = useAvatarSession();
-  const { hasVideo } = useAvatar();
+  const { videoTrackRef, hasVideo } = useAvatar();
 
-  if (session.state === 'error') return 'error';
-  if (session.state === 'ended') return 'ended';
-  if (session.state === 'ending') return 'ending';
-  if (session.state === 'active' && hasVideo) return 'ready';
-  if (session.state === 'active') return 'waiting';
-  return 'connecting';
+  switch (session.state) {
+    case 'connecting':
+    case 'idle':
+      return { status: 'connecting' };
+
+    case 'active':
+      if (hasVideo && videoTrackRef) {
+        // hasVideo guarantees this is a real TrackReference (checked via isTrackReference in useAvatar)
+        return {
+          status: 'ready',
+          videoTrackRef: videoTrackRef as TrackReference,
+        };
+      }
+      return { status: 'waiting' };
+
+    case 'ending':
+      return { status: 'ending' };
+
+    case 'ended':
+      return { status: 'ended' };
+
+    case 'error':
+      return { status: 'error', error: session.error };
+  }
 }
