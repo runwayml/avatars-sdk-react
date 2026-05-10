@@ -9,6 +9,7 @@ export type {
   AvatarEventMap,
   ClientEvent,
   ClientEventHandler,
+  ConnectionQuality,
   ConsumeSessionOptions,
   ConsumeSessionResponse,
   ConnectResponse,

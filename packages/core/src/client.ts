@@ -1,4 +1,10 @@
-import { ConnectionState, Room, RoomEvent, Track } from 'livekit-client';
+import {
+  ConnectionQuality as LKConnectionQuality,
+  ConnectionState,
+  Room,
+  RoomEvent,
+  Track,
+} from 'livekit-client';
 import type {
   Participant,
   RemoteTrackPublication,
@@ -20,12 +26,28 @@ import {
   AvatarEvent,
   type AvatarEventMap,
   type ClientEvent,
+  type ConnectionQuality,
   type MediaController,
   type ScreenShareController,
   type SessionState,
   type TranscriptOptions,
   type TranscriptionEntry,
 } from './types';
+
+function toLKQuality(q: LKConnectionQuality): ConnectionQuality {
+  switch (q) {
+    case LKConnectionQuality.Excellent:
+      return 'excellent';
+    case LKConnectionQuality.Good:
+      return 'good';
+    case LKConnectionQuality.Poor:
+      return 'poor';
+    case LKConnectionQuality.Lost:
+      return 'lost';
+    default:
+      return 'unknown';
+  }
+}
 
 function toSessionState(cs: ConnectionState): SessionState {
   switch (cs) {
@@ -63,6 +85,8 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   private _localVideoTrack: MediaStreamTrack | null = null;
   private autoAudioElement: HTMLAudioElement | null = null;
   private flatDeltaAcc = new FlatDeltaAccumulator();
+  private _userSpeaking = false;
+  private _avatarSpeaking = false;
 
   readonly mic: MediaController;
   readonly camera: MediaController;
@@ -81,6 +105,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       enable: () => this.setMic(true),
       disable: () => this.setMic(false),
       toggle: () => this.setMic(!this._micEnabled),
+      setDevice: (deviceId: string) => this.switchDevice('audioinput', deviceId),
     };
 
     this.camera = {
@@ -90,6 +115,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       enable: () => this.setCamera(true),
       disable: () => this.setCamera(false),
       toggle: () => this.setCamera(!this._cameraEnabled),
+      setDevice: (deviceId: string) => this.switchDevice('videoinput', deviceId),
     };
 
     this.screenShare = {
@@ -355,6 +381,35 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     room.on(RoomEvent.MediaDevicesError, (error: Error) => {
       this.emit(AvatarEvent.Error, error);
     });
+
+    room.on(RoomEvent.ActiveSpeakersChanged, (speakers: Array<Participant>) => {
+      const localIdentity = room.localParticipant.identity;
+      const localSpeaking = speakers.some((p) => p.identity === localIdentity);
+      const remoteSpeaking = speakers.some((p) => p.identity !== localIdentity);
+
+      if (localSpeaking && !this._userSpeaking) {
+        this._userSpeaking = true;
+        this.emit(AvatarEvent.UserSpeechStarted);
+      } else if (!localSpeaking && this._userSpeaking) {
+        this._userSpeaking = false;
+        this.emit(AvatarEvent.UserSpeechEnded);
+      }
+
+      if (remoteSpeaking && !this._avatarSpeaking) {
+        this._avatarSpeaking = true;
+        this.emit(AvatarEvent.AvatarSpeechStarted);
+      } else if (!remoteSpeaking && this._avatarSpeaking) {
+        this._avatarSpeaking = false;
+        this.emit(AvatarEvent.AvatarSpeechEnded);
+      }
+    });
+
+    room.on(
+      RoomEvent.ConnectionQualityChanged,
+      (quality: LKConnectionQuality, _participant: Participant) => {
+        this.emit(AvatarEvent.ConnectionQualityChanged, toLKQuality(quality));
+      },
+    );
   }
 
   private reattachTracks(): void {
@@ -460,6 +515,16 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
       this.emit(AvatarEvent.Error, toAvatarError('SCREEN_SHARE_FAILED', 'Failed to toggle screen share', err));
+    }
+  }
+
+  private async switchDevice(kind: MediaDeviceKind, deviceId: string): Promise<void> {
+    if (!this.room) return;
+    try {
+      await this.room.switchActiveDevice(kind, deviceId);
+      this.emit(AvatarEvent.MediaChanged);
+    } catch (err) {
+      this.emit(AvatarEvent.Error, toAvatarError('MEDIA_DEVICE_ERROR', `Failed to switch ${kind}`, err));
     }
   }
 

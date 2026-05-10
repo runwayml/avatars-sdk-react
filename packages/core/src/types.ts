@@ -71,7 +71,14 @@ export const AvatarEvent = {
   ScreenShareReady: 'screenShareReady',
   LocalVideoReady: 'localVideoReady',
   MediaChanged: 'mediaChanged',
+  UserSpeechStarted: 'userSpeechStarted',
+  UserSpeechEnded: 'userSpeechEnded',
+  AvatarSpeechStarted: 'avatarSpeechStarted',
+  AvatarSpeechEnded: 'avatarSpeechEnded',
+  ConnectionQualityChanged: 'connectionQualityChanged',
 } as const;
+
+export type ConnectionQuality = 'excellent' | 'good' | 'poor' | 'lost' | 'unknown';
 
 export type AvatarEventMap = {
   [AvatarEvent.StateChanged]: [state: SessionState];
@@ -83,6 +90,11 @@ export type AvatarEventMap = {
   [AvatarEvent.ScreenShareReady]: [track: MediaStreamTrack];
   [AvatarEvent.LocalVideoReady]: [track: MediaStreamTrack];
   [AvatarEvent.MediaChanged]: [];
+  [AvatarEvent.UserSpeechStarted]: [];
+  [AvatarEvent.UserSpeechEnded]: [];
+  [AvatarEvent.AvatarSpeechStarted]: [];
+  [AvatarEvent.AvatarSpeechEnded]: [];
+  [AvatarEvent.ConnectionQualityChanged]: [quality: ConnectionQuality];
 };
 
 export interface MediaController {
@@ -90,6 +102,7 @@ export interface MediaController {
   enable(): Promise<void>;
   disable(): Promise<void>;
   toggle(): Promise<void>;
+  setDevice(deviceId: string): Promise<void>;
 }
 
 export interface ScreenShareController {
