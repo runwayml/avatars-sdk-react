@@ -1,4 +1,6 @@
 export { AvatarSession, connect, streamTo } from './client';
+export { AvatarError } from './error';
+export type { AvatarErrorCode } from './error';
 export { TranscriptAccumulator } from './transcript-accumulator';
 export { consumeSession } from './api/consume';
 

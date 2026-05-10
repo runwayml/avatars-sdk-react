@@ -6,6 +6,7 @@ import type {
 } from 'livekit-client';
 
 import { consumeSession } from './api/consume';
+import { toAvatarError } from './error';
 import { FlatDeltaAccumulator } from './utils/flatDeltaAccumulator';
 import { parseClientEvent } from './utils/parseClientEvent';
 import {
@@ -39,10 +40,6 @@ function toSessionState(cs: ConnectionState): SessionState {
     default:
       return 'ended';
   }
-}
-
-function toError(err: unknown): Error {
-  return err instanceof Error ? err : new Error(String(err));
 }
 
 /**
@@ -223,8 +220,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       room.removeAllListeners();
       room.disconnect().catch(() => {});
       this.room = null;
-      this.setError(toError(err));
-      throw err;
+      const error = toAvatarError('CONNECTION_FAILED', 'Failed to connect to session', err);
+      this.setError(error);
+      throw error;
     }
   }
 
@@ -401,7 +399,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         await room.localParticipant.setMicrophoneEnabled(true);
         this._micEnabled = true;
       } catch (err) {
-        this.emit(AvatarEvent.Error, toError(err));
+        this.emit(AvatarEvent.Error, toAvatarError('MEDIA_PERMISSION_DENIED', 'Microphone access denied', err));
       }
     }
 
@@ -411,7 +409,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         this._cameraEnabled = true;
         this.emitLocalVideoTrack(room);
       } catch (err) {
-        this.emit(AvatarEvent.Error, toError(err));
+        this.emit(AvatarEvent.Error, toAvatarError('MEDIA_PERMISSION_DENIED', 'Camera access denied', err));
       }
     }
 
@@ -425,7 +423,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       this._micEnabled = enabled;
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toError(err));
+      this.emit(AvatarEvent.Error, toAvatarError('MEDIA_DEVICE_ERROR', 'Failed to toggle microphone', err));
     }
   }
 
@@ -441,7 +439,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       }
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toError(err));
+      this.emit(AvatarEvent.Error, toAvatarError('MEDIA_DEVICE_ERROR', 'Failed to toggle camera', err));
     }
   }
 
@@ -461,7 +459,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       this._screenShareActive = active;
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toError(err));
+      this.emit(AvatarEvent.Error, toAvatarError('SCREEN_SHARE_FAILED', 'Failed to toggle screen share', err));
     }
   }
 

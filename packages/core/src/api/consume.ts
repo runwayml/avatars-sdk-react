@@ -1,3 +1,4 @@
+import { AvatarError } from '../error';
 import type { ConsumeSessionOptions, ConsumeSessionResponse } from '../types';
 import { DEFAULT_BASE_URL } from './config';
 
@@ -17,7 +18,8 @@ export async function consumeSession(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
+    throw new AvatarError(
+      'CONSUME_FAILED',
       `Failed to consume session: ${response.status} ${errorText}`,
     );
   }
