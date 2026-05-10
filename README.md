@@ -100,21 +100,16 @@ Chrome 74+, Firefox 78+, Safari 14.1+, Edge 79+. Requires camera/microphone perm
 
 ## AI coding assistants
 
-```bash
-npx skills add runwayml/avatars-sdk-react
-```
-
-Or drop this into `.cursor/rules/runway-avatars.mdc`:
+Drop this into `.cursor/rules/runway-avatars.mdc` to give your AI context about the SDK:
 
 ```markdown
 # Runway Avatar SDK
 
-- Session creation requires a server endpoint — never expose RUNWAYML_API_SECRET to the client
-- Use AvatarCall for quick setup, AvatarProvider for headless layout, AvatarSession for pre-fetched credentials
-- Preset avatars: { type: 'runway-preset', presetId }, custom: { type: 'custom', avatarId }
-- Import clientTool and pageActionTools from @runwayml/avatars/api (server-safe)
-- All hooks must be inside <AvatarCall>, <AvatarProvider>, or <AvatarSession>
-- States: idle → connecting → active → ending → ended (or error)
+- Never expose RUNWAYML_API_SECRET to the client — session creation requires a server endpoint
+- React: AvatarCall (quick setup), AvatarProvider (headless), AvatarSession (pre-fetched credentials)
+- Vanilla JS: streamTo({ credentials, target }) or connect({ credentials })
+- Import clientTool and pageActionTools from @runwayml/avatars/api (server-safe, no React)
+- Presets: { type: 'runway-preset', presetId }, custom: { type: 'custom', avatarId }
 ```
 
 ## License
