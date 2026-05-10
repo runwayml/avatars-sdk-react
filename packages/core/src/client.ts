@@ -41,6 +41,10 @@ function toSessionState(cs: ConnectionState): SessionState {
   }
 }
 
+function toError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
+}
+
 /**
  * A live avatar session. Returned by `streamTo` or `connect`.
  *
@@ -210,11 +214,18 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       dynacast: false,
     });
 
-    this.room = room;
-    this.bindRoomEvents(room);
-
-    await room.connect(serverUrl, token, { autoSubscribe: true });
-    await this.enableInitialMedia(room, options);
+    try {
+      this.room = room;
+      this.bindRoomEvents(room);
+      await room.connect(serverUrl, token, { autoSubscribe: true });
+      await this.enableInitialMedia(room, options);
+    } catch (err) {
+      room.removeAllListeners();
+      room.disconnect().catch(() => {});
+      this.room = null;
+      this.setError(toError(err));
+      throw err;
+    }
   }
 
   async publishScreenShare(stream: MediaStream): Promise<void> {
@@ -274,6 +285,15 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         }
       },
     );
+
+    room.on(RoomEvent.TrackUnsubscribed, (_track, publication: RemoteTrackPublication) => {
+      if (publication.source === Track.Source.Camera) {
+        this.avatarVideoTrack = null;
+      }
+      if (publication.source === Track.Source.Microphone) {
+        this.avatarAudioTrack = null;
+      }
+    });
 
     room.on(
       RoomEvent.DataReceived,
@@ -381,7 +401,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         await room.localParticipant.setMicrophoneEnabled(true);
         this._micEnabled = true;
       } catch (err) {
-        this.emit(AvatarEvent.Error, err instanceof Error ? err : new Error(String(err)));
+        this.emit(AvatarEvent.Error, toError(err));
       }
     }
 
@@ -391,7 +411,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         this._cameraEnabled = true;
         this.emitLocalVideoTrack(room);
       } catch (err) {
-        this.emit(AvatarEvent.Error, err instanceof Error ? err : new Error(String(err)));
+        this.emit(AvatarEvent.Error, toError(err));
       }
     }
 
@@ -400,17 +420,29 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
 
   private async setMic(enabled: boolean): Promise<void> {
     if (!this.room || !navigator.mediaDevices?.getUserMedia) return;
-    await this.room.localParticipant.setMicrophoneEnabled(enabled);
-    this._micEnabled = enabled;
-    this.emit(AvatarEvent.MediaChanged);
+    try {
+      await this.room.localParticipant.setMicrophoneEnabled(enabled);
+      this._micEnabled = enabled;
+      this.emit(AvatarEvent.MediaChanged);
+    } catch (err) {
+      this.emit(AvatarEvent.Error, toError(err));
+    }
   }
 
   private async setCamera(enabled: boolean): Promise<void> {
     if (!this.room || !navigator.mediaDevices?.getUserMedia) return;
-    await this.room.localParticipant.setCameraEnabled(enabled);
-    this._cameraEnabled = enabled;
-    if (enabled) this.emitLocalVideoTrack(this.room);
-    this.emit(AvatarEvent.MediaChanged);
+    try {
+      await this.room.localParticipant.setCameraEnabled(enabled);
+      this._cameraEnabled = enabled;
+      if (enabled) {
+        this.emitLocalVideoTrack(this.room);
+      } else {
+        this._localVideoTrack = null;
+      }
+      this.emit(AvatarEvent.MediaChanged);
+    } catch (err) {
+      this.emit(AvatarEvent.Error, toError(err));
+    }
   }
 
   private emitLocalVideoTrack(room: Room): void {
@@ -424,9 +456,13 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
 
   private async setScreenShare(active: boolean): Promise<void> {
     if (!this.room || !navigator.mediaDevices?.getDisplayMedia) return;
-    await this.room.localParticipant.setScreenShareEnabled(active);
-    this._screenShareActive = active;
-    this.emit(AvatarEvent.MediaChanged);
+    try {
+      await this.room.localParticipant.setScreenShareEnabled(active);
+      this._screenShareActive = active;
+      this.emit(AvatarEvent.MediaChanged);
+    } catch (err) {
+      this.emit(AvatarEvent.Error, toError(err));
+    }
   }
 
   private autoPlayAudio(track: MediaStreamTrack): void {
@@ -436,6 +472,12 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     }
     this.autoAudioElement.srcObject = new MediaStream([track]);
     this.autoAudioElement.play().catch(() => {});
+  }
+
+  private setError(error: Error): void {
+    this._error = error;
+    this.setState('error');
+    this.emit(AvatarEvent.Error, error);
   }
 
   private setState(state: SessionState): void {
@@ -449,12 +491,15 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     this.detachAudio();
     if (this.autoAudioElement) {
       this.autoAudioElement.srcObject = null;
+      this.autoAudioElement.remove();
       this.autoAudioElement = null;
     }
     this.avatarVideoTrack = null;
     this.avatarAudioTrack = null;
+    this._localVideoTrack = null;
 
     if (this.room) {
+      this.room.removeAllListeners();
       this.room.disconnect();
       this.room = null;
     }
@@ -462,6 +507,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     this._micEnabled = false;
     this._cameraEnabled = false;
     this._screenShareActive = false;
+    this.flatDeltaAcc.reset();
     this.setState('ended');
   }
 }
@@ -515,7 +561,7 @@ export async function streamTo(options: {
 /**
  * Start an avatar session without a video element (headless).
  *
- * Use `avatar.streamTo(element)` later to attach video, or use
+ * Use `session.streamTo(element)` later to attach video, or use
  * this for audio-only sessions.
  *
  * @example

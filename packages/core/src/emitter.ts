@@ -43,7 +43,11 @@ export class Emitter<E extends EventMap> {
     const set = this.listeners.get(event);
     if (!set) return;
     for (const handler of set) {
-      handler(...args);
+      try {
+        handler(...args);
+      } catch (err) {
+        console.error(`[@runwayml/avatars] Error in ${String(event)} handler:`, err);
+      }
     }
   }
 

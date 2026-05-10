@@ -105,4 +105,14 @@ describe('Emitter', () => {
     const result = ee.on('count', handler).off('count', handler).once('count', handler);
     expect(result).toBe(ee);
   });
+
+  it('isolates handler errors — a throwing handler does not break others', () => {
+    const ee = new TestEmitter();
+    const bad = () => { throw new Error('boom'); };
+    const good = mock();
+    ee.on('count', bad);
+    ee.on('count', good);
+    ee.fire('count', 1);
+    expect(good).toHaveBeenCalledWith(1);
+  });
 });
