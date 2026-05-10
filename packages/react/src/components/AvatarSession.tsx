@@ -36,6 +36,7 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
   onEnd,
   onError,
   onClientEvent,
+  initialScreenStream,
 }: AvatarSessionProps<E>) {
   const [state, setState] = useState<SessionState>('connecting');
   const [error, setError] = useState<Error | null>(null);
@@ -74,8 +75,12 @@ export function AvatarSession<E extends ClientEvent = ClientEvent>({
         audio: requestAudio,
         video: requestVideo,
       })
-      .then(() => {
-        if (!disposed) setCoreSession(session);
+      .then(async () => {
+        if (disposed) return;
+        if (initialScreenStream) {
+          await session.publishScreenShare(initialScreenStream);
+        }
+        setCoreSession(session);
       })
       .catch((err) => {
         if (disposed) return;

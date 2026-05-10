@@ -205,6 +205,22 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     await this.enableInitialMedia(room, options);
   }
 
+  async publishScreenShare(stream: MediaStream): Promise<void> {
+    if (!this.room) return;
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      await this.room.localParticipant.publishTrack(videoTrack, {
+        source: Track.Source.ScreenShare,
+      });
+    }
+    const audioTrack = stream.getAudioTracks()[0];
+    if (audioTrack) {
+      await this.room.localParticipant.publishTrack(audioTrack, {
+        source: Track.Source.ScreenShareAudio,
+      });
+    }
+  }
+
   private bindRoomEvents(room: Room): void {
     room.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
       this.setState(toSessionState(state));
@@ -214,6 +230,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       this.setState('ended');
     });
 
+    room.on(RoomEvent.Reconnected, () => {
+      this.reattachTracks();
+    });
+
     room.on(
       RoomEvent.TrackSubscribed,
       (track, publication: RemoteTrackPublication) => {
@@ -221,11 +241,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
           const mediaTrack = track.mediaStreamTrack;
           this.avatarVideoTrack = mediaTrack;
           this.emit(AvatarEvent.AvatarVideoReady, mediaTrack);
-
-          if (this.attachedVideoElement) {
-            this.attachedVideoElement.srcObject = new MediaStream([mediaTrack]);
-            this.attachedVideoElement.play().catch(() => {});
-          }
+          this.syncVideoElement(mediaTrack);
         }
 
         if (track.kind === 'audio' && publication.source === Track.Source.Microphone) {
@@ -269,6 +285,27 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     room.on(RoomEvent.MediaDevicesError, (error: Error) => {
       this.emit(AvatarEvent.Error, error);
     });
+  }
+
+  private reattachTracks(): void {
+    if (this.avatarVideoTrack) {
+      this.syncVideoElement(this.avatarVideoTrack);
+    }
+    if (this.avatarAudioTrack) {
+      if (this.attachedAudioElement) {
+        this.attachedAudioElement.srcObject = new MediaStream([this.avatarAudioTrack]);
+        this.attachedAudioElement.play().catch(() => {});
+      } else {
+        this.autoPlayAudio(this.avatarAudioTrack);
+      }
+    }
+  }
+
+  private syncVideoElement(track: MediaStreamTrack): void {
+    if (this.attachedVideoElement) {
+      this.attachedVideoElement.srcObject = new MediaStream([track]);
+      this.attachedVideoElement.play().catch(() => {});
+    }
   }
 
   private async enableInitialMedia(
