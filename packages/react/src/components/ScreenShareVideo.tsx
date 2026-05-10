@@ -1,9 +1,10 @@
 'use client';
 
-/**
- * ScreenShareVideo placeholder — screen share rendering will be
- * implemented via the core session's screen share track events.
- */
 export function ScreenShareVideo() {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[@runwayml/avatars-react] ScreenShareVideo is not yet implemented in the core-based React SDK. Screen share publishing works via initialScreenStream prop, but rendering the shared content is pending.',
+    );
+  }
   return null;
 }
