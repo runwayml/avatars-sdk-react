@@ -1,5 +1,6 @@
 import Runway from '@runwayml/sdk';
 import express from 'express';
+import { pollUntilReady } from '../../packages/core/src/api/poll';
 
 const app = express();
 const runway = new Runway({ apiKey: process.env.RUNWAYML_API_SECRET });
@@ -13,25 +14,16 @@ app.post('/api/avatar/connect', async (req, res) => {
       avatar: { type: 'runway-preset', presetId: req.body.avatarId },
     });
 
-    const session = await pollUntilReady(sessionId);
-    res.json({ sessionId, sessionKey: session.sessionKey });
+    const credentials = await pollUntilReady({
+      sessionId,
+      apiKey: process.env.RUNWAYML_API_SECRET!,
+    });
+
+    res.json(credentials);
   } catch (error) {
     console.error('Failed to create session:', error);
     res.status(500).json({ error: 'Failed to create session' });
   }
 });
-
-async function pollUntilReady(sessionId: string) {
-  const deadline = Date.now() + 30_000;
-  while (Date.now() < deadline) {
-    const session = await runway.realtimeSessions.retrieve(sessionId);
-    if (session.status === 'READY') return session;
-    if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(session.status)) {
-      throw new Error(`Session ${session.status.toLowerCase()}`);
-    }
-    await new Promise((r) => setTimeout(r, 1_000));
-  }
-  throw new Error('Session timed out');
-}
 
 app.listen(3000, () => console.log('http://localhost:3000'));

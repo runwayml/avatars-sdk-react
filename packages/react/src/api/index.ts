@@ -5,6 +5,7 @@ export {
   consumeSession,
   getClientToolSchema,
   pageActionTools,
+  pollUntilReady,
   validateClientToolArgs,
 } from '@runwayml/avatars/api';
 
@@ -19,6 +20,7 @@ export type {
   InferSchemaInput,
   InferSchemaOutput,
   PageActionEvent,
+  PollUntilReadyOptions,
   StandardSchemaIssue,
   StandardSchemaResult,
   StandardSchemaV1,

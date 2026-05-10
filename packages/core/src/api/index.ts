@@ -24,3 +24,5 @@ export type {
 export { consumeSession } from './consume';
 export type { PageActionEvent } from './page-actions';
 export { pageActionTools } from './page-actions';
+export type { PollUntilReadyOptions } from './poll';
+export { pollUntilReady } from './poll';
