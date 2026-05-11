@@ -1,69 +1,77 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, describe, expect, it, mock } from 'bun:test';
+import { fetchCredentials } from './useCredentials';
 
-const mockConsumeSession = mock(() =>
-  Promise.resolve({
-    url: 'wss://lk.example.com',
-    token: 'lk-token-123',
-    roomName: 'room-abc',
-  }),
-);
+const originalFetch = globalThis.fetch;
 
-mock.module('@runwayml/avatars', () => ({
-  consumeSession: mockConsumeSession,
-}));
+const CONSUME_RESPONSE = {
+  url: 'wss://lk.example.com',
+  token: 'lk-token-123',
+  roomName: 'room-abc',
+};
 
-// Re-import after mocking so the module picks up the mock
-const { fetchCredentials } = await import('./useCredentials');
-
-beforeEach(() => {
-  mockConsumeSession.mockClear();
-});
+function mockFetch(handler: (url: string, init?: RequestInit) => Response | Promise<Response>) {
+  globalThis.fetch = mock(handler) as unknown as typeof globalThis.fetch;
+}
 
 afterEach(() => {
-  mock.restore();
+  globalThis.fetch = originalFetch;
 });
 
 describe('fetchCredentials', () => {
   it('calls consumeSession for sessionId + sessionKey', async () => {
+    mockFetch((url) => {
+      if (url.includes('/consume')) {
+        return new Response(JSON.stringify(CONSUME_RESPONSE), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('Not found', { status: 404 });
+    });
+
     const result = await fetchCredentials({
       avatarId: 'test-avatar',
       sessionId: 'sess-1',
       sessionKey: 'key-1',
     });
 
-    expect(mockConsumeSession).toHaveBeenCalledWith({
-      sessionId: 'sess-1',
-      sessionKey: 'key-1',
-      baseUrl: undefined,
-    });
     expect(result).toEqual({
       sessionId: 'sess-1',
       serverUrl: 'wss://lk.example.com',
       token: 'lk-token-123',
       roomName: 'room-abc',
     });
+
+    const calls = (globalThis.fetch as ReturnType<typeof mock>).mock.calls;
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0]).toContain('/v1/realtime_sessions/sess-1/consume');
   });
 
   it('auto-consumes when connectUrl returns sessionKey-shaped response', async () => {
-    globalThis.fetch = mock(() =>
-      Promise.resolve(
-        new Response(
+    let callCount = 0;
+    mockFetch((url) => {
+      callCount++;
+      if (url === '/api/connect') {
+        return new Response(
           JSON.stringify({ sessionId: 'sess-2', sessionKey: 'key-2' }),
           { status: 200, headers: { 'Content-Type': 'application/json' } },
-        ),
-      ),
-    ) as unknown as typeof globalThis.fetch;
+        );
+      }
+      if (url.includes('/consume')) {
+        return new Response(JSON.stringify(CONSUME_RESPONSE), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('Not found', { status: 404 });
+    });
 
     const result = await fetchCredentials({
       avatarId: 'test-avatar',
       connectUrl: '/api/connect',
     });
 
-    expect(mockConsumeSession).toHaveBeenCalledWith({
-      sessionId: 'sess-2',
-      sessionKey: 'key-2',
-      baseUrl: undefined,
-    });
+    expect(callCount).toBe(2);
     expect(result).toEqual({
       sessionId: 'sess-2',
       serverUrl: 'wss://lk.example.com',
@@ -80,25 +88,34 @@ describe('fetchCredentials', () => {
       roomName: 'other-room',
     };
 
-    globalThis.fetch = mock(() =>
-      Promise.resolve(
-        new Response(JSON.stringify(fullCredentials), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        }),
-      ),
-    ) as unknown as typeof globalThis.fetch;
+    mockFetch(() =>
+      new Response(JSON.stringify(fullCredentials), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
 
     const result = await fetchCredentials({
       avatarId: 'test-avatar',
       connectUrl: '/api/connect',
     });
 
-    expect(mockConsumeSession).not.toHaveBeenCalled();
+    const calls = (globalThis.fetch as ReturnType<typeof mock>).mock.calls;
+    expect(calls).toHaveLength(1);
     expect(result).toEqual(fullCredentials);
   });
 
   it('auto-consumes when connect function returns sessionKey-shaped response', async () => {
+    mockFetch((url) => {
+      if (url.includes('/consume')) {
+        return new Response(JSON.stringify(CONSUME_RESPONSE), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('Not found', { status: 404 });
+    });
+
     const connectFn = mock(() =>
       Promise.resolve({ sessionId: 'sess-4', sessionKey: 'key-4' } as any),
     );
@@ -109,11 +126,6 @@ describe('fetchCredentials', () => {
     });
 
     expect(connectFn).toHaveBeenCalledWith('test-avatar');
-    expect(mockConsumeSession).toHaveBeenCalledWith({
-      sessionId: 'sess-4',
-      sessionKey: 'key-4',
-      baseUrl: undefined,
-    });
     expect(result).toEqual({
       sessionId: 'sess-4',
       serverUrl: 'wss://lk.example.com',
@@ -123,14 +135,18 @@ describe('fetchCredentials', () => {
   });
 
   it('passes baseUrl to consumeSession during auto-consume', async () => {
-    globalThis.fetch = mock(() =>
-      Promise.resolve(
-        new Response(
-          JSON.stringify({ sessionId: 'sess-5', sessionKey: 'key-5' }),
-          { status: 200, headers: { 'Content-Type': 'application/json' } },
-        ),
-      ),
-    ) as unknown as typeof globalThis.fetch;
+    mockFetch((url) => {
+      if (url.includes('/consume')) {
+        return new Response(JSON.stringify(CONSUME_RESPONSE), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(
+        JSON.stringify({ sessionId: 'sess-5', sessionKey: 'key-5' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    });
 
     await fetchCredentials({
       avatarId: 'test-avatar',
@@ -138,17 +154,14 @@ describe('fetchCredentials', () => {
       baseUrl: 'https://custom-api.example.com',
     });
 
-    expect(mockConsumeSession).toHaveBeenCalledWith({
-      sessionId: 'sess-5',
-      sessionKey: 'key-5',
-      baseUrl: 'https://custom-api.example.com',
-    });
+    const calls = (globalThis.fetch as ReturnType<typeof mock>).mock.calls;
+    const consumeCall = calls.find((c: Array<unknown>) => (c[0] as string).includes('/consume'));
+    expect(consumeCall).toBeDefined();
+    expect(consumeCall![0]).toContain('https://custom-api.example.com');
   });
 
   it('throws when connectUrl returns a non-OK response', async () => {
-    globalThis.fetch = mock(() =>
-      Promise.resolve(new Response('Internal Server Error', { status: 500 })),
-    ) as unknown as typeof globalThis.fetch;
+    mockFetch(() => new Response('Internal Server Error', { status: 500 }));
 
     await expect(
       fetchCredentials({ avatarId: 'test-avatar', connectUrl: '/api/connect' }),
