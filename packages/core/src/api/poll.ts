@@ -56,7 +56,10 @@ export async function pollUntilReady(
   while (Date.now() < deadline) {
     const url = `${baseUrl}/v1/realtime_sessions/${sessionId}`;
     const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${apiKey}` },
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'X-Runway-Version': '2024-11-06',
+      },
     });
 
     if (!response.ok) {
