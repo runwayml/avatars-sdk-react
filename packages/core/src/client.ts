@@ -527,7 +527,19 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     if (mediaTrack) {
       this._localVideoTrack = mediaTrack;
       this.emit(AvatarEvent.LocalVideoReady, mediaTrack);
+      return;
     }
+
+    const onPublished = () => {
+      const retryPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const retryTrack = retryPub?.track?.mediaStreamTrack;
+      if (retryTrack) {
+        this._localVideoTrack = retryTrack;
+        this.emit(AvatarEvent.LocalVideoReady, retryTrack);
+        room.off(RoomEvent.LocalTrackPublished, onPublished);
+      }
+    };
+    room.on(RoomEvent.LocalTrackPublished, onPublished);
   }
 
   private async setScreenShare(active: boolean): Promise<void> {

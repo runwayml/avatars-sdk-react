@@ -7,9 +7,13 @@
   </head>
   <body>
     <main>
-      <video id="avatar" autoplay playsinline></video>
+      <div class="video-grid">
+        <video id="avatar" autoplay playsinline></video>
+        <video id="webcam" autoplay playsinline muted></video>
+      </div>
       <div class="controls">
         <button id="start">Start</button>
+        <button id="mute" disabled>Mute</button>
         <button id="end" disabled>End call</button>
       </div>
       <p id="status">Ready</p>
@@ -19,8 +23,10 @@
       import './styles.css';
       import { streamTo, AvatarEvent } from '@runwayml/avatars';
 
-      const videoEl = document.getElementById('avatar');
+      const avatarEl = document.getElementById('avatar');
+      const webcamEl = document.getElementById('webcam');
       const startBtn = document.getElementById('start');
+      const muteBtn = document.getElementById('mute');
       const endBtn = document.getElementById('end');
       const statusEl = document.getElementById('status');
 
@@ -38,18 +44,39 @@
         startBtn.disabled = true;
 
         const credentials = await fetchCredentials();
-        const session = await streamTo({ credentials, target: videoEl });
+        const session = await streamTo({ credentials, target: avatarEl });
 
         session.on(AvatarEvent.AvatarVideoReady, () => {
           statusEl.textContent = 'Connected — start talking!';
         });
 
+        session.on(AvatarEvent.LocalVideoReady, (track) => {
+          webcamEl.srcObject = new MediaStream([track]);
+        });
+
+        session.on(AvatarEvent.MicPermissionChanged, (state) => {
+          console.log('Mic permission:', state);
+        });
+
+        session.on(AvatarEvent.MediaChanged, () => {
+          muteBtn.textContent = session.mic.isEnabled ? 'Mute' : 'Unmute';
+        });
+
+        session.on(AvatarEvent.Error, (err) => {
+          console.error('Session error:', err);
+        });
+
+        muteBtn.disabled = false;
         endBtn.disabled = false;
+
+        muteBtn.onclick = () => session.mic.toggle();
 
         endBtn.onclick = () => {
           session.end();
+          webcamEl.srcObject = null;
           statusEl.textContent = 'Ended';
           startBtn.disabled = false;
+          muteBtn.disabled = true;
           endBtn.disabled = true;
         };
       };
