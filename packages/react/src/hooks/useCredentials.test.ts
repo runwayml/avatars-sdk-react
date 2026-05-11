@@ -9,8 +9,16 @@ const CONSUME_RESPONSE = {
   roomName: 'room-abc',
 };
 
+let fetchCalls: Array<{ url: string; init?: RequestInit }>;
+
 function mockFetch(handler: (url: string, init?: RequestInit) => Response | Promise<Response>) {
-  globalThis.fetch = mock(handler) as unknown as typeof globalThis.fetch;
+  fetchCalls = [];
+  const wrapped = (url: string | URL | Request, init?: RequestInit) => {
+    const urlStr = typeof url === 'string' ? url : url.toString();
+    fetchCalls.push({ url: urlStr, init });
+    return handler(urlStr, init);
+  };
+  globalThis.fetch = mock(wrapped) as unknown as typeof globalThis.fetch;
 }
 
 afterEach(() => {
@@ -42,15 +50,12 @@ describe('fetchCredentials', () => {
       roomName: 'room-abc',
     });
 
-    const calls = (globalThis.fetch as ReturnType<typeof mock>).mock.calls;
-    expect(calls).toHaveLength(1);
-    expect(calls[0][0]).toContain('/v1/realtime_sessions/sess-1/consume');
+    expect(fetchCalls).toHaveLength(1);
+    expect(fetchCalls[0].url).toContain('/v1/realtime_sessions/sess-1/consume');
   });
 
   it('auto-consumes when connectUrl returns sessionKey-shaped response', async () => {
-    let callCount = 0;
     mockFetch((url) => {
-      callCount++;
       if (url === '/api/connect') {
         return new Response(
           JSON.stringify({ sessionId: 'sess-2', sessionKey: 'key-2' }),
@@ -71,7 +76,7 @@ describe('fetchCredentials', () => {
       connectUrl: '/api/connect',
     });
 
-    expect(callCount).toBe(2);
+    expect(fetchCalls).toHaveLength(2);
     expect(result).toEqual({
       sessionId: 'sess-2',
       serverUrl: 'wss://lk.example.com',
@@ -100,8 +105,7 @@ describe('fetchCredentials', () => {
       connectUrl: '/api/connect',
     });
 
-    const calls = (globalThis.fetch as ReturnType<typeof mock>).mock.calls;
-    expect(calls).toHaveLength(1);
+    expect(fetchCalls).toHaveLength(1);
     expect(result).toEqual(fullCredentials);
   });
 
@@ -154,10 +158,9 @@ describe('fetchCredentials', () => {
       baseUrl: 'https://custom-api.example.com',
     });
 
-    const calls = (globalThis.fetch as ReturnType<typeof mock>).mock.calls;
-    const consumeCall = calls.find((c: Array<unknown>) => (c[0] as string).includes('/consume'));
+    const consumeCall = fetchCalls.find((c) => c.url.includes('/consume'));
     expect(consumeCall).toBeDefined();
-    expect(consumeCall![0]).toContain('https://custom-api.example.com');
+    expect(consumeCall!.url).toContain('https://custom-api.example.com');
   });
 
   it('throws when connectUrl returns a non-OK response', async () => {
