@@ -50,6 +50,9 @@
           statusEl.textContent = 'Connected — start talking!';
         });
 
+        if (session.localVideoTrack) {
+          webcamEl.srcObject = new MediaStream([session.localVideoTrack]);
+        }
         session.on(AvatarEvent.LocalVideoReady, (track) => {
           webcamEl.srcObject = new MediaStream([track]);
         });
