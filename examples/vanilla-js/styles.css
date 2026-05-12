@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: #111;
+  color: #ccc;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 520px;
+}
+
+.video-grid {
+  position: relative;
+  width: 100%;
+}
+
+#avatar {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  background: #1a1a1a;
+  object-fit: cover;
+}
+
+#webcam {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 25%;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  background: #222;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  border-radius: 100px;
+  border: 1px solid #2a2a2a;
+  background: #1a1a1a;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #222;
+  border-color: #444;
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+#end {
+  border-color: #3a1a1a;
+  color: #e55;
+}
+
+#end:hover:not(:disabled) {
+  background: #2a1111;
+  border-color: #c44;
+}
+
+#status {
+  font-size: 0.75rem;
+  color: #555;
+  letter-spacing: 0.02em;
+}

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0-beta.0] - 2026-05-11
+
+### Added
+
+- **`@runwayml/avatars` core package** — framework-agnostic SDK for real-time avatar sessions. Works with vanilla JS, Svelte, Vue, or any framework. Entry points: `streamTo({ credentials, target })` and `connect({ credentials })`.
+- **Monorepo structure** — repository is now a bun workspaces monorepo with `packages/core` and `packages/react`. React users install `@runwayml/avatars-react` (which includes the core automatically).
+- **Speech events** — `AvatarEvent.UserSpeechStarted`, `UserSpeechEnded`, `AvatarSpeechStarted`, `AvatarSpeechEnded` for tracking who's talking.
+- **Connection quality** — `AvatarEvent.ConnectionQualityChanged` with quality levels: `excellent`, `good`, `poor`, `lost`.
+- **Audio device selection** — `session.mic.setDevice(deviceId)` and `session.camera.setDevice(deviceId)`.
+- **Mic permission events** — `AvatarEvent.MicPermissionChanged` with state: `pending`, `granted`, `denied`.
+- **Active speakers** — `AvatarEvent.ActiveSpeakersChanged` with `['user', 'avatar']` array.
+- **`session.waitFor(event)`** — promise helper for one-shot event listening.
+- **`session.duration`** — getter returning milliseconds since the session connected.
+- **`AvatarError`** — typed error class with `code` field (`CONSUME_FAILED`, `CONNECTION_FAILED`, `MEDIA_PERMISSION_DENIED`, `MEDIA_DEVICE_ERROR`, `SCREEN_SHARE_FAILED`) and optional `cause`.
+- **`pollUntilReady()`** — server-side utility in `@runwayml/avatars/api` that polls a session until READY, replacing boilerplate polling loops.
+- **`reconnecting` session state** — distinct from `connecting`, surfaces when LiveKit is reconnecting after a network interruption.
+- **Vanilla JS example** — single-file HTML demo at `examples/vanilla-js/`.
+- **SvelteKit example** — demonstrates the core SDK with a non-React framework at `examples/sveltekit/`.
+
+### Fixed
+
+- Connection failures now clean up the LiveKit room and listeners instead of leaking them.
+- Media toggle errors (`mic.toggle()`, `camera.toggle()`) are caught and emitted as `AvatarEvent.Error` instead of causing unhandled promise rejections.
+- Stale track references are cleared when tracks are unsubscribed or the session ends.
+- Auto-created audio elements are removed from the DOM on cleanup.
+- Event emitter isolates handler errors so one throwing listener doesn't break others.
+
 ## [0.15.0] - 2026-05-08
 
 ### Fixed
