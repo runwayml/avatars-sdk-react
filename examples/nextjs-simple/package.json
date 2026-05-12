@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@runwayml/avatars-react": "latest",
+    "@runwayml/avatars-react": "0.16.0-beta.0",
     "@runwayml/sdk": "^3.18.0",
     "next": "^15.0.0",
     "react": "^19.0.0",
