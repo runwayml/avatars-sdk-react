@@ -58,7 +58,7 @@ export async function createElevenLabsSession(
     signed_url: string;
   };
 
-  // 2. Create Runway session with ElevenLabs provider
+  // 2. Create Runway session with ElevenLabs integration
   const createRes = await fetch(`${baseUrl}/v1/realtime_sessions`, {
     method: 'POST',
     headers: {
@@ -67,9 +67,9 @@ export async function createElevenLabsSession(
       'X-Runway-Version': API_VERSION,
     },
     body: JSON.stringify({
-      model: 'gwm1_avatars',
+      model: 'gwm-1-avatars',
       avatar: { type: 'custom', avatarId: options.avatarId },
-      provider: { type: 'elevenlabs', signedUrl },
+      integration: { type: 'elevenlabs', signedUrl },
     }),
   });
   if (!createRes.ok) {

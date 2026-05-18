@@ -27,7 +27,7 @@ A Runway avatar powered by your ElevenLabs Conversational AI agent. The agent ha
 The API route (`app/api/avatar/connect/route.ts`) uses `createElevenLabsSession` from `@runwayml/avatars-react/api`, which:
 
 1. Fetches a signed WebSocket URL from the ElevenLabs API
-2. Creates a Runway realtime session with the ElevenLabs provider
+2. Creates a Runway realtime session with the ElevenLabs integration
 3. Polls until ready and returns WebRTC credentials
 
 The client renders a standard `<AvatarCall>` — no ElevenLabs SDK needed on the frontend.
