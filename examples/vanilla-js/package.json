@@ -6,6 +6,7 @@
     "dev": "concurrently \"vite\" \"tsx watch --env-file=.env server.ts\""
   },
   "dependencies": {
+    "@runwayml/avatars": "0.16.0",
     "@runwayml/sdk": "^3.15.0",
     "express": "^5.0.0"
   },
