@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@runwayml/avatars": "0.16.0",
     "@runwayml/sdk": "^3.15.0"
   },
   "devDependencies": {
