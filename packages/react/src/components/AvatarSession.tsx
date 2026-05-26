@@ -294,7 +294,7 @@ function AvatarSessionContextInner({
   return (
     <AvatarSessionContext.Provider value={contextValue}>
       <MediaDeviceErrorContext.Provider value={mediaDeviceErrors}>
-        {children}
+        <div data-avatar-session-surface="">{children}</div>
       </MediaDeviceErrorContext.Provider>
     </AvatarSessionContext.Provider>
   );

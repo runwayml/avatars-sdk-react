@@ -6,6 +6,7 @@ describe('package exports', () => {
     expect(exports.AvatarCall).toBeDefined();
     expect(exports.AvatarSession).toBeDefined();
     expect(exports.AvatarVideo).toBeDefined();
+    expect(exports.ConnectionIndicator).toBeDefined();
     expect(exports.ControlBar).toBeDefined();
     expect(exports.UserVideo).toBeDefined();
     expect(exports.ScreenShareVideo).toBeDefined();
@@ -20,6 +21,9 @@ describe('package exports', () => {
     expect(exports.useLocalMedia).toBeDefined();
     expect(exports.useTranscription).toBeDefined();
     expect(exports.useTranscript).toBeDefined();
+    expect(exports.useConnectionQuality).toBeDefined();
+    expect(exports.useConnectionCheck).toBeDefined();
+    expect(exports.checkAvatarConnection).toBeDefined();
   });
 
   it('exports client event hooks and helpers', async () => {

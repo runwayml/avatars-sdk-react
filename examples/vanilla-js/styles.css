@@ -95,3 +95,10 @@ button:disabled {
   color: #555;
   letter-spacing: 0.02em;
 }
+
+#connection-warning {
+  font-size: 0.8125rem;
+  color: #e8c47c;
+  text-align: center;
+  max-width: 100%;
+}

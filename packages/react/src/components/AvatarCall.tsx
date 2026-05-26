@@ -25,11 +25,13 @@
  * ```
  */
 
+import { useConnectionCheck } from '../hooks/useConnectionCheck';
 import { useCredentials } from '../hooks/useCredentials';
 import { useLatest } from '../hooks/useLatest';
 import type { AvatarCallProps, ClientEvent } from '../types';
 import { AvatarSession } from './AvatarSession';
 import { AvatarVideo } from './AvatarVideo';
+import { ConnectionIndicator } from './ConnectionIndicator';
 import { ControlBar } from './ControlBar';
 import { UserVideo } from './UserVideo';
 
@@ -49,6 +51,9 @@ export function AvatarCall<E extends ClientEvent = ClientEvent>({
   onClientEvent,
   children,
   initialScreenStream,
+  connectionCheck = false,
+  connectionDebug = false,
+  connectionPreviewWarning = false,
   __unstable_roomOptions,
   ...props
 }: AvatarCallProps<E>) {
@@ -69,6 +74,15 @@ export function AvatarCall<E extends ClientEvent = ClientEvent>({
     onErrorRef.current?.(err);
   };
 
+  const readyCredentials =
+    credentialsState.status === 'ready' ? credentialsState.credentials : null;
+
+  const preflight = useConnectionCheck({
+    credentials: readyCredentials,
+    enabled: connectionCheck && readyCredentials !== null,
+    runOnMount: connectionCheck,
+  });
+
   const backgroundStyle = avatarImageUrl
     ? ({ '--avatar-image': `url(${avatarImageUrl})` } as React.CSSProperties)
     : undefined;
@@ -76,6 +90,10 @@ export function AvatarCall<E extends ClientEvent = ClientEvent>({
   const defaultChildren = (
     <>
       <AvatarVideo />
+      <ConnectionIndicator
+        debug={connectionDebug}
+        previewWarning={connectionPreviewWarning}
+      />
       <UserVideo />
       <ControlBar />
     </>
@@ -105,6 +123,17 @@ export function AvatarCall<E extends ClientEvent = ClientEvent>({
       {...props}
       data-avatar-call=""
       data-avatar-id={avatarId}
+      data-connection-check={
+        connectionCheck
+          ? preflight.status === 'running'
+            ? 'running'
+            : preflight.result?.success
+              ? 'passed'
+              : preflight.result
+                ? 'failed'
+                : undefined
+          : undefined
+      }
       style={{ ...props.style, ...backgroundStyle }}
     >
       <AvatarSession

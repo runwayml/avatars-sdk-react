@@ -56,6 +56,23 @@ session.on(AvatarEvent.Error, (error) => {});
 session.on(AvatarEvent.AvatarVideoReady, (track) => {});
 session.on(AvatarEvent.AvatarAudioReady, (track) => {});
 session.on(AvatarEvent.MediaChanged, () => {});
+session.on(AvatarEvent.ConnectionQualityChanged, (quality) => {
+  // excellent | good | poor | lost | unknown (local participant only)
+});
+```
+
+### Connection preflight
+
+```javascript
+import { checkAvatarConnection } from '@runwayml/avatars';
+
+const result = await checkAvatarConnection({
+  serverUrl: credentials.serverUrl,
+  token: credentials.token,
+});
+if (!result.success) {
+  console.warn('Network check failed', result.checks);
+}
 ```
 
 ### Error handling

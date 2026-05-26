@@ -17,11 +17,17 @@
         <button id="end" disabled>End call</button>
       </div>
       <p id="status">Ready</p>
+      <p id="connection-warning" hidden></p>
     </main>
 
     <script type="module">
       import './styles.css';
-      import { streamTo, AvatarEvent } from '@runwayml/avatars';
+      import {
+        streamTo,
+        AvatarEvent,
+        connectionQualityWarningMessage,
+        isDegradedConnectionQuality,
+      } from '@runwayml/avatars';
 
       const avatarEl = document.getElementById('avatar');
       const webcamEl = document.getElementById('webcam');
@@ -29,6 +35,7 @@
       const muteBtn = document.getElementById('mute');
       const endBtn = document.getElementById('end');
       const statusEl = document.getElementById('status');
+      const connectionWarningEl = document.getElementById('connection-warning');
 
       async function fetchCredentials() {
         const res = await fetch('/api/avatar/connect', {
@@ -44,6 +51,7 @@
         startBtn.disabled = true;
 
         const credentials = await fetchCredentials();
+
         const session = await streamTo({ credentials, target: avatarEl });
 
         session.on(AvatarEvent.AvatarVideoReady, () => {
@@ -69,6 +77,23 @@
           console.error('Session error:', err);
         });
 
+        session.on(AvatarEvent.ConnectionQualityChanged, (quality) => {
+          const message = connectionQualityWarningMessage(quality);
+          if (message && isDegradedConnectionQuality(quality)) {
+            connectionWarningEl.hidden = false;
+            connectionWarningEl.textContent = message;
+          } else if (!isDegradedConnectionQuality(quality)) {
+            connectionWarningEl.hidden = true;
+          }
+        });
+
+        session.on(AvatarEvent.StateChanged, (state) => {
+          if (state === 'reconnecting') {
+            connectionWarningEl.hidden = false;
+            connectionWarningEl.textContent = 'Reconnecting…';
+          }
+        });
+
         muteBtn.disabled = false;
         endBtn.disabled = false;
 
@@ -78,6 +103,7 @@
           session.end();
           webcamEl.srcObject = null;
           statusEl.textContent = 'Ended';
+          connectionWarningEl.hidden = true;
           startBtn.disabled = false;
           muteBtn.disabled = true;
           endBtn.disabled = true;

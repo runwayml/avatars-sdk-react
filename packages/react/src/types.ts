@@ -69,6 +69,17 @@ export interface AvatarCallProps<E extends ClientEvent = ClientEvent>
   extends Omit<React.ComponentPropsWithoutRef<'div'>, 'onError'>,
     Omit<AvatarProviderProps<E>, 'fallback'> {
   avatarImageUrl?: string;
+  /**
+   * Run LiveKit preflight checks in the background after credentials load.
+   * Does not block join or show UI — use `ConnectionIndicator` for in-call warnings.
+   */
+  connectionCheck?: boolean;
+  /**
+   * Live metrics overlay (dev). Prefer `<ConnectionQualityDevTools />` in custom layouts.
+   */
+  connectionDebug?: boolean;
+  /** Force the warning pill visible (UI smoke test; ignores network). */
+  connectionPreviewWarning?: boolean;
 }
 
 export interface UseAvatarReturn {
