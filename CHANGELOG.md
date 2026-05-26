@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`checkAvatarConnection()`** — preflight WebSocket/WebRTC checks using LiveKit `ConnectionCheck`, with normalized results (no LiveKit types in the public API).
+- **`useConnectionQuality()`** and **`ConnectionIndicator`** — composable in-call warning when the local network is degraded or reconnecting (debounced; local participant only).
+- **`useConnectionCheck()`** and **`AvatarCall` `connectionCheck` prop** — optional silent background preflight (no UI; in-call warnings use `ConnectionIndicator`).
+- **`session.connectionQuality`** getter on core `AvatarSession`.
+
+### Fixed
+
+- **`ConnectionQualityChanged`** in core now only reflects the **local** participant (avoids avatar quality updates being shown as the user's network issue).
+- **Preflight `checkAvatarConnection`** defaults to WebSocket-only (no full WebRTC join on the session token before the call).
+- **`useConnectionQuality`** treats LiveKit **`signalReconnecting`** like reconnecting for the in-call warning.
+- **`AvatarSession` state** maps LiveKit **`signalReconnecting`** to `reconnecting` (was incorrectly treated as `ended`).
+- **`ConnectionIndicator`** also uses inbound WebRTC stats (RTT / packet loss) when LiveKit still reports `good`, so slow links (e.g. DevTools 3G) can surface **Slow connection**.
+- **`ConnectionQualityDevTools`** and **`connectionDebug`** / **`connectionPreviewWarning`** on `AvatarCall` — opt-in dev overlay (metrics top-right; does not affect control bar layout).
+- Warning pill includes an amber **signal** dot; reconnecting uses a slightly warmer tone.
+
 ## [0.16.0] - 2026-05-12
 
 ### Added

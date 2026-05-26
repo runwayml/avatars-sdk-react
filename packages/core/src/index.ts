@@ -1,3 +1,24 @@
+export { checkAvatarConnection } from './connection-check';
+export type {
+  AvatarConnectionCheckOptions,
+  AvatarConnectionCheckResult,
+  ConnectionCheckStatus,
+  ConnectionCheckStep,
+} from './connection-check';
+export {
+  CONNECTION_QUALITY_HIDE_DELAY_MS,
+  CONNECTION_QUALITY_SHOW_DELAY_MS,
+  connectionQualityWarningMessage,
+  isDegradedConnectionQuality,
+  shouldShowConnectionQualityWarning,
+} from './connection-quality';
+export {
+  CONNECTION_STATS_PACKET_LOSS_RATIO,
+  CONNECTION_STATS_RTT_THRESHOLD_MS,
+  isRtcStatsDegraded,
+  summarizeRtcStats,
+} from './connection-stats';
+export type { RtcStatsSummary } from './connection-stats';
 export { AvatarSession, connect, streamTo } from './client';
 export { AvatarError } from './error';
 export type { AvatarErrorCode } from './error';

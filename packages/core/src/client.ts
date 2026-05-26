@@ -57,6 +57,7 @@ function toSessionState(cs: ConnectionState): SessionState {
     case ConnectionState.Connected:
       return 'active';
     case ConnectionState.Reconnecting:
+    case ConnectionState.SignalReconnecting:
       return 'reconnecting';
     case ConnectionState.Disconnected:
       return 'ended';
@@ -89,6 +90,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   private _userSpeaking = false;
   private _avatarSpeaking = false;
   private _connectedAt: number | null = null;
+  private _connectionQuality: ConnectionQuality = 'unknown';
 
   readonly mic: MediaController;
   readonly camera: MediaController;
@@ -149,6 +151,11 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
   get duration(): number {
     if (!this._connectedAt) return 0;
     return Date.now() - this._connectedAt;
+  }
+
+  /** Local participant connection quality (from LiveKit). */
+  get connectionQuality(): ConnectionQuality {
+    return this._connectionQuality;
   }
 
   waitFor<K extends keyof AvatarEventMap>(event: K): Promise<AvatarEventMap[K][0]> {
@@ -426,10 +433,17 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
 
     room.on(
       RoomEvent.ConnectionQualityChanged,
-      (quality: LKConnectionQuality, _participant: Participant) => {
-        this.emit(AvatarEvent.ConnectionQualityChanged, toLKQuality(quality));
+      (quality: LKConnectionQuality, participant: Participant) => {
+        if (!participant.isLocal) {
+          return;
+        }
+        const mapped = toLKQuality(quality);
+        this._connectionQuality = mapped;
+        this.emit(AvatarEvent.ConnectionQualityChanged, mapped);
       },
     );
+
+    this._connectionQuality = toLKQuality(room.localParticipant.connectionQuality);
   }
 
   private reattachTracks(): void {
@@ -611,6 +625,7 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     this._userSpeaking = false;
     this._avatarSpeaking = false;
     this._connectedAt = null;
+    this._connectionQuality = 'unknown';
     this.flatDeltaAcc.reset();
     this.setState('ended');
   }

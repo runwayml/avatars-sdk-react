@@ -15,6 +15,16 @@
  */
 
 /* AvatarCall Container - CSS Custom Properties scoped to component */
+/* LiveKit room shell fills the call frame */
+[data-avatar-call] > div {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 [data-avatar-call] {
   /* Customizable variables */
   --avatar-bg-connecting: #1a1a1a;
@@ -101,6 +111,94 @@
   background: transparent;
 }
 
+[data-avatar-session-surface] {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+[data-avatar-connection-overlay] {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+[data-avatar-connection-indicator] {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--avatar-screen-share-indicator-border);
+  background: var(--avatar-screen-share-indicator-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--avatar-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+  pointer-events: none;
+}
+
+[data-avatar-connection-signal] {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #f5c518;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 8px rgba(245, 197, 24, 0.65);
+}
+
+[data-avatar-connection-indicator][data-connection-reason="reconnecting"]
+  [data-avatar-connection-signal] {
+  background: #f59e0b;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 8px rgba(245, 158, 11, 0.65);
+}
+
+[data-avatar-connection-debug] {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  left: auto;
+  max-width: min(240px, calc(100% - 140px));
+  max-height: 28vh;
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.72);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+  pointer-events: none;
+}
+
+[data-avatar-connection-preflight] {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 1;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--avatar-text-secondary);
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}
+
 /* ControlBar */
 [data-avatar-control-bar] {
   position: absolute;
@@ -114,7 +212,8 @@
   justify-content: center;
   gap: 12px;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
-  z-index: 2;
+  z-index: 5;
+  pointer-events: auto;
 }
 
 @media (max-width: 480px) {
