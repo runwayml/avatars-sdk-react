@@ -44,49 +44,72 @@ export async function createElevenLabsSession(
   options: CreateElevenLabsSessionOptions,
 ): Promise<CreateElevenLabsSessionResponse> {
   const baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
-
-  // 1. Get a signed WebSocket URL from ElevenLabs (valid ~15 min).
-  const elRes = await fetch(
-    `${ELEVENLABS_SIGNED_URL_ENDPOINT}?agent_id=${encodeURIComponent(options.agentId)}`,
-    { headers: { 'xi-api-key': options.elevenLabsApiKey } },
-  );
-  if (!elRes.ok) {
-    const body = await elRes.text().catch(() => '');
-    throw new Error(
-      `Failed to get ElevenLabs signed URL: ${elRes.status} ${body}`,
-    );
-  }
-  const { signed_url: signedUrl } = (await elRes.json()) as {
-    signed_url: string;
-  };
-
-  // 2. Create a Runway realtime session bound to the ElevenLabs integration.
-  const createRes = await fetch(`${baseUrl}/v1/realtime_sessions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${options.runwayApiSecret}`,
-      'X-Runway-Version': API_VERSION,
-    },
-    body: JSON.stringify({
-      model: 'gwm1_avatars',
-      avatar: { type: 'custom', avatarId: options.avatarId },
-      integration: { type: 'elevenlabs', signedUrl },
-    }),
+  const signedUrl = await fetchElevenLabsSignedUrl(options);
+  const sessionId = await createRunwayElevenLabsSession({
+    ...options,
+    baseUrl,
+    signedUrl,
   });
-  if (!createRes.ok) {
-    const body = await createRes.text().catch(() => '');
-    throw new Error(
-      `Failed to create Runway session: ${createRes.status} ${body}`,
-    );
-  }
-  const { id: sessionId } = (await createRes.json()) as { id: string };
 
-  // 3. Poll until READY and return the session credentials.
   return pollUntilReady({
     sessionId,
     apiKey: options.runwayApiSecret,
     baseUrl,
     timeoutMs: options.timeoutMs,
   });
+}
+
+async function fetchElevenLabsSignedUrl(
+  options: Pick<CreateElevenLabsSessionOptions, 'elevenLabsApiKey' | 'agentId'>,
+): Promise<string> {
+  const response = await fetch(
+    `${ELEVENLABS_SIGNED_URL_ENDPOINT}?agent_id=${encodeURIComponent(options.agentId)}`,
+    { headers: { 'xi-api-key': options.elevenLabsApiKey } },
+  );
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(
+      `Failed to get ElevenLabs signed URL: ${response.status} ${body}`,
+    );
+  }
+
+  const { signed_url: signedUrl } = (await response.json()) as {
+    signed_url: string;
+  };
+  return signedUrl;
+}
+
+async function createRunwayElevenLabsSession(
+  options: Pick<
+    CreateElevenLabsSessionOptions,
+    'runwayApiSecret' | 'avatarId' | 'baseUrl'
+  > & { signedUrl: string },
+): Promise<string> {
+  const response = await fetch(
+    `${options.baseUrl}/v1/realtime_sessions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${options.runwayApiSecret}`,
+        'X-Runway-Version': API_VERSION,
+      },
+      body: JSON.stringify({
+        model: 'gwm1_avatars',
+        avatar: { type: 'custom', avatarId: options.avatarId },
+        integration: { type: 'elevenlabs', signedUrl: options.signedUrl },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(
+      `Failed to create Runway session: ${response.status} ${body}`,
+    );
+  }
+
+  const { id: sessionId } = (await response.json()) as { id: string };
+  return sessionId;
 }

@@ -27,6 +27,13 @@ function json(body: unknown, status = 200): Response {
 const SIGNED_URL =
   'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_1&conversation_signature=tok';
 
+const SESSION_OPTIONS = {
+  runwayApiSecret: 'rw-secret',
+  avatarId: 'avatar-1',
+  elevenLabsApiKey: 'el-key',
+  agentId: 'agent_1',
+} as const;
+
 afterEach(() => {
   globalThis.fetch = originalFetch;
 });
@@ -47,23 +54,18 @@ describe('createElevenLabsSession', () => {
     });
 
     const result = await createElevenLabsSession({
-      runwayApiSecret: 'rw-secret',
-      avatarId: 'avatar-1',
-      elevenLabsApiKey: 'el-key',
-      agentId: 'agent_1',
+      ...SESSION_OPTIONS,
       baseUrl: 'https://api.example.com',
     });
 
     expect(result).toEqual({ sessionId: 'session-123', sessionKey: 'sk-abc' });
 
-    // Signed URL request carries the agent id and the ElevenLabs key header.
     const signedCall = fetchCalls.find((c) => c.url.includes('get-signed-url'));
     expect(signedCall?.url).toContain('agent_id=agent_1');
     expect(
       (signedCall?.init?.headers as Record<string, string>)['xi-api-key'],
     ).toBe('el-key');
 
-    // Create request uses the correct model literal and integration payload.
     const createCall = fetchCalls.find(
       (c) => c.init?.method === 'POST' && c.url.endsWith('/v1/realtime_sessions'),
     );
@@ -86,10 +88,8 @@ describe('createElevenLabsSession', () => {
 
     await expect(
       createElevenLabsSession({
-        runwayApiSecret: 'rw-secret',
-        avatarId: 'avatar-1',
+        ...SESSION_OPTIONS,
         elevenLabsApiKey: 'bad-key',
-        agentId: 'agent_1',
       }),
     ).rejects.toThrow(/ElevenLabs signed URL/);
   });
@@ -105,13 +105,8 @@ describe('createElevenLabsSession', () => {
       return new Response('Not found', { status: 404 });
     });
 
-    await expect(
-      createElevenLabsSession({
-        runwayApiSecret: 'rw-secret',
-        avatarId: 'avatar-1',
-        elevenLabsApiKey: 'el-key',
-        agentId: 'agent_1',
-      }),
-    ).rejects.toThrow(/Runway session/);
+    await expect(createElevenLabsSession(SESSION_OPTIONS)).rejects.toThrow(
+      /Runway session/,
+    );
   });
 });
