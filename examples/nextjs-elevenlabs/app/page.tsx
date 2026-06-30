@@ -7,6 +7,7 @@ import '@runwayml/avatars-react/styles.css';
 interface SessionInfo {
   sessionId: string;
   sessionKey: string;
+  baseUrl?: string;
 }
 
 export default function Home() {
@@ -74,6 +75,7 @@ export default function Home() {
                 <AvatarCall
                   sessionId={session.sessionId}
                   sessionKey={session.sessionKey}
+                  baseUrl={session.baseUrl}
                   onEnd={closeModal}
                   onError={console.error}
                 />

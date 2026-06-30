@@ -106,7 +106,7 @@ async function createRunwayElevenLabsSession(
   if (!response.ok) {
     const body = await response.text().catch(() => '');
     throw new Error(
-      `Failed to create Runway session: ${response.status} ${body}`,
+      `Failed to create Runway session (${options.baseUrl}): ${response.status} ${body}`,
     );
   }
 
