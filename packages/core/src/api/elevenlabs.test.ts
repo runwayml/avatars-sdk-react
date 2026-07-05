@@ -31,7 +31,7 @@ const SESSION_OPTIONS = {
   runwayApiSecret: 'rw-secret',
   avatarId: 'avatar-1',
   elevenLabsApiKey: 'el-key',
-  agentId: 'agent_1',
+  elevenLabsAgentId: 'agent_1',
 } as const;
 
 afterEach(() => {
@@ -58,7 +58,12 @@ describe('createElevenLabsSession', () => {
       baseUrl: 'https://api.example.com',
     });
 
-    expect(result).toEqual({ sessionId: 'session-123', sessionKey: 'sk-abc' });
+    expect(result).toEqual({
+      sessionId: 'session-123',
+      sessionKey: 'sk-abc',
+      avatarId: 'avatar-1',
+      baseUrl: 'https://api.example.com',
+    });
 
     const signedCall = fetchCalls.find((c) => c.url.includes('get-signed-url'));
     expect(signedCall?.url).toContain('agent_id=agent_1');
@@ -67,7 +72,8 @@ describe('createElevenLabsSession', () => {
     ).toBe('el-key');
 
     const createCall = fetchCalls.find(
-      (c) => c.init?.method === 'POST' && c.url.endsWith('/v1/realtime_sessions'),
+      (c) =>
+        c.init?.method === 'POST' && c.url.endsWith('/v1/realtime_sessions'),
     );
     const createBody = JSON.parse(createCall?.init?.body as string);
     expect(createBody.model).toBe('gwm1_avatars');

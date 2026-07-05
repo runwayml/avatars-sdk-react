@@ -7,6 +7,7 @@ import '@runwayml/avatars-react/styles.css';
 interface SessionInfo {
   sessionId: string;
   sessionKey: string;
+  avatarId: string;
   baseUrl?: string;
 }
 
@@ -14,22 +15,34 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
     setSession(null);
     setIsCreating(false);
+    setError(null);
   }, []);
 
   async function startCall() {
     setIsOpen(true);
     setIsCreating(true);
+    setError(null);
+    setSession(null);
     try {
       const res = await fetch('/api/avatar/connect', { method: 'POST' });
-      if (!res.ok) throw new Error(`Failed: ${res.status}`);
-      setSession(await res.json());
+      const body = (await res.json().catch(() => null)) as
+        | SessionInfo
+        | { error?: string }
+        | null;
+      if (!res.ok) {
+        throw new Error(body && 'error' in body && body.error ? body.error : `Failed: ${res.status}`);
+      }
+      setSession(body as SessionInfo);
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start conversation');
       console.error(err);
+    } finally {
       setIsCreating(false);
     }
   }
@@ -73,13 +86,16 @@ export default function Home() {
             {session ? (
               <Suspense fallback={<div className="modal-loading">Connecting...</div>}>
                 <AvatarCall
+                  avatarId={session.avatarId}
                   sessionId={session.sessionId}
                   sessionKey={session.sessionKey}
                   baseUrl={session.baseUrl}
                   onEnd={closeModal}
-                  onError={console.error}
+                  onError={(err) => setError(err.message)}
                 />
               </Suspense>
+            ) : error ? (
+              <div className="modal-error">{error}</div>
             ) : isCreating ? (
               <div className="modal-loading">Creating session...</div>
             ) : null}
