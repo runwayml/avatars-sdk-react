@@ -57,6 +57,7 @@
   ],
   "author": "RunwayML",
   "license": "MIT",
+  "repository": "github:runwayml/avatars-sdk-react",
   "publishConfig": {
     "access": "public"
   },
