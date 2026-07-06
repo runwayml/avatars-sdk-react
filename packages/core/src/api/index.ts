@@ -22,6 +22,11 @@ export type {
   ConsumeSessionResponse,
 } from '../types';
 export { consumeSession } from './consume';
+export type {
+  CreateElevenLabsSessionOptions,
+  CreateElevenLabsSessionResponse,
+} from './elevenlabs';
+export { createElevenLabsSession } from './elevenlabs';
 export type { PageActionEvent } from './page-actions';
 export { pageActionTools } from './page-actions';
 export type { PollUntilReadyOptions } from './poll';

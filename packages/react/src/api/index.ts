@@ -3,6 +3,7 @@
 export {
   clientTool,
   consumeSession,
+  createElevenLabsSession,
   getClientToolSchema,
   pageActionTools,
   pollUntilReady,
@@ -17,6 +18,8 @@ export type {
   ClientToolDef,
   ConsumeSessionOptions,
   ConsumeSessionResponse,
+  CreateElevenLabsSessionOptions,
+  CreateElevenLabsSessionResponse,
   InferSchemaInput,
   InferSchemaOutput,
   PageActionEvent,

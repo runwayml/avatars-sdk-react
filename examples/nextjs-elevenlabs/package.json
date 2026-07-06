@@ -1,0 +1,22 @@
+{
+  "name": "avatar-nextjs-elevenlabs-example",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "if command -v portless >/dev/null 2>&1; then portless avatar-nextjs-elevenlabs next dev; else next dev; fi",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@runwayml/avatars-react": "file:../../packages/react",
+    "next": "^15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.0.0"
+  }
+}
