@@ -28,6 +28,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Install OIDC-compatible npm
+        run: npm install --prefix .npm-oidc npm@11.6.2
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -40,23 +43,25 @@ jobs:
       - name: Publish core
         working-directory: packages/core
         run: |
+          NPM="$GITHUB_WORKSPACE/.npm-oidc/node_modules/.bin/npm"
           VERSION=$(node -p "require('./package.json').version")
           if echo "$VERSION" | grep -q "-"; then
             TAG=$(echo "$VERSION" | sed 's/.*-\([a-zA-Z]*\).*/\1/')
             echo "Publishing @runwayml/avatars prerelease with --tag $TAG"
-            npm publish --access public --provenance --tag "$TAG"
+            "$NPM" publish --access public --provenance --tag "$TAG"
           else
-            npm publish --access public --provenance
+            "$NPM" publish --access public --provenance
           fi
 
       - name: Publish react
         working-directory: packages/react
         run: |
+          NPM="$GITHUB_WORKSPACE/.npm-oidc/node_modules/.bin/npm"
           VERSION=$(node -p "require('./package.json').version")
           if echo "$VERSION" | grep -q "-"; then
             TAG=$(echo "$VERSION" | sed 's/.*-\([a-zA-Z]*\).*/\1/')
             echo "Publishing @runwayml/avatars-react prerelease with --tag $TAG"
-            npm publish --access public --provenance --tag "$TAG"
+            "$NPM" publish --access public --provenance --tag "$TAG"
           else
-            npm publish --access public --provenance
+            "$NPM" publish --access public --provenance
           fi
