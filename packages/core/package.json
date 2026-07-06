@@ -57,6 +57,9 @@
   ],
   "author": "RunwayML",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "livekit-client": "^2.18.2"
   }
