@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-07-06
+
+### Added
+
+- **`createElevenLabsSession()`** — server-side helper in `@runwayml/avatars/api` (and re-exported from `@runwayml/avatars-react/api`) that connects a Runway avatar to your own ElevenLabs Conversational AI agent. Give it your Runway and ElevenLabs keys, an avatar ID, and an agent ID; it returns `{ sessionId, sessionKey, avatarId, baseUrl }` ready to pass to `<AvatarCall>`. Your agent handles the conversation and voice — Runway renders the avatar. No ElevenLabs SDK is needed in the browser.
+- **Next.js ElevenLabs example** — end-to-end demo at `examples/nextjs-elevenlabs/` showing the server-side session flow wired to `<AvatarCall>`.
+
+### Changed
+
+- **`AvatarError`** adds two new codes: `SESSION_CREATE_FAILED` and `ELEVENLABS_SIGNED_URL_FAILED`.
+
 ## [0.16.0] - 2026-05-12
 
 ### Added

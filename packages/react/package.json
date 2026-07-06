@@ -1,6 +1,6 @@
 {
   "name": "@runwayml/avatars-react",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "React SDK for real-time AI avatar interactions with GWM-1",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -69,7 +69,7 @@
     "react-dom": ">=18"
   },
   "dependencies": {
-    "@runwayml/avatars": "^0.16.0",
+    "@runwayml/avatars": "^0.17.0",
     "@livekit/components-react": "^2.9.19",
     "livekit-client": "^2.18.2"
   },
