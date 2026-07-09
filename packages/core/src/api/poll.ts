@@ -1,3 +1,4 @@
+import { consumeSession } from './consume';
 import { AvatarError } from '../error';
 
 export interface PollUntilReadyOptions {
@@ -79,6 +80,13 @@ export async function pollUntilReady(
           'Session is READY but sessionKey is missing',
         );
       }
+      // Mark consumed immediately so the worker starts the participant wait
+      // while the caller prepares the LiveKit connection.
+      await consumeSession({
+        sessionId,
+        sessionKey: session.sessionKey,
+        baseUrl,
+      });
       return { sessionId, sessionKey: session.sessionKey };
     }
 
