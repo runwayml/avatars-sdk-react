@@ -100,7 +100,7 @@ export class TranscriptAccumulator extends Emitter<TranscriptEvents> {
       changed = true;
     }
 
-    if (this.interim) {
+    if (this.interim && !active.final) {
       this.map.set(active.id, { ...active, final: false, channel: 'custom' });
       changed = true;
     }
