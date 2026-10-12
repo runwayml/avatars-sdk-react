@@ -24,9 +24,10 @@ import {
  * transport the backend uses. Each callback entry includes `channel`: `native`
  * or `custom` accordingly.
  *
- * For Runway flat-delta transcripts (custom channel), the active turn is
- * always interim and only delivered when `interim: true`. A prior turn is
- * delivered once as `final: true` when a new turn on the same role begins.
+ * For Runway flat-delta transcripts (custom channel), a `final: true` marker
+ * delivers the completed turn immediately. Older workers are also handled by
+ * delivering a prior turn when a new turn on the same role begins. Interim
+ * updates are only delivered when `interim: true`.
  *
  * Must be used within an AvatarSession, AvatarProvider, or AvatarCall component.
  *
@@ -100,8 +101,8 @@ export function useTranscription(
         handlerRef.current({ ...turn, final: true, channel: 'custom' });
       }
 
-      // Active turn is still streaming — only emit when caller opted in.
-      if (interimRef.current) {
+      // Active turn is streaming unless this delta carries a final marker.
+      if (interimRef.current && !active.final) {
         handlerRef.current({ ...active, final: false, channel: 'custom' });
       }
     }

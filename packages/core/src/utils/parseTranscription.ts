@@ -69,13 +69,31 @@ export function tryParseSegmentArray(
  */
 export function tryParseFlatDelta(
   root: DataChannelJSON,
-): { role: string; turn: number; textDelta: string } | null {
+): { role: string; turn: number; textDelta: string; final?: boolean } | null {
   if (root.type !== 'transcription') return null;
   if (typeof root.text !== 'string') return null;
+
+  const final = typeof root.final === 'boolean' ? root.final : undefined;
+  // A completion marker must identify a role. Keep the historical assistant
+  // default for ordinary deltas, but do not turn malformed markers into data.
+  if (final) {
+    const role = root.role;
+    const turn = root.turn;
+    if (
+      (role !== 'assistant' && role !== 'user') ||
+      typeof turn !== 'number' ||
+      !Number.isFinite(turn) ||
+      !Number.isInteger(turn) ||
+      turn < 0
+    ) {
+      return null;
+    }
+  }
 
   return {
     role: typeof root.role === 'string' ? root.role : 'assistant',
     turn: typeof root.turn === 'number' ? root.turn : 0,
     textDelta: root.text,
+    ...(final !== undefined ? { final } : {}),
   };
 }

@@ -99,6 +99,11 @@ useTranscription((entry) => {
 }, { interim: false });
 ```
 
+Runway streaming transcripts are combined by role and turn. The worker's
+`final: true` marker completes a turn immediately, including the last turn in a
+session. Older workers without that marker are still handled when the next
+turn for the same role begins.
+
 ## useClientEvent
 
 Subscribe to typed client events from the avatar:
