@@ -368,11 +368,13 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
               channel: 'custom',
             });
           }
-          this.emit(AvatarEvent.Transcript, {
-            ...active,
-            final: false,
-            channel: 'custom',
-          });
+          if (!active.final) {
+            this.emit(AvatarEvent.Transcript, {
+              ...active,
+              final: false,
+              channel: 'custom',
+            });
+          }
         }
       },
     );

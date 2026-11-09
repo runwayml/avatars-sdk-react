@@ -47,6 +47,93 @@ describe('FlatDeltaAccumulator', () => {
     });
   });
 
+  it('finalizes the active turn immediately on an explicit completion marker', () => {
+    const acc = new FlatDeltaAccumulator();
+    acc.ingest({ role: 'assistant', turn: 0, textDelta: 'hello ' }, 'worker:1');
+
+    const emission = acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: 'there', final: true },
+      'worker:1',
+    );
+
+    expect(emission.finalized).toEqual([
+      {
+        id: 'runway-transcription-assistant-0',
+        text: 'hello there',
+        participantIdentity: 'worker:1',
+      },
+    ]);
+    expect(emission.active).toMatchObject({
+      id: 'runway-transcription-assistant-0',
+      text: 'hello there',
+      final: true,
+    });
+  });
+
+  it('does not create a visible empty entry for an unobserved completion marker', () => {
+    const acc = new FlatDeltaAccumulator();
+    const emission = acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: '', final: true },
+      'worker:1',
+    );
+
+    expect(emission.finalized).toEqual([]);
+    expect(emission.active).toMatchObject({ text: '', final: true });
+
+    const late = acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: 'late' },
+      'worker:1',
+    );
+    expect(late.finalized).toEqual([]);
+    expect(late.active).toMatchObject({ text: '', final: true });
+  });
+
+  it('does not reopen a finalized turn when a late delta arrives', () => {
+    const acc = new FlatDeltaAccumulator();
+    acc.ingest({ role: 'assistant', turn: 0, textDelta: 'done', final: true }, 'worker:1');
+
+    const late = acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: ' late' },
+      'worker:1',
+    );
+    expect(late.finalized).toEqual([]);
+    expect(late.active).toMatchObject({ text: 'done', final: true });
+  });
+
+  it('does not infer finality for a newer turn from an out-of-order older delta', () => {
+    const acc = new FlatDeltaAccumulator();
+    acc.ingest({ role: 'assistant', turn: 2, textDelta: 'newer' }, 'worker:1');
+
+    const older = acc.ingest(
+      { role: 'assistant', turn: 1, textDelta: 'older' },
+      'worker:1',
+    );
+    expect(older.finalized).toEqual([]);
+  });
+
+  it('finalizes roles independently when explicit completion markers arrive', () => {
+    const acc = new FlatDeltaAccumulator();
+    acc.ingest({ role: 'assistant', turn: 0, textDelta: 'answer' }, 'worker:1');
+    acc.ingest({ role: 'user', turn: 0, textDelta: 'question' }, 'participant:me');
+
+    const assistant = acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: '', final: true },
+      'worker:1',
+    );
+    const duplicateAssistant = acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: '', final: true },
+      'worker:1',
+    );
+    const user = acc.ingest(
+      { role: 'user', turn: 0, textDelta: '', final: true },
+      'participant:me',
+    );
+
+    expect(assistant.finalized.map((entry) => entry.text)).toEqual(['answer']);
+    expect(duplicateAssistant.finalized).toEqual([]);
+    expect(user.finalized.map((entry) => entry.text)).toEqual(['question']);
+  });
+
   it('emits a finalized turn exactly once across subsequent deltas', () => {
     const acc = new FlatDeltaAccumulator();
 

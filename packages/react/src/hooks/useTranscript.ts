@@ -21,9 +21,10 @@ export interface UseTranscriptOptions {
    * Also merge transcript JSON from `RoomEvent.DataReceived` (data channel).
    * Covers LiveKit-style `{ segments: [{ id, text, … }] }` and Runway worker
    * `{ type: "transcription", role, turn, text }` streaming deltas
-   * (concatenated per role+turn). When a new turn starts on the same role,
-   * the prior turn is promoted to `final: true`. The active (streaming) turn
-   * is always interim and only surfaced when `interim: true`.
+   * (concatenated per role+turn). A `final: true` marker completes that turn;
+   * older workers are also handled by promoting prior turns when a newer turn
+   * starts on the same role. The active turn is only surfaced when
+   * `interim: true`.
    * Default: `true`.
    */
   mergeDataChannelSegments?: boolean;
@@ -140,9 +141,8 @@ export function useTranscript(
         changed = true;
       }
 
-      // The active turn is still streaming, so it's always interim — only
-      // surface it when the caller opted in with `interim: true`.
-      if (interimRef.current) {
+      // The active turn is streaming unless this delta carries a final marker.
+      if (interimRef.current && !active.final) {
         mapRef.current.set(active.id, {
           ...active,
           final: false,

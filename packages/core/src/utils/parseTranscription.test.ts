@@ -52,6 +52,66 @@ describe('tryParseFlatDelta', () => {
     });
   });
 
+  it('preserves an optional final marker', () => {
+    expect(
+      tryParseFlatDelta({
+        type: 'transcription',
+        role: 'assistant',
+        turn: 2,
+        text: '',
+        final: true,
+      }),
+    ).toEqual({
+      role: 'assistant',
+      turn: 2,
+      textDelta: '',
+      final: true,
+    });
+  });
+
+  it('ignores completion markers without a known role', () => {
+    expect(
+      tryParseFlatDelta({
+        type: 'transcription',
+        turn: 2,
+        text: '',
+        final: true,
+      }),
+    ).toBeNull();
+    expect(
+      tryParseFlatDelta({
+        type: 'transcription',
+        role: '',
+        turn: 2,
+        text: '',
+        final: true,
+      }),
+    ).toBeNull();
+    expect(
+      tryParseFlatDelta({
+        type: 'transcription',
+        role: 'tool',
+        turn: 2,
+        text: '',
+        final: true,
+      }),
+    ).toBeNull();
+  });
+
+  it('ignores completion markers without a valid explicit turn', () => {
+    for (const turn of [undefined, NaN, Infinity, 1.5, -1]) {
+      expect(
+        tryParseFlatDelta({
+          type: 'transcription',
+          role: 'assistant',
+          turn,
+          text: '',
+          final: true,
+        }),
+      ).toBeNull();
+    }
+  });
+
   it('defaults role to assistant and turn to 0 when missing', () => {
     const result = tryParseFlatDelta({ type: 'transcription', text: 'hi' });
     expect(result).toEqual({ role: 'assistant', turn: 0, textDelta: 'hi' });

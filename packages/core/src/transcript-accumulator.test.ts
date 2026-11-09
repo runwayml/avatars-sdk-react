@@ -101,6 +101,61 @@ describe('TranscriptAccumulator', () => {
     expect(acc.entries[0].text).toBe('Hello');
   });
 
+  it('exposes the last flat turn as final without interim mode', () => {
+    const acc = new TranscriptAccumulator();
+    const encode = (obj: object) =>
+      new TextEncoder().encode(JSON.stringify(obj));
+
+    acc.ingestDataChannel(
+      encode({ type: 'transcription', role: 'assistant', turn: 3, text: 'last answer' }),
+      'worker:avatar',
+    );
+    expect(acc.entries).toEqual([]);
+
+    acc.ingestDataChannel(
+      encode({
+        type: 'transcription',
+        role: 'assistant',
+        turn: 3,
+        text: '',
+        final: true,
+      }),
+      'worker:avatar',
+    );
+
+    expect(acc.entries).toHaveLength(1);
+    expect(acc.entries[0]).toMatchObject({
+      id: 'runway-transcription-assistant-3',
+      text: 'last answer',
+      final: true,
+      channel: 'custom',
+    });
+  });
+
+  it('does not let an interim update overwrite a final flat entry', () => {
+    const acc = new TranscriptAccumulator({ interim: true });
+    const encode = (obj: object) =>
+      new TextEncoder().encode(JSON.stringify(obj));
+
+    acc.ingestDataChannel(
+      encode({
+        type: 'transcription',
+        role: 'assistant',
+        turn: 0,
+        text: 'done',
+        final: true,
+      }),
+      'worker:avatar',
+    );
+    acc.ingestDataChannel(
+      encode({ type: 'transcription', role: 'assistant', turn: 0, text: ' late' }),
+      'worker:avatar',
+    );
+
+    expect(acc.entries).toHaveLength(1);
+    expect(acc.entries[0]).toMatchObject({ text: 'done', final: true });
+  });
+
   it('dispose clears state and removes listeners', () => {
     const acc = new TranscriptAccumulator();
     const handler = mock();
