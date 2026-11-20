@@ -1,16 +1,16 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import type { Participant, TranscriptionSegment } from 'livekit-client';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
-import type { TranscriptionEntry } from '../types';
 import {
   FlatDeltaAccumulator,
   tryDecodeJSON,
   tryParseFlatDelta,
   tryParseSegmentArray,
 } from '@runwayml/avatars';
+import type { Participant, TranscriptionSegment } from 'livekit-client';
+import { RoomEvent } from 'livekit-client';
+import { useEffect, useRef, useState } from 'react';
+import type { TranscriptionEntry } from '../types';
 
 export interface UseTranscriptOptions {
   /** Include interim (non-final) segments. Default: `false` */
@@ -111,7 +111,10 @@ export function useTranscript(
       if (changed) flushMap();
     }
 
-    function handleDataReceived(payload: Uint8Array, participant?: Participant) {
+    function handleDataReceived(
+      payload: Uint8Array,
+      participant?: Participant,
+    ) {
       if (!mergeDataRef.current) return;
 
       const json = tryDecodeJSON(payload);
@@ -137,7 +140,11 @@ export function useTranscript(
 
       let changed = false;
       for (const turn of finalized) {
-        mapRef.current.set(turn.id, { ...turn, final: true, channel: 'custom' });
+        mapRef.current.set(turn.id, {
+          ...turn,
+          final: true,
+          channel: 'custom',
+        });
         changed = true;
       }
 

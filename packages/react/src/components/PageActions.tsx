@@ -1,8 +1,8 @@
 'use client';
 
 import {
-  usePageActions,
   type PageActionsOptions,
+  usePageActions,
 } from '../hooks/usePageActions';
 
 /**

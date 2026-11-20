@@ -46,7 +46,10 @@ export class Emitter<E extends EventMap> {
       try {
         handler(...args);
       } catch (err) {
-        console.error(`[@runwayml/avatars] Error in ${String(event)} handler:`, err);
+        console.error(
+          `[@runwayml/avatars] Error in ${String(event)} handler:`,
+          err,
+        );
       }
     }
   }

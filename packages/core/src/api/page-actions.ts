@@ -1,4 +1,4 @@
-import { clientTool, type ClientEventsFrom } from '../tools';
+import { type ClientEventsFrom, clientTool } from '../tools';
 
 export const clickTool = clientTool('click', {
   description: 'Clicks an interactive element on the page by its target ID',

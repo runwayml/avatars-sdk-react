@@ -1,10 +1,10 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef } from 'react';
 import type { PageActionEvent } from '@runwayml/avatars';
 import { parseClientEvent } from '@runwayml/avatars';
+import { RoomEvent } from 'livekit-client';
+import { useEffect, useRef } from 'react';
 
 const HIGHLIGHT_ATTR = 'data-avatar-highlighted';
 const DEFAULT_HIGHLIGHT_DURATION = 2000;

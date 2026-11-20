@@ -11,7 +11,9 @@ import {
  * Minimal Standard Schema v1 implementation for an object with typed keys.
  * Real consumers pass a Zod / Valibot / ArkType schema.
  */
-function objectSchema<Shape extends Record<string, (value: unknown) => unknown>>(
+function objectSchema<
+  Shape extends Record<string, (value: unknown) => unknown>,
+>(
   shape: Shape,
 ): StandardSchemaV1<
   { [K in keyof Shape]: unknown },
@@ -22,7 +24,11 @@ function objectSchema<Shape extends Record<string, (value: unknown) => unknown>>
       version: 1,
       vendor: 'test',
       validate(value) {
-        if (value == null || typeof value !== 'object' || Array.isArray(value)) {
+        if (
+          value == null ||
+          typeof value !== 'object' ||
+          Array.isArray(value)
+        ) {
           return { issues: [{ message: 'expected object' }] };
         }
         const record = value as Record<string, unknown>;
@@ -34,7 +40,8 @@ function objectSchema<Shape extends Record<string, (value: unknown) => unknown>>
             return {
               issues: [
                 {
-                  message: error instanceof Error ? error.message : String(error),
+                  message:
+                    error instanceof Error ? error.message : String(error),
                   path: [key],
                 },
               ],

@@ -1,14 +1,15 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
 import {
+  type ClientEvent,
   type ClientToolArgs,
   type ClientToolDef,
+  parseClientEvent,
   validateClientToolArgs,
 } from '@runwayml/avatars';
-import { parseClientEvent, type ClientEvent } from '@runwayml/avatars';
+import { RoomEvent } from 'livekit-client';
+import { useEffect, useRef, useState } from 'react';
 
 type EventArgs<E extends ClientEvent, T extends E['tool']> = Extract<
   E,
@@ -65,16 +66,15 @@ export function useClientEvent(
   onEventRef.current = onEvent;
 
   const tool = typeof toolOrName === 'string' ? null : toolOrName;
-  const toolName = typeof toolOrName === 'string' ? toolOrName : toolOrName.name;
+  const toolName =
+    typeof toolOrName === 'string' ? toolOrName : toolOrName.name;
 
   useEffect(() => {
     function handleDataReceived(payload: Uint8Array) {
       const event = parseClientEvent(payload);
       if (!event || event.tool !== toolName) return;
 
-      const args = tool
-        ? validateClientToolArgs(tool, event.args)
-        : event.args;
+      const args = tool ? validateClientToolArgs(tool, event.args) : event.args;
       if (args === null) return;
 
       setState(args);

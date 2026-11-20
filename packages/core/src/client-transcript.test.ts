@@ -1,23 +1,24 @@
 import { describe, expect, it } from 'bun:test';
-import { Room, RoomEvent } from 'livekit-client';
 import type { RemoteParticipant } from 'livekit-client';
+import { Room, RoomEvent } from 'livekit-client';
 import { AvatarSession } from './client';
 
 describe('AvatarSession transcript event routing', () => {
   it('keeps final-only transcript entries stable across role changes and late deltas', () => {
     const session = new AvatarSession('test-session');
     const room = new Room({ adaptiveStream: false, dynacast: false });
-    const bindRoomEvents = (session as unknown as {
-      bindRoomEvents: (room: Room) => void;
-    }).bindRoomEvents;
+    const bindRoomEvents = (
+      session as unknown as {
+        bindRoomEvents: (room: Room) => void;
+      }
+    ).bindRoomEvents;
     bindRoomEvents.call(session, room);
 
     const transcript = session.transcript();
-    const updates: Array<Array<{ id: string; text: string; final: boolean }>> = [];
+    const updates: Array<Array<{ id: string; text: string; final: boolean }>> =
+      [];
     transcript.on('update', (entries) => {
-      updates.push(
-        entries.map(({ id, text, final }) => ({ id, text, final })),
-      );
+      updates.push(entries.map(({ id, text, final }) => ({ id, text, final })));
     });
 
     const send = (payload: Record<string, unknown>, identity: string) => {

@@ -1,12 +1,11 @@
-import type { TranscriptionEntry } from './types';
+import { Emitter } from './emitter';
+import type { TranscriptionEntry, TranscriptOptions } from './types';
 import { FlatDeltaAccumulator } from './utils/flatDeltaAccumulator';
 import {
   tryDecodeJSON,
   tryParseFlatDelta,
   tryParseSegmentArray,
 } from './utils/parseTranscription';
-import { Emitter } from './emitter';
-import type { TranscriptOptions } from './types';
 
 const DEFAULT_BUFFER_SIZE = 100;
 
@@ -65,10 +64,7 @@ export class TranscriptAccumulator extends Emitter<TranscriptEvents> {
    * Ingest a raw data-channel payload (from `RoomEvent.DataReceived`).
    * Handles both segment arrays and flat deltas.
    */
-  ingestDataChannel(
-    payload: Uint8Array,
-    participantIdentity: string,
-  ): void {
+  ingestDataChannel(payload: Uint8Array, participantIdentity: string): void {
     const json = tryDecodeJSON(payload);
     if (!json) return;
 
@@ -118,9 +114,7 @@ export class TranscriptAccumulator extends Emitter<TranscriptEvents> {
   private flush(): void {
     const values = Array.from(this.map.values());
     this.snapshot =
-      values.length > this.bufferSize
-        ? values.slice(-this.bufferSize)
-        : values;
+      values.length > this.bufferSize ? values.slice(-this.bufferSize) : values;
     this.emit('update', this.snapshot);
   }
 }

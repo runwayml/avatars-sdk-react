@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback } from 'react';
 import { consumeSession } from '@runwayml/avatars';
+import { useCallback } from 'react';
 import type { ConnectResponse, SessionCredentials } from '../types';
 import { useQuery } from './useQuery';
 

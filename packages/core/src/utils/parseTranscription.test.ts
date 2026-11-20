@@ -5,8 +5,7 @@ import {
   tryParseSegmentArray,
 } from './parseTranscription';
 
-const encode = (obj: unknown) =>
-  new TextEncoder().encode(JSON.stringify(obj));
+const encode = (obj: unknown) => new TextEncoder().encode(JSON.stringify(obj));
 
 describe('tryDecodeJSON', () => {
   it('decodes a valid JSON object payload', () => {
@@ -118,9 +117,7 @@ describe('tryParseFlatDelta', () => {
   });
 
   it('returns null when type is not transcription', () => {
-    expect(
-      tryParseFlatDelta({ type: 'client_event', text: 'hi' }),
-    ).toBeNull();
+    expect(tryParseFlatDelta({ type: 'client_event', text: 'hi' })).toBeNull();
   });
 
   it('returns null when text is missing', () => {
@@ -166,9 +163,7 @@ describe('tryParseSegmentArray', () => {
 
   it('respects participantIdentity on individual segments', () => {
     const result = tryParseSegmentArray({
-      segments: [
-        { id: 'seg-4', text: 'yo', participantIdentity: 'user-456' },
-      ],
+      segments: [{ id: 'seg-4', text: 'yo', participantIdentity: 'user-456' }],
     });
     expect(result?.[0].participantIdentity).toBe('user-456');
   });
@@ -211,8 +206,6 @@ describe('tryParseSegmentArray', () => {
   });
 
   it('returns null when all segments are malformed', () => {
-    expect(
-      tryParseSegmentArray({ segments: [{ noId: true }] }),
-    ).toBeNull();
+    expect(tryParseSegmentArray({ segments: [{ noId: true }] })).toBeNull();
   });
 });

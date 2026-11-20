@@ -1,9 +1,6 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import type { Participant, TranscriptionSegment } from 'livekit-client';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef } from 'react';
 import type { TranscriptionHandler } from '@runwayml/avatars';
 import {
   FlatDeltaAccumulator,
@@ -11,6 +8,9 @@ import {
   tryParseFlatDelta,
   tryParseSegmentArray,
 } from '@runwayml/avatars';
+import type { Participant, TranscriptionSegment } from 'livekit-client';
+import { RoomEvent } from 'livekit-client';
+import { useEffect, useRef } from 'react';
 
 /**
  * Hook to listen for transcription events from the session.

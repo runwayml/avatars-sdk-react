@@ -33,11 +33,7 @@ export function tryParseSegmentArray(
   if (!typeAllowed) return null;
 
   let segments: unknown = root.segments;
-  if (
-    !Array.isArray(segments) &&
-    root.data &&
-    typeof root.data === 'object'
-  ) {
+  if (!Array.isArray(segments) && root.data && typeof root.data === 'object') {
     segments = (root.data as DataChannelJSON).segments;
   }
   if (!Array.isArray(segments)) return null;

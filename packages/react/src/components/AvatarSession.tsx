@@ -21,6 +21,7 @@ import {
   useConnectionState,
   useRoomContext,
 } from '@livekit/components-react';
+import { parseClientEvent } from '@runwayml/avatars';
 import type { RoomOptions } from 'livekit-client';
 import { ConnectionState, RoomEvent, Track } from 'livekit-client';
 import {
@@ -41,7 +42,6 @@ import type {
   MediaDeviceErrors,
   SessionState,
 } from '../types';
-import { parseClientEvent } from '@runwayml/avatars';
 
 const DEFAULT_ROOM_OPTIONS: RoomOptions = {
   adaptiveStream: false,

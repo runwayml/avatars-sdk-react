@@ -16,11 +16,11 @@ export type {
   ClientEvent,
   ClientEventHandler,
   ConnectResponse,
+  ConsumeSessionOptions,
+  ConsumeSessionResponse,
   SessionCredentials,
   SessionKeyResponse,
   SessionState,
-  ConsumeSessionOptions,
-  ConsumeSessionResponse,
   TranscriptionEntry,
   TranscriptionHandler,
 } from '@runwayml/avatars';
