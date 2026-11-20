@@ -6,8 +6,11 @@
     "build": "bun run --filter '*' build",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "biome lint packages/*/src/",
+    "format": "biome check --linter-enabled=false --write packages/*/src/",
+    "format:check": "biome check --linter-enabled=false packages/*/src/",
     "test": "bun test",
-    "clean": "rm -rf packages/*/dist"
+    "clean": "rm -rf packages/*/dist",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.13",

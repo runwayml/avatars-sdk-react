@@ -20,6 +20,18 @@
       "recommended": true
     }
   },
+  "overrides": [
+    {
+      "includes": ["packages/*/src/**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "single",

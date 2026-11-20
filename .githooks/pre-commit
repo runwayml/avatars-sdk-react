@@ -1,0 +1,6 @@
+#!/bin/sh
+# Check staged files with the same scripts CI runs. Enabled by `bun install`
+# (see the "prepare" script). Skip once with: git commit --no-verify
+set -e
+bun run lint --staged --error-on-warnings --no-errors-on-unmatched
+bun run format:check --staged --no-errors-on-unmatched
