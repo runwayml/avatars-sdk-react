@@ -8,6 +8,11 @@ import { JSDOM } from 'jsdom';
 
 const HIGHLIGHT_ATTR = 'data-avatar-highlighted';
 
+function required<T>(value: T | null | undefined, label: string): T {
+  if (value == null) throw new Error(`Expected ${label} to exist`);
+  return value;
+}
+
 let dom: JSDOM;
 let doc: Document;
 
@@ -81,7 +86,7 @@ describe('page-actions click behavior', () => {
 describe('page-actions scroll_to behavior', () => {
   it('calls scrollIntoView on the resolved element', () => {
     doc.body.innerHTML = '<section id="features">Features</section>';
-    const section = doc.getElementById('features')!;
+    const section = required(doc.getElementById('features'), '#features');
     const scrollSpy = mock(() => {});
     section.scrollIntoView = scrollSpy;
 
@@ -102,7 +107,7 @@ describe('page-actions highlight behavior', () => {
   });
 
   it('sets and clears the highlight attribute', () => {
-    const element = defaultResolveElement('card')!;
+    const element = required(defaultResolveElement('card'), 'card element');
 
     element.setAttribute(HIGHLIGHT_ATTR, 'true');
     expect(element.getAttribute(HIGHLIGHT_ATTR)).toBe('true');
@@ -112,7 +117,7 @@ describe('page-actions highlight behavior', () => {
   });
 
   it('clears highlight after a timeout', async () => {
-    const element = defaultResolveElement('card')!;
+    const element = required(defaultResolveElement('card'), 'card element');
     element.setAttribute(HIGHLIGHT_ATTR, 'true');
 
     await new Promise<void>((resolve) => {

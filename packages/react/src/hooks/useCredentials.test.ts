@@ -121,7 +121,7 @@ describe('fetchCredentials', () => {
     });
 
     const connectFn = mock(() =>
-      Promise.resolve({ sessionId: 'sess-4', sessionKey: 'key-4' } as any),
+      Promise.resolve({ sessionId: 'sess-4', sessionKey: 'key-4' }),
     );
 
     const result = await fetchCredentials({
@@ -160,7 +160,7 @@ describe('fetchCredentials', () => {
 
     const consumeCall = fetchCalls.find((c) => c.url.includes('/consume'));
     expect(consumeCall).toBeDefined();
-    expect(consumeCall!.url).toContain('https://custom-api.example.com');
+    expect(consumeCall?.url).toContain('https://custom-api.example.com');
   });
 
   it('throws when connectUrl returns a non-OK response', async () => {
