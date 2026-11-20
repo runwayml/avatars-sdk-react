@@ -49,14 +49,48 @@ export type ClientEventsFrom<T extends ReadonlyArray<ClientToolDef>> =
       : never
     : never;
 
+/**
+ * Return a registry shared by every loaded copy of this module.
+ *
+ * The `.` and `/api` entry points are built as separate bundles, so each one
+ * contains its own copy of this file. A module-local WeakMap would let a tool
+ * created via `/api` lose its schema when validated via the main entry.
+ * Storing the registry on `globalThis` under a `Symbol.for` key makes every
+ * copy in the same realm use the same instance. The key is versioned: bump it
+ * if the stored value's shape ever changes, so mismatched package versions
+ * on one page don't misread each other's entries.
+ */
+function sharedRegistry<T extends object>(key: string, create: () => T): T {
+  const symbol = Symbol.for(key);
+  const host = globalThis as Record<symbol, T | undefined>;
+  const existing = host[symbol];
+  if (existing) {
+    return existing;
+  }
+  const registry = create();
+  Object.defineProperty(globalThis, symbol, {
+    value: registry,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  return registry;
+}
+
 // Schemas live in a WeakMap so the tool def itself stays a clean
 // `{ type, name, description }` object — safe to spread into the API
 // payload and JSON.stringify without leaking schema internals.
-const toolSchemas = new WeakMap<ClientToolDef, StandardSchemaV1>();
+const toolSchemas = sharedRegistry(
+  '@runwayml/avatars/tool-schemas/v1',
+  () => new WeakMap<ClientToolDef, StandardSchemaV1>(),
+);
 
 // Tracks tools that have already emitted the async-schema warning so a
 // misconfigured schema doesn't spam the console on every incoming event.
-const asyncSchemaWarned = new WeakSet<ClientToolDef>();
+const asyncSchemaWarned = sharedRegistry(
+  '@runwayml/avatars/async-schema-warned/v1',
+  () => new WeakSet<ClientToolDef>(),
+);
 
 /**
  * Return the Standard Schema associated with a tool, if any.
