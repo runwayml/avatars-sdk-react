@@ -46,6 +46,8 @@ From the repository root:
 bun run build      # Build both packages
 bun run typecheck  # Type check both packages
 bun run lint       # Run linter (Biome)
+bun run format:check  # Check formatting and import order (Biome)
+bun run format     # Fix formatting and import order (Biome)
 bun test           # Run all tests
 bun run clean      # Remove dist/ from both packages
 ```
@@ -78,12 +80,29 @@ To disable portless temporarily, set `PORTLESS=0`.
 - Prefer functional patterns over classes
 - Components use render props for customization
 
+### Lint and format checks
+
+CI fails on lint warnings (`bun run lint --error-on-warnings`) and on formatting or import-order issues (`bun run format:check`). Run `bun run format` to fix the latter.
+
+`bun install` also enables a pre-commit hook (`.githooks/pre-commit`) that runs both checks on your staged files, so problems are caught before you commit. Skip it for a single commit with `git commit --no-verify`; CI still runs the checks.
+
+When a rule doesn't fit a specific case, suppress it where it happens and say why. Biome rejects suppressions without a reason:
+
+```ts
+// biome-ignore lint/style/noNonNullAssertion: element is created in beforeEach
+const el = document.getElementById('card')!;
+```
+
+Use `// biome-ignore-all <rule>: <reason>` at the top of a file to cover the whole file.
+
+Exceptions that apply to a whole category of files live in the `overrides` section of `biome.json`. For example, non-null assertions (`!`) are allowed in `*.test.ts` files, where a missing value fails the test anyway.
+
 ## Pull Requests
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-feature`)
 3. Make your changes
-4. Run `bun run lint` to verify linting
+4. Run `bun run lint --error-on-warnings` and `bun run format:check` (CI runs both)
 5. Run `bun test` to verify tests pass
 6. Commit your changes with a descriptive message
 7. Push to your fork and open a pull request
