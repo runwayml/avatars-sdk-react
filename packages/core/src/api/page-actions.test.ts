@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { getPageActionTool } from '../utils/getPageActionTool';
 import { pageActionTools } from './page-actions';
 
 describe('pageActionTools', () => {
@@ -32,21 +33,21 @@ describe('pageActionTools', () => {
   });
 
   it('click has a single target parameter', () => {
-    const click = pageActionTools.find((t) => t.name === 'click')!;
+    const click = getPageActionTool('click');
     expect(click.parameters).toHaveLength(1);
     expect(click.parameters[0].name).toBe('target');
     expect(click.parameters[0].type).toBe('string');
   });
 
   it('scroll_to has a single target parameter', () => {
-    const scrollTo = pageActionTools.find((t) => t.name === 'scroll_to')!;
+    const scrollTo = getPageActionTool('scroll_to');
     expect(scrollTo.parameters).toHaveLength(1);
     expect(scrollTo.parameters[0].name).toBe('target');
     expect(scrollTo.parameters[0].type).toBe('string');
   });
 
   it('highlight has target and duration parameters', () => {
-    const highlight = pageActionTools.find((t) => t.name === 'highlight')!;
+    const highlight = getPageActionTool('highlight');
     expect(highlight.parameters).toHaveLength(2);
     expect(highlight.parameters[0].name).toBe('target');
     expect(highlight.parameters[1].name).toBe('duration');
