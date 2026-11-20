@@ -57,7 +57,11 @@ export class FlatDeltaAccumulator {
     const identity = prev?.participantIdentity ?? participantIdentity;
     const hasTranscript = prev !== undefined || text.length > 0;
     if (hasTranscript) {
-      this.turns.set(id, { turn: delta.turn, text, participantIdentity: identity });
+      this.turns.set(id, {
+        turn: delta.turn,
+        text,
+        participantIdentity: identity,
+      });
     }
 
     const prefix = `runway-transcription-${delta.role}-`;
@@ -82,7 +86,8 @@ export class FlatDeltaAccumulator {
 
     if (delta.final) {
       this.finalized.add(id);
-      if (hasTranscript) finalized.push({ id, text, participantIdentity: identity });
+      if (hasTranscript)
+        finalized.push({ id, text, participantIdentity: identity });
     }
 
     return {

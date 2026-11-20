@@ -107,7 +107,8 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       enable: () => this.setMic(true),
       disable: () => this.setMic(false),
       toggle: () => this.setMic(!this._micEnabled),
-      setDevice: (deviceId: string) => this.switchDevice('audioinput', deviceId),
+      setDevice: (deviceId: string) =>
+        this.switchDevice('audioinput', deviceId),
     };
 
     this.camera = {
@@ -117,7 +118,8 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       enable: () => this.setCamera(true),
       disable: () => this.setCamera(false),
       toggle: () => this.setCamera(!this._cameraEnabled),
-      setDevice: (deviceId: string) => this.switchDevice('videoinput', deviceId),
+      setDevice: (deviceId: string) =>
+        this.switchDevice('videoinput', deviceId),
     };
 
     this.screenShare = {
@@ -151,7 +153,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     return Date.now() - this._connectedAt;
   }
 
-  waitFor<K extends keyof AvatarEventMap>(event: K): Promise<AvatarEventMap[K][0]> {
+  waitFor<K extends keyof AvatarEventMap>(
+    event: K,
+  ): Promise<AvatarEventMap[K][0]> {
     return new Promise((resolve) => {
       this.once(event, ((...args: AvatarEventMap[K]) => {
         resolve(args[0] as AvatarEventMap[K][0]);
@@ -261,7 +265,11 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       room.removeAllListeners();
       room.disconnect().catch(() => {});
       this.room = null;
-      const error = toAvatarError('CONNECTION_FAILED', 'Failed to connect to session', err);
+      const error = toAvatarError(
+        'CONNECTION_FAILED',
+        'Failed to connect to session',
+        err,
+      );
       this.setError(error);
       throw error;
     }
@@ -299,14 +307,20 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     room.on(
       RoomEvent.TrackSubscribed,
       (track, publication: RemoteTrackPublication) => {
-        if (track.kind === 'video' && publication.source === Track.Source.Camera) {
+        if (
+          track.kind === 'video' &&
+          publication.source === Track.Source.Camera
+        ) {
           const mediaTrack = track.mediaStreamTrack;
           this.avatarVideoTrack = mediaTrack;
           this.emit(AvatarEvent.AvatarVideoReady, mediaTrack);
           this.syncVideoElement(mediaTrack);
         }
 
-        if (track.kind === 'audio' && publication.source === Track.Source.Microphone) {
+        if (
+          track.kind === 'audio' &&
+          publication.source === Track.Source.Microphone
+        ) {
           const mediaTrack = track.mediaStreamTrack;
           this.avatarAudioTrack = mediaTrack;
           this.emit(AvatarEvent.AvatarAudioReady, mediaTrack);
@@ -319,20 +333,26 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
           }
         }
 
-        if (track.kind === 'video' && publication.source === Track.Source.ScreenShare) {
+        if (
+          track.kind === 'video' &&
+          publication.source === Track.Source.ScreenShare
+        ) {
           this.emit(AvatarEvent.ScreenShareReady, track.mediaStreamTrack);
         }
       },
     );
 
-    room.on(RoomEvent.TrackUnsubscribed, (_track, publication: RemoteTrackPublication) => {
-      if (publication.source === Track.Source.Camera) {
-        this.avatarVideoTrack = null;
-      }
-      if (publication.source === Track.Source.Microphone) {
-        this.avatarAudioTrack = null;
-      }
-    });
+    room.on(
+      RoomEvent.TrackUnsubscribed,
+      (_track, publication: RemoteTrackPublication) => {
+        if (publication.source === Track.Source.Camera) {
+          this.avatarVideoTrack = null;
+        }
+        if (publication.source === Track.Source.Microphone) {
+          this.avatarAudioTrack = null;
+        }
+      },
+    );
 
     room.on(
       RoomEvent.DataReceived,
@@ -440,7 +460,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     }
     if (this.avatarAudioTrack) {
       if (this.attachedAudioElement) {
-        this.attachedAudioElement.srcObject = new MediaStream([this.avatarAudioTrack]);
+        this.attachedAudioElement.srcObject = new MediaStream([
+          this.avatarAudioTrack,
+        ]);
         this.attachedAudioElement.play().catch(() => {});
       } else {
         this.autoPlayAudio(this.avatarAudioTrack);
@@ -479,7 +501,14 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         this.emit(AvatarEvent.MicPermissionChanged, 'granted');
       } catch (err) {
         this.emit(AvatarEvent.MicPermissionChanged, 'denied');
-        this.emit(AvatarEvent.Error, toAvatarError('MEDIA_PERMISSION_DENIED', 'Microphone access denied', err));
+        this.emit(
+          AvatarEvent.Error,
+          toAvatarError(
+            'MEDIA_PERMISSION_DENIED',
+            'Microphone access denied',
+            err,
+          ),
+        );
       }
     }
 
@@ -489,7 +518,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
         this._cameraEnabled = true;
         this.emitLocalVideoTrack(room);
       } catch (err) {
-        this.emit(AvatarEvent.Error, toAvatarError('MEDIA_PERMISSION_DENIED', 'Camera access denied', err));
+        this.emit(
+          AvatarEvent.Error,
+          toAvatarError('MEDIA_PERMISSION_DENIED', 'Camera access denied', err),
+        );
       }
     }
 
@@ -503,7 +535,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       this._micEnabled = enabled;
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toAvatarError('MEDIA_DEVICE_ERROR', 'Failed to toggle microphone', err));
+      this.emit(
+        AvatarEvent.Error,
+        toAvatarError('MEDIA_DEVICE_ERROR', 'Failed to toggle microphone', err),
+      );
     }
   }
 
@@ -519,7 +554,10 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       }
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toAvatarError('MEDIA_DEVICE_ERROR', 'Failed to toggle camera', err));
+      this.emit(
+        AvatarEvent.Error,
+        toAvatarError('MEDIA_DEVICE_ERROR', 'Failed to toggle camera', err),
+      );
     }
   }
 
@@ -533,7 +571,9 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
     }
 
     const onPublished = () => {
-      const retryPub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const retryPub = room.localParticipant.getTrackPublication(
+        Track.Source.Camera,
+      );
       const retryTrack = retryPub?.track?.mediaStreamTrack;
       if (retryTrack) {
         this._localVideoTrack = retryTrack;
@@ -551,17 +591,30 @@ export class AvatarSession extends Emitter<AvatarEventMap> {
       this._screenShareActive = active;
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toAvatarError('SCREEN_SHARE_FAILED', 'Failed to toggle screen share', err));
+      this.emit(
+        AvatarEvent.Error,
+        toAvatarError(
+          'SCREEN_SHARE_FAILED',
+          'Failed to toggle screen share',
+          err,
+        ),
+      );
     }
   }
 
-  private async switchDevice(kind: MediaDeviceKind, deviceId: string): Promise<void> {
+  private async switchDevice(
+    kind: MediaDeviceKind,
+    deviceId: string,
+  ): Promise<void> {
     if (!this.room) return;
     try {
       await this.room.switchActiveDevice(kind, deviceId);
       this.emit(AvatarEvent.MediaChanged);
     } catch (err) {
-      this.emit(AvatarEvent.Error, toAvatarError('MEDIA_DEVICE_ERROR', `Failed to switch ${kind}`, err));
+      this.emit(
+        AvatarEvent.Error,
+        toAvatarError('MEDIA_DEVICE_ERROR', `Failed to switch ${kind}`, err),
+      );
     }
   }
 
@@ -655,7 +708,11 @@ export async function streamTo(options: {
 }): Promise<AvatarSession> {
   const { credentials, target, audio, video } = options;
   const { sessionId, sessionKey, baseUrl } = credentials;
-  const { serverUrl, token } = await resolveCredentials({ sessionId, sessionKey, baseUrl });
+  const { serverUrl, token } = await resolveCredentials({
+    sessionId,
+    sessionKey,
+    baseUrl,
+  });
 
   const session = new AvatarSession(sessionId);
   session.streamTo(target);
@@ -683,7 +740,11 @@ export async function connect(options: {
 }): Promise<AvatarSession> {
   const { credentials, audio, video } = options;
   const { sessionId, sessionKey, baseUrl } = credentials;
-  const { serverUrl, token } = await resolveCredentials({ sessionId, sessionKey, baseUrl });
+  const { serverUrl, token } = await resolveCredentials({
+    sessionId,
+    sessionKey,
+    baseUrl,
+  });
 
   const session = new AvatarSession(sessionId);
   await session._connect(serverUrl, token, { audio, video });

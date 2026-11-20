@@ -11,7 +11,9 @@ const CONSUME_RESPONSE = {
 
 let fetchCalls: Array<{ url: string; init?: RequestInit }>;
 
-function mockFetch(handler: (url: string, init?: RequestInit) => Response | Promise<Response>) {
+function mockFetch(
+  handler: (url: string, init?: RequestInit) => Response | Promise<Response>,
+) {
   fetchCalls = [];
   const wrapped = (url: string | URL | Request, init?: RequestInit) => {
     const urlStr = typeof url === 'string' ? url : url.toString();
@@ -93,11 +95,12 @@ describe('fetchCredentials', () => {
       roomName: 'other-room',
     };
 
-    mockFetch(() =>
-      new Response(JSON.stringify(fullCredentials), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }),
+    mockFetch(
+      () =>
+        new Response(JSON.stringify(fullCredentials), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
     );
 
     const result = await fetchCredentials({
@@ -172,8 +175,8 @@ describe('fetchCredentials', () => {
   });
 
   it('throws when no credential source is provided', async () => {
-    await expect(
-      fetchCredentials({ avatarId: 'test-avatar' }),
-    ).rejects.toThrow('AvatarCall requires one of');
+    await expect(fetchCredentials({ avatarId: 'test-avatar' })).rejects.toThrow(
+      'AvatarCall requires one of',
+    );
   });
 });

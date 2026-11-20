@@ -64,7 +64,12 @@ export type TranscriptionHandler = (entry: TranscriptionEntry) => void;
 
 export type MicPermissionState = 'pending' | 'granted' | 'denied';
 
-export type ConnectionQuality = 'excellent' | 'good' | 'poor' | 'lost' | 'unknown';
+export type ConnectionQuality =
+  | 'excellent'
+  | 'good'
+  | 'poor'
+  | 'lost'
+  | 'unknown';
 
 export type ActiveSpeaker = 'user' | 'avatar';
 

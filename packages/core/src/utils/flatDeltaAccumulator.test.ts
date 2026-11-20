@@ -90,7 +90,10 @@ describe('FlatDeltaAccumulator', () => {
 
   it('does not reopen a finalized turn when a late delta arrives', () => {
     const acc = new FlatDeltaAccumulator();
-    acc.ingest({ role: 'assistant', turn: 0, textDelta: 'done', final: true }, 'worker:1');
+    acc.ingest(
+      { role: 'assistant', turn: 0, textDelta: 'done', final: true },
+      'worker:1',
+    );
 
     const late = acc.ingest(
       { role: 'assistant', turn: 0, textDelta: ' late' },
@@ -114,7 +117,10 @@ describe('FlatDeltaAccumulator', () => {
   it('finalizes roles independently when explicit completion markers arrive', () => {
     const acc = new FlatDeltaAccumulator();
     acc.ingest({ role: 'assistant', turn: 0, textDelta: 'answer' }, 'worker:1');
-    acc.ingest({ role: 'user', turn: 0, textDelta: 'question' }, 'participant:me');
+    acc.ingest(
+      { role: 'user', turn: 0, textDelta: 'question' },
+      'participant:me',
+    );
 
     const assistant = acc.ingest(
       { role: 'assistant', turn: 0, textDelta: '', final: true },

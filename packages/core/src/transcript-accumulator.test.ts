@@ -12,10 +12,7 @@ describe('TranscriptAccumulator', () => {
     const handler = mock();
     acc.on('update', handler);
 
-    acc.ingestNative(
-      [{ id: 'seg-1', text: 'Hello', final: true }],
-      'avatar',
-    );
+    acc.ingestNative([{ id: 'seg-1', text: 'Hello', final: true }], 'avatar');
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(acc.entries).toHaveLength(1);
@@ -89,7 +86,12 @@ describe('TranscriptAccumulator', () => {
       new TextEncoder().encode(JSON.stringify(obj));
 
     acc.ingestDataChannel(
-      encode({ type: 'transcription', role: 'assistant', turn: 0, text: 'Hel' }),
+      encode({
+        type: 'transcription',
+        role: 'assistant',
+        turn: 0,
+        text: 'Hel',
+      }),
       'worker:avatar',
     );
     acc.ingestDataChannel(
@@ -107,7 +109,12 @@ describe('TranscriptAccumulator', () => {
       new TextEncoder().encode(JSON.stringify(obj));
 
     acc.ingestDataChannel(
-      encode({ type: 'transcription', role: 'assistant', turn: 3, text: 'last answer' }),
+      encode({
+        type: 'transcription',
+        role: 'assistant',
+        turn: 3,
+        text: 'last answer',
+      }),
       'worker:avatar',
     );
     expect(acc.entries).toEqual([]);
@@ -148,7 +155,12 @@ describe('TranscriptAccumulator', () => {
       'worker:avatar',
     );
     acc.ingestDataChannel(
-      encode({ type: 'transcription', role: 'assistant', turn: 0, text: ' late' }),
+      encode({
+        type: 'transcription',
+        role: 'assistant',
+        turn: 0,
+        text: ' late',
+      }),
       'worker:avatar',
     );
 

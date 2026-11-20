@@ -111,7 +111,10 @@ export function useTranscript(
       if (changed) flushMap();
     }
 
-    function handleDataReceived(payload: Uint8Array, participant?: Participant) {
+    function handleDataReceived(
+      payload: Uint8Array,
+      participant?: Participant,
+    ) {
       if (!mergeDataRef.current) return;
 
       const json = tryDecodeJSON(payload);
@@ -137,7 +140,11 @@ export function useTranscript(
 
       let changed = false;
       for (const turn of finalized) {
-        mapRef.current.set(turn.id, { ...turn, final: true, channel: 'custom' });
+        mapRef.current.set(turn.id, {
+          ...turn,
+          final: true,
+          channel: 'custom',
+        });
         changed = true;
       }
 
