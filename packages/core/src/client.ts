@@ -1,18 +1,32 @@
-import {
-  ConnectionQuality as LKConnectionQuality,
-  ConnectionState,
-  Room,
-  RoomEvent,
-  Track,
-} from 'livekit-client';
 import type {
   Participant,
   RemoteTrackPublication,
   TranscriptionSegment,
 } from 'livekit-client';
+import {
+  ConnectionState,
+  ConnectionQuality as LKConnectionQuality,
+  Room,
+  RoomEvent,
+  Track,
+} from 'livekit-client';
 
 import { consumeSession } from './api/consume';
+import { Emitter } from './emitter';
 import { toAvatarError } from './error';
+import { TranscriptAccumulator } from './transcript-accumulator';
+import {
+  type ActiveSpeaker,
+  AvatarEvent,
+  type AvatarEventMap,
+  type ClientEvent,
+  type ConnectionQuality,
+  type MediaController,
+  type ScreenShareController,
+  type SessionState,
+  type TranscriptionEntry,
+  type TranscriptOptions,
+} from './types';
 import { FlatDeltaAccumulator } from './utils/flatDeltaAccumulator';
 import { parseClientEvent } from './utils/parseClientEvent';
 import {
@@ -20,20 +34,6 @@ import {
   tryParseFlatDelta,
   tryParseSegmentArray,
 } from './utils/parseTranscription';
-import { Emitter } from './emitter';
-import { TranscriptAccumulator } from './transcript-accumulator';
-import {
-  AvatarEvent,
-  type ActiveSpeaker,
-  type AvatarEventMap,
-  type ClientEvent,
-  type ConnectionQuality,
-  type MediaController,
-  type ScreenShareController,
-  type SessionState,
-  type TranscriptOptions,
-  type TranscriptionEntry,
-} from './types';
 
 function toLKQuality(q: LKConnectionQuality): ConnectionQuality {
   switch (q) {

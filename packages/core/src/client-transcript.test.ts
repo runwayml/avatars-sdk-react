@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { Room, RoomEvent } from 'livekit-client';
 import type { RemoteParticipant } from 'livekit-client';
+import { Room, RoomEvent } from 'livekit-client';
 import { AvatarSession } from './client';
 
 describe('AvatarSession transcript event routing', () => {

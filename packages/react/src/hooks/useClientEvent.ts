@@ -1,14 +1,15 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
 import {
+  type ClientEvent,
   type ClientToolArgs,
   type ClientToolDef,
+  parseClientEvent,
   validateClientToolArgs,
 } from '@runwayml/avatars';
-import { parseClientEvent, type ClientEvent } from '@runwayml/avatars';
+import { RoomEvent } from 'livekit-client';
+import { useEffect, useRef, useState } from 'react';
 
 type EventArgs<E extends ClientEvent, T extends E['tool']> = Extract<
   E,

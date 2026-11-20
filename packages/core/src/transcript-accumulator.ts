@@ -1,12 +1,11 @@
-import type { TranscriptionEntry } from './types';
+import { Emitter } from './emitter';
+import type { TranscriptionEntry, TranscriptOptions } from './types';
 import { FlatDeltaAccumulator } from './utils/flatDeltaAccumulator';
 import {
   tryDecodeJSON,
   tryParseFlatDelta,
   tryParseSegmentArray,
 } from './utils/parseTranscription';
-import { Emitter } from './emitter';
-import type { TranscriptOptions } from './types';
 
 const DEFAULT_BUFFER_SIZE = 100;
 

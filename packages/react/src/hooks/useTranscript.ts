@@ -1,16 +1,16 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import type { Participant, TranscriptionSegment } from 'livekit-client';
-import { RoomEvent } from 'livekit-client';
-import { useEffect, useRef, useState } from 'react';
-import type { TranscriptionEntry } from '../types';
 import {
   FlatDeltaAccumulator,
   tryDecodeJSON,
   tryParseFlatDelta,
   tryParseSegmentArray,
 } from '@runwayml/avatars';
+import type { Participant, TranscriptionSegment } from 'livekit-client';
+import { RoomEvent } from 'livekit-client';
+import { useEffect, useRef, useState } from 'react';
+import type { TranscriptionEntry } from '../types';
 
 export interface UseTranscriptOptions {
   /** Include interim (non-final) segments. Default: `false` */

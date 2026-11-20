@@ -1,10 +1,10 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
+import { parseClientEvent } from '@runwayml/avatars';
 import { RoomEvent } from 'livekit-client';
 import { useEffect, useRef } from 'react';
 import type { ClientEvent, ClientEventHandler } from '../types';
-import { parseClientEvent } from '@runwayml/avatars';
 
 /**
  * Hook to listen for all client events from the avatar.
